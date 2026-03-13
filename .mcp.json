@@ -1,8 +1,13 @@
 {
   "mcpServers": {
     "UnityMCP": {
-      "command": "node",
-      "args": ["node_modules/@anthropic/unity-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@anthropic/unity-mcp@latest"],
+      "env": {}
+    },
+    "coplay-mcp": {
+      "command": "npx",
+      "args": ["-y", "coplay-mcp@latest"],
       "env": {}
     }
   }
