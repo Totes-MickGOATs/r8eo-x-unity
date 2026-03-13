@@ -1,20 +1,27 @@
-# Tests
+# tests/
 
-Test files live here. Engine-specific test frameworks are configured during engine setup.
+Unity Test Framework tests. Edit Mode tests for pure logic, Play Mode for runtime behavior.
+
+## Structure
+
+```
+tests/
+├── EditMode/           # Fast tests: pure C#, ScriptableObjects, serialization
+│   ├── Game.Tests.EditMode.asmdef
+│   └── Test_*.cs
+├── PlayMode/           # Runtime tests: MonoBehaviours, physics, coroutines
+│   ├── Game.Tests.PlayMode.asmdef
+│   └── Test_*.cs
+└── helpers/            # Shared test utilities
+```
 
 ## Conventions
 
-- **Naming:** `test_<system>.gd` (Godot), `Test<System>.cs` (Unity), `<System>Test.cpp` (Unreal)
-- **TDD:** Write tests FIRST (Red), implement (Green), commit
-- **Tiers:** Unit tests (always), integration tests (when wiring/signals involved), E2E (complex flows)
+- **TDD:** Write test → RED → Implement → GREEN → Refactor → Commit
+- **Naming:** `Test_<SystemName>.cs`, methods: `MethodName_Condition_ExpectedResult()`
+- **Edit Mode first:** If it doesn't need MonoBehaviour lifecycle, use Edit Mode (10x faster)
+- **[UnityTest]:** Only for tests that need coroutines (physics, scene loading, async)
 
-## Helpers
+## Relevant Skills
 
-Shared test utilities live in `tests/helpers/`. Add reusable assertions, fixtures, and mock factories here.
-
-## Running Tests
-
-```bash
-just test-fast <test_file>   # Single file (engine-specific)
-just test                    # Full suite (CI only — don't run locally)
-```
+- `.agents/skills/unity-testing-patterns/SKILL.md` — Full testing guide
