@@ -113,7 +113,10 @@
     ]
   },
   "worktree": {
-    "symlinkDirectories": [".venv"]
+    "symlinkDirectories": [
+      ".venv",
+      "Library"
+    ]
   },
   "statusLine": {
     "type": "command",

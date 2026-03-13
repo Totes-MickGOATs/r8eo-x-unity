@@ -1,6 +1,8 @@
 {
-  "ENGINE": "",
+  "ENGINE": "unity",
   "GAME_NAME": "My Game",
-  "REQUIRED_CHECKS": ["Lint & Preflight"],
+  "REQUIRED_CHECKS": [
+    "Lint & Preflight"
+  ],
   "MAIN_BRANCH": "main"
 }

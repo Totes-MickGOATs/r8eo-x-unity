@@ -79,3 +79,26 @@ build/
 # *.sdf
 # *.suo
 # *.xcworkspace
+
+# --- Unity engine (added by setup-engine.sh) ---
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+*.csproj
+*.sln
+*.suo
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.pidb.meta
+crashlytics-buildid.txt
