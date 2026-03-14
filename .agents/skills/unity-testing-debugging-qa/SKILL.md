@@ -2,6 +2,22 @@
 
 Comprehensive guide to testing, debugging, and quality assurance for Unity games. Use this skill as the unified entry point when planning QA strategy, setting up test infrastructure, debugging issues, or integrating quality checks into CI/CD. For deep dives into specific areas, see the Related Skills section.
 
+## Minimum Coverage Requirements (MANDATORY)
+
+> **Every change MUST meet these minimum test requirements. No exceptions.**
+
+| Level | What | Minimum | Where |
+|-------|------|---------|-------|
+| **Unit** | Every public method/function touched or added | **1 positive + 1 negative per method** (minimum 2) | `Assets/Tests/EditMode/` |
+| **Integration** | Every cross-class/cross-system interaction | **1 per interaction path** | `Assets/Tests/EditMode/` or `Assets/Tests/PlayMode/` |
+| **E2E (PlayMode)** | Every user-facing feature or behavior change | **1 per feature/behavior** | `Assets/Tests/PlayMode/` |
+
+- **Positive test:** Valid input, correct output (happy path)
+- **Negative test:** Invalid/edge/boundary input handled correctly (zero, null, out-of-range, NaN)
+- **Test naming:** `MethodName_Scenario_ExpectedOutcome`
+- **Pre-implementation:** Tests MUST be written by a separate black-box agent (no implementation knowledge) before implementation begins. See `.agents/skills/ask-first/SKILL.md` Phase 2.
+- **Test Integrity Rule:** Implementing agents MUST NOT silently modify tests to make them pass. If a test assertion appears wrong, file it as a finding and discuss with the user.
+
 ## Testing Philosophy
 
 ### The Testing Pyramid

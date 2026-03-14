@@ -2,6 +2,21 @@
 
 Testing in Unity using the Unity Test Framework (based on NUnit). This project uses TDD: write tests first, run them, confirm red, implement, confirm green, commit.
 
+## Minimum Coverage Requirements (MANDATORY)
+
+> **Every public method/function MUST have at minimum 1 positive + 1 negative test.** This is non-negotiable.
+
+| Level | What | Minimum | Where |
+|-------|------|---------|-------|
+| **Unit** | Every public method/function touched or added | **1 positive + 1 negative per method** (minimum 2) | `Assets/Tests/EditMode/` |
+| **Integration** | Every cross-class/cross-system interaction | **1 per interaction path** | `Assets/Tests/EditMode/` or `Assets/Tests/PlayMode/` |
+| **E2E (PlayMode)** | Every user-facing feature or behavior change | **1 per feature/behavior** | `Assets/Tests/PlayMode/` |
+
+- **Positive test:** Verifies correct behavior with valid input (happy path)
+- **Negative test:** Verifies correct handling of invalid/edge/boundary input (zero, null, out-of-range, NaN)
+- **Test naming:** `MethodName_Scenario_ExpectedOutcome` — must read like a sentence
+- **Pre-implementation:** Tests MUST be written by a separate black-box agent before implementation begins. See `.agents/skills/ask-first/SKILL.md` Phase 2.
+
 ## Test Framework Setup
 
 Unity Test Framework comes pre-installed. Tests live in assembly definitions:

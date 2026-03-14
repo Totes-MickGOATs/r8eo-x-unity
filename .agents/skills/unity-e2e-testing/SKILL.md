@@ -2,6 +2,17 @@
 
 Comprehensive guide to automating end-to-end testing in Unity projects.
 
+## E2E Coverage Requirement (MANDATORY)
+
+> **Every user-facing feature or behavior change MUST have at least 1 E2E PlayMode test.** This is non-negotiable.
+
+E2E tests verify the complete user journey from input to visible outcome in a real game loop. They catch wiring bugs, scene setup issues, and integration failures that unit tests cannot.
+
+- **When required:** Any change that affects what the player sees, hears, or controls
+- **Where:** `Assets/Tests/PlayMode/`
+- **Pre-implementation:** E2E tests MUST be written by a separate black-box agent before implementation begins. See `.agents/skills/ask-first/SKILL.md` Phase 2.
+- **Test naming:** `Feature_Scenario_ExpectedOutcome` — must read like a sentence
+
 ## Testing Pyramid for Games
 
 | Level | What to Test | Tools | Speed |
