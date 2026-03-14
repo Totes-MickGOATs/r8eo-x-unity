@@ -46,6 +46,7 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `unity-build-distribution` | Tools | IL2CPP, Addressables, Steam integration, GameCI, demo strategy, crash reporting |
 | `unity-rc-audio` | Gameplay | Brushless motor audio, RPM crossfade, servo, surface audio, AudioMixer, CC0 sources |
 | `unity-genre-racing` | Core | Racing game architecture, AI opponents, race management, multiplayer, RC-specific physics |
+| `unity-input-debugging` | Quality | Phantom input on Windows, variance-based detection, mode gating, deadzones, input TDD matrix |
 | `unity-e2e-testing` | Quality | End-to-end testing automation, testing pyramid, full gameplay flow validation |
 | `branch-workflow` | Process | Merge queue, worktree recipes, PR lifecycle, CI/CD, branch protection |
 | `debug-system` | Process | Debug overlays, logging, diagnostic tools, runtime inspection |
