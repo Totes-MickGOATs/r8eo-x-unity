@@ -11,7 +11,7 @@ Claude Code event hooks. These run automatically at various lifecycle points.
 | `pre-compact-context.sh` | PreCompact | Capture branch/PR state before context compaction |
 | `session-start.sh` | SessionStart | Configure git hooks, run engine-specific init |
 | `stop-uncommitted-check.sh` | Stop | Warn about uncommitted code files |
-| `subagent-quality-gate.sh` | SubagentStop | Verify subagent pushed and created PR |
+| `subagent-quality-gate.sh` | SubagentStop | Verify subagent pushed and created PR, remind to run `/dev:clean-loop` |
 | `worktree-setup.sh` | WorktreeCreate | Auto-setup new worktrees (delegates to engine hook) |
 
 ## Engine Hooks
