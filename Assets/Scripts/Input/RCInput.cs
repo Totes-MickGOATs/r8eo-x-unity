@@ -11,8 +11,10 @@ namespace R8EOX.Input
     {
         // ---- Constants ----
 
-        const int k_DetectWindow = 300;
-        const float k_StrongInputThreshold = 0.3f;
+        /// <summary>Number of startup frames to skip for trigger detection (C5 fix).</summary>
+        const int k_GraceFrames = 60;
+        /// <summary>Consecutive strong-input frames required to lock trigger mode (C5 fix).</summary>
+        const int k_ConfirmFrames = 5;
 
 
         // ---- Serialized Fields ----
@@ -24,8 +26,8 @@ namespace R8EOX.Input
         [Header("Gamepad Deadzones")]
         [Tooltip("Deadzone for trigger axes — values below this are treated as 0")]
         [SerializeField] private float _triggerDeadzone = 0.15f;
-        [Tooltip("Deadzone for steering stick")]
-        [SerializeField] private float _steerDeadzone = 0.1f;
+        [Tooltip("Deadzone for steering stick (M4 fix: increased from 0.1 to 0.2)")]
+        [SerializeField] private float _steerDeadzone = 0.2f;
 
 
         // ---- IVehicleInput Properties ----
@@ -46,22 +48,39 @@ namespace R8EOX.Input
 
         // ---- Private Fields ----
 
-        private enum TriggerMode { Detecting, Separate, Combined, None }
-        private TriggerMode _triggerMode = TriggerMode.Detecting;
-        private int _detectFrames;
+        private TriggerDetector _triggerDetector;
 
 
         // ---- Unity Lifecycle ----
 
+        void Awake()
+        {
+            _triggerDetector = new TriggerDetector(k_GraceFrames, k_ConfirmFrames);
+        }
+
         void Update()
         {
+            // M3: Suppress all input during startup grace period
+            if (InputGuard.ShouldSuppressInput(Time.frameCount))
+            {
+                Throttle = 0f;
+                Brake = 0f;
+                Steer = 0f;
+                ResetPressed = false;
+                DebugTogglePressed = false;
+                CameraCyclePressed = false;
+                return;
+            }
+
             PollThrottle();
             PollBrake();
             PollSteering();
             PollButtons();
 
-            if (_triggerMode == TriggerMode.Detecting)
+            if (_triggerDetector.CurrentMode == TriggerDetector.Mode.Detecting)
+            {
                 DetectTriggerMode();
+            }
         }
 
 
@@ -87,8 +106,9 @@ namespace R8EOX.Input
             if (UnityEngine.Input.GetKey(KeyCode.D)) kb += 1f;
             if (UnityEngine.Input.GetKey(KeyCode.A)) kb -= 1f;
 
+            // M4: Use symmetric deadzone that preserves sign
             float gp = UnityEngine.Input.GetAxisRaw("Horizontal");
-            if (Mathf.Abs(gp) < _steerDeadzone) gp = 0f;
+            gp = InputMath.ApplySymmetricDeadzone(gp, _steerDeadzone);
 
             float raw = InputMath.MergeInputs(gp, kb);
             Steer = InputMath.ApplySteeringCurve(raw, _steerCurveExponent);
@@ -105,51 +125,41 @@ namespace R8EOX.Input
 
         private void DetectTriggerMode()
         {
-            _detectFrames++;
-
             float sepRT = Mathf.Abs(UnityEngine.Input.GetAxisRaw("RightTrigger"));
             float sepLT = Mathf.Abs(UnityEngine.Input.GetAxisRaw("LeftTrigger"));
             float combined = Mathf.Abs(UnityEngine.Input.GetAxisRaw("CombinedTriggers"));
 
-            if (sepRT > k_StrongInputThreshold || sepLT > k_StrongInputThreshold)
-            {
-                _triggerMode = TriggerMode.Separate;
-                Debug.Log("[RCInput] Gamepad triggers: separate axes (9/10)");
-                return;
-            }
+            _triggerDetector.ProcessFrame(sepRT, sepLT, combined, Time.frameCount);
 
-            if (combined > k_StrongInputThreshold)
-            {
-                _triggerMode = TriggerMode.Combined;
-                Debug.Log("[RCInput] Gamepad triggers: combined axis (3)");
-                return;
-            }
-
-            if (_detectFrames >= k_DetectWindow)
-            {
-                _triggerMode = TriggerMode.None;
-                Debug.Log("[RCInput] No gamepad triggers detected — keyboard only.");
-            }
+            if (_triggerDetector.CurrentMode == TriggerDetector.Mode.Separate)
+                UnityEngine.Debug.Log("[RCInput] Gamepad triggers: separate axes (9/10)");
+            else if (_triggerDetector.CurrentMode == TriggerDetector.Mode.Combined)
+                UnityEngine.Debug.Log("[RCInput] Gamepad triggers: combined axis (3)");
+            else if (_triggerDetector.CurrentMode == TriggerDetector.Mode.None)
+                UnityEngine.Debug.Log("[RCInput] No gamepad triggers detected — keyboard only.");
         }
 
         private float GetGamepadThrottle()
         {
-            switch (_triggerMode)
+            var mode = _triggerDetector.CurrentMode;
+            const float strongThreshold = 0.3f;
+
+            switch (mode)
             {
-                case TriggerMode.Separate:
+                case TriggerDetector.Mode.Separate:
                     return InputMath.ApplyDeadzone(
                         UnityEngine.Input.GetAxisRaw("RightTrigger"), _triggerDeadzone);
 
-                case TriggerMode.Combined:
+                case TriggerDetector.Mode.Combined:
                     return InputMath.ApplyDeadzone(
                         UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
 
-                case TriggerMode.Detecting:
+                case TriggerDetector.Mode.Detecting:
                     float rt = UnityEngine.Input.GetAxisRaw("RightTrigger");
-                    if (rt > k_StrongInputThreshold)
+                    if (rt > strongThreshold)
                         return InputMath.ApplyDeadzone(rt, _triggerDeadzone);
                     float com = UnityEngine.Input.GetAxisRaw("CombinedTriggers");
-                    if (com > k_StrongInputThreshold)
+                    if (com > strongThreshold)
                         return InputMath.ApplyDeadzone(com, _triggerDeadzone);
                     return 0f;
 
@@ -160,22 +170,25 @@ namespace R8EOX.Input
 
         private float GetGamepadBrake()
         {
-            switch (_triggerMode)
+            var mode = _triggerDetector.CurrentMode;
+            const float strongThreshold = 0.3f;
+
+            switch (mode)
             {
-                case TriggerMode.Separate:
+                case TriggerDetector.Mode.Separate:
                     return InputMath.ApplyDeadzone(
                         UnityEngine.Input.GetAxisRaw("LeftTrigger"), _triggerDeadzone);
 
-                case TriggerMode.Combined:
+                case TriggerDetector.Mode.Combined:
                     return InputMath.ApplyDeadzone(
                         -UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
 
-                case TriggerMode.Detecting:
+                case TriggerDetector.Mode.Detecting:
                     float lt = UnityEngine.Input.GetAxisRaw("LeftTrigger");
-                    if (lt > k_StrongInputThreshold)
+                    if (lt > strongThreshold)
                         return InputMath.ApplyDeadzone(lt, _triggerDeadzone);
                     float com = -UnityEngine.Input.GetAxisRaw("CombinedTriggers");
-                    if (com > k_StrongInputThreshold)
+                    if (com > strongThreshold)
                         return InputMath.ApplyDeadzone(com, _triggerDeadzone);
                     return 0f;
 

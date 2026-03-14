@@ -20,6 +20,7 @@ namespace R8EOX.Vehicle
         const float k_FlipHeightOffset = 1.4f;
         const float k_ReverseSpeedThreshold = 0.25f;
         const float k_ForwardSpeedClearThreshold = 0.50f;
+        const float k_ReverseBrakeMinThreshold = 0.1f;
         const float k_MsToKmh = 3.6f;
 
 
@@ -366,34 +367,23 @@ namespace R8EOX.Vehicle
 
         private void ApplyGroundDrive(float throttleIn, float brakeIn, float fwdSpeed)
         {
-            if (throttleIn > 0f || fwdSpeed > k_ForwardSpeedClearThreshold)
-                ReverseEngaged = false;
-            else if (brakeIn > 0f && fwdSpeed < k_ReverseSpeedThreshold)
-                ReverseEngaged = true;
+            var result = PhysicsMath.ESCMath.ComputeGroundDrive(
+                throttleIn, brakeIn, fwdSpeed,
+                ReverseEngaged,
+                _engineForceMax, _brakeForce, _reverseForce,
+                _coastDrag, _maxSpeed, _rb.velocity.magnitude,
+                k_ReverseSpeedThreshold, k_ForwardSpeedClearThreshold,
+                k_ReverseBrakeMinThreshold);
 
-            if (throttleIn > 0f)
+            CurrentEngineForce = result.EngineForce;
+            CurrentBrakeForce = result.BrakeForce;
+            ReverseEngaged = result.ReverseEngaged;
+
+            // C6: Apply coast drag as a separate retarding force, not as brake
+            // This prevents IsBraking from being set true during coasting
+            if (result.CoastDragForce > 0f)
             {
-                CurrentEngineForce = _rb.velocity.magnitude >= _maxSpeed ? 0f : throttleIn * _engineForceMax;
-                CurrentBrakeForce = 0f;
-            }
-            else if (brakeIn > 0f)
-            {
-                if (ReverseEngaged)
-                {
-                    CurrentEngineForce = -brakeIn * _reverseForce;
-                    CurrentBrakeForce = 0f;
-                }
-                else
-                {
-                    CurrentEngineForce = 0f;
-                    CurrentBrakeForce = brakeIn * _brakeForce;
-                }
-            }
-            else
-            {
-                ReverseEngaged = false;
-                CurrentEngineForce = 0f;
-                CurrentBrakeForce = _coastDrag;
+                _rb.AddForce(-transform.forward * result.CoastDragForce, ForceMode.Force);
             }
         }
 

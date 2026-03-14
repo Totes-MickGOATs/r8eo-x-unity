@@ -12,6 +12,7 @@ No Unity lifecycle dependency — these are static utility classes.
 | `DrivetrainMath.cs` | `DrivetrainMath` | Differential force distribution (Open/BallDiff/Spool), AWD center diff |
 | `AirPhysicsMath.cs` | `AirPhysicsMath` | Pitch/roll torque, gyroscopic damping |
 | `TumbleMath.cs` | `TumbleMath` | Tumble detection with smoothstep and hysteresis |
+| `ESCMath.cs` | `ESCMath` | ESC ground drive logic: engine cutoff, braking, reverse, coast drag |
 
 ## Design Principle
 
