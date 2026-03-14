@@ -82,5 +82,10 @@ echo ""
 echo "REMINDER: Run /dev:clean-loop before declaring done."
 echo "  → Captures lessons learned, updates docs, checks memory, verifies clean state."
 
+# CI monitoring reminder
+echo "REMINDER: Watch CI through merge before exiting."
+echo "  → gh run watch && gh pr view --json state -q .state"
+echo "  → Then: git fetch origin main && git update-ref refs/heads/main origin/main"
+
 # Never block — always exit 0
 exit 0

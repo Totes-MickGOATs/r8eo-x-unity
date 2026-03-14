@@ -78,10 +78,12 @@ A task is **not done** until ALL of the following are true. Agents must self-mon
 | # | Criterion | How to Verify |
 |---|-----------|---------------|
 | 1 | PR is open with all commits pushed | `gh pr view` shows your PR |
-| 2 | CI is green | `gh run list --branch <branch>` shows success |
+| 2 | CI is green | `gh run watch` completed successfully |
 | 3 | `ready-to-merge` label applied | `gh pr view` shows the label |
-| 4 | No other agent's PR broken by your changes | Merge queue handles this — if it removes your label, you fix the conflict/failure |
-| 5 | Knowledge synced | CLAUDE.md files, manifests updated if applicable |
+| 4 | PR merged | `gh pr view --json state -q .state` returns `MERGED` |
+| 5 | Local main updated | `git fetch origin main && git update-ref refs/heads/main origin/main` |
+| 6 | No other agent's PR broken by your changes | Merge queue handles this — if it removes your label, you fix the conflict/failure |
+| 7 | Knowledge synced | CLAUDE.md files, manifests updated if applicable |
 
 ### Owning Your CI
 
@@ -131,24 +133,28 @@ When Claude Code spawns a subagent with `isolation: "worktree"`, the subagent ge
 2. **Develop**: Write code, run tests, commit
 3. **Push**: `git push -u origin <branch>`
 4. **Create PR**: `gh pr create --base main`
-5. **Monitor CI**: `gh run list --branch <branch>`
-6. **Enable auto-merge**: `gh pr merge --auto --squash` or ensure `ready-to-merge` label is applied
-7. **Do not wait for merge** — once CI is green and auto-merge is enabled, the task is done
+5. **Enable auto-merge**: `gh pr merge --auto --squash`
+6. **Watch CI**: `gh run watch` — wait for CI to complete, fix if it fails
+7. **Confirm merge**: Poll `gh pr view --json state -q .state` until it returns `MERGED`
+8. **Update local main**: `git fetch origin main && git update-ref refs/heads/main origin/main`
+
+**Subagents must NOT exit until step 8 is complete.** The main agent relies on local main being current for subsequent dispatches.
 
 ### Main Agent Responsibilities
 
 The main agent (on main) should:
 
 1. **Never edit files directly** — dispatch subagents for code changes
-2. **Pull latest main** before dispatching: `git fetch origin && git pull --ff-only origin main`
+2. **Pull latest main** before AND after dispatching: `git fetch origin && git pull --ff-only origin main`
 3. **Verify subagent work** — check the PR diff, not just CI status
-4. **Cleanup after merge**: `just worktree-cleanup <task>`
+4. **Cleanup after merge**: `just worktree-cleanup <task>` or `just worktree-sync`
 
 ### Hard Rules for All Agents
 
 - **NEVER** commit on the `main` branch
 - **NEVER** use `--no-verify` on git commit
 - **NEVER** leave a branch unmerged or CI failing
+- **NEVER** exit without watching CI through merge and updating local main
 - **ALWAYS** use `isolation: "worktree"` when spawning subagents that write code
 
 ## Gotchas & Common Mistakes
