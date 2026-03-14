@@ -1,6 +1,6 @@
 # Unity Damage, Wear & Progression for RC Racing
 
-Vehicle damage modeling, component wear simulation, and career progression systems for an RC racing simulator.
+Use this skill when implementing vehicle damage modeling, component wear simulation, or career progression systems for an RC racing simulator. Covers damage zones, visual damage, physics modifiers, tire wear, battery/motor simulation, repair economy, career tiers, vehicle upgrades, and unlock systems.
 
 ## When to Use
 
@@ -600,3 +600,14 @@ public class FullTuningState
 | Long-term battery/motor degradation | Low | Low -- realism detail |
 | Achievement and challenge unlock system | Medium | Medium -- engagement hooks |
 | Decal and LOD body swap damage visuals | High | Low -- visual polish |
+
+---
+
+## Related Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **`unity-scriptable-objects`** | Template pattern used for upgrades, tire compounds, and unlock conditions |
+| **`unity-save-load`** | Serialization of VehicleState, career progress, and currency to JSON |
+| **`unity-physics-3d`** | Physics foundations for collision detection and force-based damage |
+| **`unity-physics-tuning`** | Vehicle Rigidbody config that damage modifiers apply to |

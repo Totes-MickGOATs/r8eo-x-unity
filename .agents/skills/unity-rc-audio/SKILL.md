@@ -1,6 +1,6 @@
 # Unity RC Audio
 
-Use this skill when implementing audio for an RC car racing game. RC cars sound NOTHING like full-size vehicles — brushless motors produce a high-pitched whine, not engine rumble.
+Use this skill when implementing audio for an RC car racing game. RC cars sound nothing like full-size vehicles -- brushless motors produce a high-pitched whine, not engine rumble. Covers motor audio synthesis, RPM crossfade, ESC/servo/tire/impact sounds, AudioMixer architecture, Doppler configuration, opponent audio LOD, and compression settings.
 
 ---
 
@@ -547,3 +547,13 @@ Audio details that RC enthusiasts will notice and appreciate:
 - [ ] Per-particle audio (gravel spray, dust puffs)
 - [ ] Spectator camera mode with full Doppler
 - [ ] Dynamic EQ based on camera distance to vehicle
+
+---
+
+## Related Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **`unity-audio-systems`** | General Unity audio architecture patterns |
+| **`unity-physics-3d`** | Physics data (collision impulse, surface detection) that drives audio |
+| **`unity-performance-optimization`** | AudioSource pooling, LOD strategies, memory budgets |

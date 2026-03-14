@@ -1,6 +1,6 @@
 # Unity Weather & Track Conditions for RC Racing
 
-Dynamic weather systems and track condition modeling for an RC racing simulator.
+Use this skill when implementing dynamic weather systems and track condition modeling for an RC racing simulator. Covers weather state machines, global wetness, rain/dust/mud effects, wind physics, time of day, temperature models, track evolution, and wet surface shaders.
 
 ## When to Use
 
@@ -560,3 +560,14 @@ if (Time.unscaledDeltaTime > targetFrameTime * 1.2f)
 | **P4** | Mud dynamics with dirt accumulation | Medium | Low -- specific to off-road tracks |
 | **P4** | Battery cold performance | Low | Low -- niche realism |
 | **P4** | Dynamic quality adjustment | Medium | Low -- optimization polish |
+
+---
+
+## Related Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **`unity-physics-3d`** | General physics foundations that grip/drag calculations build on |
+| **`unity-physics-tuning`** | PhysX configuration for the vehicle that weather modifiers apply to |
+| **`unity-particles-vfx`** | Particle system fundamentals for rain, dust, and mud effects |
+| **`unity-3d-materials`** | Shader and material basics for wet surface rendering |
