@@ -41,3 +41,65 @@ ENGINE_HOOK=".githooks/pre-commit-engine.sh"
 if [ -f "$ENGINE_HOOK" ]; then
     source "$ENGINE_HOOK"
 fi
+
+# ── Test file existence check (Layer 1: coverage enforcement) ────────────────
+# Warn if staged production C# scripts have no corresponding test file.
+STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM -- '*.cs')
+
+if [ -n "$STAGED_CS" ]; then
+    MISSING_TESTS=0
+    while IFS= read -r file; do
+        # Skip non-production files: Tests/, Editor/, .asmdef files
+        case "$file" in
+            Assets/Tests/*|*/Editor/*|*.asmdef) continue ;;
+        esac
+        # Only check files under Assets/Scripts/
+        case "$file" in
+            Assets/Scripts/*) ;;
+            *) continue ;;
+        esac
+
+        # Extract class name from filename (e.g., Drivetrain.cs -> Drivetrain)
+        baseName=$(basename "$file" .cs)
+
+        # Look for matching test files
+        found=0
+        for testDir in Assets/Tests/EditMode Assets/Tests/PlayMode; do
+            if [ -d "$testDir" ]; then
+                # Check for *ClassName*Tests.cs or *ClassName*Test.cs
+                for match in "$testDir"/*"${baseName}"*Tests.cs "$testDir"/*"${baseName}"*Test.cs; do
+                    if [ -f "$match" ]; then
+                        found=1
+                        break 2
+                    fi
+                done
+            fi
+        done
+
+        # If no file match, try grepping for the class name in test files
+        if [ "$found" -eq 0 ]; then
+            if grep -rql "$baseName" Assets/Tests/ --include="*.cs" 2>/dev/null; then
+                found=1
+            fi
+        fi
+
+        if [ "$found" -eq 0 ]; then
+            if [ "$MISSING_TESTS" -eq 0 ]; then
+                echo ""
+                echo "=== Test Coverage Warnings ==="
+            fi
+            MISSING_TESTS=$((MISSING_TESTS + 1))
+            echo "WARNING: No test file found for modified script: $file"
+            echo "  Expected: Assets/Tests/EditMode/${baseName}Tests.cs or similar"
+            echo "  TDD requires tests for all production code. Write tests before pushing."
+            echo ""
+        fi
+    done <<< "$STAGED_CS"
+
+    if [ "$MISSING_TESTS" -gt 0 ]; then
+        echo "  $MISSING_TESTS script(s) without test coverage detected."
+        echo "  This is a warning — commit proceeds, but write tests before pushing."
+        echo "=== End Test Coverage Warnings ==="
+        echo ""
+    fi
+fi
