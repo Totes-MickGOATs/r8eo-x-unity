@@ -20,3 +20,4 @@ Orchestrate parallel subagents to build, review, and converge on complex tasks. 
 - **`clean-room-qa`** — Black-box verification methodology
 - **`reverse-engineering`** — Root cause analysis for bug fix swarms
 - **`unity-testing-patterns`** — Test execution for verification phase
+- **`subagent-patterns`** — Hard-won lessons for multi-agent dispatch (`.ai/knowledge/architecture/subagent-patterns.md`)
