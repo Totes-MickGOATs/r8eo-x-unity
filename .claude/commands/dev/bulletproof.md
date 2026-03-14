@@ -264,7 +264,14 @@ After code is finalized but BEFORE reporting to the user.
 - Any new systems introduced
 - Cross-references from other docs that mention the changed files
 
-Checklist:
+### Standard knowledge sync
+
+Run `/dev:clean-loop` to execute the standard knowledge sync checklist (lessons learned, documentation updates, memory hygiene, uncommitted changes, status updates).
+
+### Bulletproof contract verification
+
+Additionally, for bulletproof tasks, verify these contracts from the Phase 1 contract impact list:
+
 1. **Contract verification** (MUST DO — this is the regression firewall):
    - Run the Phase 1 contract impact list as a punchlist. For each contract identified:
      - **Manifests:** `grep` the relevant `.tres` file to confirm new file paths are present and deleted paths are removed. If a new system was created, confirm its `.tres` exists in `resources/manifests/` and is listed in `resources/manifests/CLAUDE.md`.
@@ -274,20 +281,6 @@ Checklist:
      - **Package manifest:** If new Unity packages were added, confirm `Packages/manifest.json` includes them.
      - **Constant classes:** If new collision layers, tags, or surface types were added, confirm the constants class is updated.
    - **Catch any contracts the implementation missed** — the subagent may have created files not anticipated in Phase 1. Check `git diff --name-only` for any new files and verify each one is covered.
-2. **Memory update** — Does this change invalidate anything in memory files?
-   - If a memory entry is now wrong or stale, update or remove it. Commit immediately.
-3. **CLAUDE.md update** — (Should already be done from step 1, but double-check) Does this change affect any directory's CLAUDE.md?
-   - New files added → add to the listing
-   - Files removed → remove from the listing (no "removed" comments)
-   - Behavior changed → update the description
-4. **Contradiction sweep** — Quick check: does the final state of the code match what memory and docs now say? If not, fix the docs.
-5. **Skills & knowledge growth** — Reflect on the work just completed and ask:
-   - **New skill opportunity:** Did this task involve a domain, pattern, or workflow that would benefit from a reusable skill (`.agents/skills/`)? If the same kind of work might come up again and there's no existing skill covering it, draft one.
-   - **Existing skill update:** Did the implementation reveal new patterns, gotchas, or best practices that an existing skill should capture? If a skill was consulted during the work and it was missing information that would have helped, update it now.
-   - **Memory gaps:** Beyond the stale/wrong check in step 1 — did this task teach us something new about the codebase, a tricky interaction, a non-obvious constraint, or a debugging insight that future sessions should know? If so, add or update the relevant memory file.
-   - **Workflow improvement:** Did the process itself surface friction? A test that was hard to write, a pattern that should be extracted, a convention that should be documented? Capture it in the appropriate place (memory, CLAUDE.md, or skill).
-
-   For each item identified, take action immediately — create/update the file and commit it. Don't just note "should update X" and move on.
 
 This phase is MANDATORY. Skipping it is how churn accumulates across sessions.
 
