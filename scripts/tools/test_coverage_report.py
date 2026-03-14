@@ -60,14 +60,13 @@ def count_test_methods(test_file: Path) -> int:
     text = test_file.read_text(encoding="utf-8")
     for line in text.splitlines():
         stripped = line.strip()
-        # GDScript: func test_
-        if stripped.startswith("func test_"):
-            count += 1
-        # C#: [Test] or [TestMethod] followed by public void
-        elif stripped.startswith("public void Test") or stripped.startswith("public async Task Test"):
-            count += 1
-        # C++: TEST_F or TEST
-        elif stripped.startswith("TEST(") or stripped.startswith("TEST_F("):
+        if (
+            stripped.startswith("func test_")
+            or stripped.startswith("public void Test")
+            or stripped.startswith("public async Task Test")
+            or stripped.startswith("TEST(")
+            or stripped.startswith("TEST_F(")
+        ):
             count += 1
     return count
 
@@ -164,7 +163,7 @@ def ci_compare(snap: dict) -> int:
         return 0
 
     baseline = json.loads(BASELINE_FILE.read_text(encoding="utf-8"))
-    all_pass = print_report(snap)
+    print_report(snap)
 
     regressions: list[str] = []
     improvements: list[str] = []

@@ -35,7 +35,7 @@ If this is a fresh clone or a new project created from the template, see **`SETU
 
 <!-- ENGINE-SPECIFIC: Project description added by setup-engine.sh -->
 
-**Game:** _Your game name here_ — _brief description_.
+**Game:** R8EO-X — A realistic RC Racing Simulator.
 
 Current state: _Update `.ai/knowledge/status/project-status.md` with phase tracking._
 
