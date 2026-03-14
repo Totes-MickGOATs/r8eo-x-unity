@@ -1,6 +1,6 @@
 # engine/unity/skills/
 
-27 Unity game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
+30 Unity game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
 
 These are lazy-loaded reference guides — Claude Code agents read them on-demand when working on related topics.
 
@@ -36,3 +36,6 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `swarm-development` | Process | Multi-agent orchestration, parallel review, convergence protocol |
 | `unity-mcp-workflows` | Tools | UnityMCP + coplay-mcp, paging, editor automation |
 | `unity-save-load` | Data | JSON, Addressables, PlayerPrefs, cloud saves |
+| `unity-physics-tuning` | RC Racing | PhysX config for 1/10-scale RC: solver, timestep, layers, scale fixes, determinism, common bugs |
+| `unity-weather-conditions` | RC Racing | Dynamic weather, wet track physics, rain/dust/wind, time of day, track evolution |
+| `unity-damage-progression` | RC Racing | Vehicle damage zones, tire/battery/motor wear, career mode, upgrades, economy |
