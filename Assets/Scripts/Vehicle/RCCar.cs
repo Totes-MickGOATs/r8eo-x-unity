@@ -408,27 +408,10 @@ namespace R8EOX.Vehicle
 
         private void ComputeTumbleFactor()
         {
-            TiltAngle = Mathf.Acos(Mathf.Clamp(Vector3.Dot(transform.up, Vector3.up), -1f, 1f)) * Mathf.Rad2Deg;
-
-            if (IsAirborne)
-            {
-                TumbleFactor = 0f;
-                _wasTumbling = false;
-                return;
-            }
-
-            float engageDeg = _wasTumbling ? _tumbleEngageDeg - _tumbleHysteresisDeg : _tumbleEngageDeg;
-
-            if (TiltAngle <= engageDeg)
-                TumbleFactor = 0f;
-            else if (TiltAngle >= _tumbleFullDeg)
-                TumbleFactor = 1f;
-            else
-            {
-                float tt = (TiltAngle - engageDeg) / (_tumbleFullDeg - engageDeg);
-                TumbleFactor = tt * tt * (3f - 2f * tt); // smoothstep
-            }
-
+            TiltAngle = Physics.TumbleMath.ComputeTiltAngle(transform.up);
+            TumbleFactor = Physics.TumbleMath.ComputeTumbleFactor(
+                TiltAngle, IsAirborne, _wasTumbling,
+                _tumbleEngageDeg, _tumbleFullDeg, _tumbleHysteresisDeg);
             _wasTumbling = TumbleFactor > 0f;
         }
 

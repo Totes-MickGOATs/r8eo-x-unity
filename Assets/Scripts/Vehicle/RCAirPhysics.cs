@@ -59,20 +59,21 @@ namespace R8EOX.Vehicle
         /// </summary>
         public void Apply(float dt, float throttle, float brake, float steer)
         {
-            // Pitch: throttle -> nose UP, brake -> nose DOWN
-            float pitchInput = throttle - brake;
-            float pitchForce = pitchInput * _pitchTorque * _pitchSensitivity;
+            float pitchForce = Physics.AirPhysicsMath.ComputePitchTorque(
+                throttle, brake, _pitchTorque, _pitchSensitivity);
             _rb.AddTorque(-_rb.transform.right * pitchForce);
 
-            // Roll: counter-roll from steering input
-            float rollForce = steer * _rollTorque * _rollSensitivity;
+            float rollForce = Physics.AirPhysicsMath.ComputeRollTorque(
+                steer, _rollTorque, _rollSensitivity);
             _rb.AddTorque(_rb.transform.forward * rollForce);
 
-            // Gyroscopic stabilization: resist tumbling based on wheel spin
-            float avgRpm = GetAvgWheelRpm();
-            if (avgRpm > k_MinRpmForGyro)
+            float[] wheelRpms = GetWheelRpmArray();
+            float avgRpm = Physics.AirPhysicsMath.ComputeAverageAbsRpm(wheelRpms);
+            float gyroFactor = Physics.AirPhysicsMath.ComputeGyroDampingFactor(
+                avgRpm, _gyroStrength, _gyroFullRpm);
+
+            if (gyroFactor > 0f)
             {
-                float gyroFactor = Mathf.Min(avgRpm / _gyroFullRpm, 1f) * _gyroStrength;
                 Vector3 damp = -_rb.angularVelocity * gyroFactor;
                 damp.y = 0f; // Allow yaw
                 _rb.AddTorque(damp);
@@ -82,13 +83,13 @@ namespace R8EOX.Vehicle
 
         // ---- Private Methods ----
 
-        private float GetAvgWheelRpm()
+        private float[] GetWheelRpmArray()
         {
-            if (_wheels == null || _wheels.Length == 0) return 0f;
-            float total = 0f;
-            foreach (var w in _wheels)
-                total += Mathf.Abs(w.WheelRpm);
-            return total / _wheels.Length;
+            if (_wheels == null || _wheels.Length == 0) return System.Array.Empty<float>();
+            float[] rpms = new float[_wheels.Length];
+            for (int i = 0; i < _wheels.Length; i++)
+                rpms[i] = _wheels[i].WheelRpm;
+            return rpms;
         }
     }
 }

@@ -27,6 +27,7 @@ TestTrack.unity [Root scene]
 │   └── Drivetrain (Drivetrain) [driveLayout=RWD]
 ├── Camera (CameraController) [target=RCBuggy.transform, modes=Chase/Orbit/FPV/Trackside]
 ├── TelemetryHUD (TelemetryHUD) [car=RCBuggy]
+├── SurfaceZones (trigger colliders with SurfaceConfig references)
 ├── Terrain / Track geometry
 └── Lighting (Directional Light, Skybox)
 ```
@@ -37,19 +38,29 @@ TestTrack.unity [Root scene]
 
 | File | Class | Namespace | Base | Role |
 |------|-------|-----------|------|------|
-| `Scripts/Vehicle/RCCar.cs` | `RCCar` | — | `MonoBehaviour` | Main vehicle controller: motor presets, throttle ramping, steering, tumble detection, reverse ESC, airborne management |
-| `Scripts/Vehicle/RaycastWheel.cs` | `RaycastWheel` | — | `MonoBehaviour` | Per-wheel physics: Hooke's law suspension, curve-sampled grip, longitudinal friction, motor force, visual update |
-| `Scripts/Vehicle/Drivetrain.cs` | `Drivetrain` | — | `MonoBehaviour` | Differential coupling and drive layout (Open/BallDiff/Spool, RWD/AWD) |
-| `Scripts/Vehicle/RCAirPhysics.cs` | `RCAirPhysics` | — | `MonoBehaviour` | Airborne pitch/roll torques from throttle/steer, gyroscopic stabilization from wheel spin |
-| `Scripts/Input/RCInput.cs` | `RCInput` | — | `MonoBehaviour` | Input abstraction: keyboard WASD + gamepad triggers with auto-detection, steering curve |
-| `Scripts/Camera/CameraController.cs` | `CameraController` | — | `MonoBehaviour` | Multi-mode camera: Chase, Orbit, FPV, Trackside with smooth transitions |
-| `Scripts/Camera/CameraMode.cs` | `CameraMode` | — | `enum` | Camera mode enumeration (Chase, Orbit, Fpv, Trackside) |
-| `Scripts/Camera/TracksideAnchor.cs` | `TracksideAnchor` | — | `MonoBehaviour` | Scene marker for trackside camera positions |
-| `Scripts/Camera/ChaseCamera.cs` | `ChaseCamera` | — | `MonoBehaviour` | Legacy chase camera (deprecated, kept for migration) |
-| `Scripts/Debug/TelemetryHUD.cs` | `TelemetryHUD` | — | `MonoBehaviour` | OnGUI telemetry overlay: speed, forces, per-wheel state, toggle with F2 |
-| `Scripts/Editor/SceneSetup.cs` | `SceneSetup` | — | — | Editor utilities for scene configuration |
-
-> **Note:** No namespaces are currently declared. This is a Phase 1 task: add `R8EOX.*` namespaces + assembly definitions.
+| `Vehicle/RCCar.cs` | `RCCar` | `R8EOX.Vehicle` | `MonoBehaviour` | Vehicle orchestrator: motor, steering, tumble, airborne |
+| `Vehicle/RaycastWheel.cs` | `RaycastWheel` | `R8EOX.Vehicle` | `MonoBehaviour` | Per-wheel physics: suspension, grip, friction, motor force |
+| `Vehicle/Drivetrain.cs` | `Drivetrain` | `R8EOX.Vehicle` | `MonoBehaviour` | Differential coupling (Open/BallDiff/Spool, RWD/AWD) |
+| `Vehicle/RCAirPhysics.cs` | `RCAirPhysics` | `R8EOX.Vehicle` | `MonoBehaviour` | Airborne pitch/roll/gyro torques |
+| `Vehicle/Physics/SuspensionMath.cs` | `SuspensionMath` | `R8EOX.Vehicle.Physics` | static | Hooke's law, bump stop, grip load |
+| `Vehicle/Physics/GripMath.cs` | `GripMath` | `R8EOX.Vehicle.Physics` | static | Slip ratio, lateral/longitudinal force, RPM |
+| `Vehicle/Physics/DrivetrainMath.cs` | `DrivetrainMath` | `R8EOX.Vehicle.Physics` | static | Axle diff split, AWD center diff |
+| `Vehicle/Physics/AirPhysicsMath.cs` | `AirPhysicsMath` | `R8EOX.Vehicle.Physics` | static | Pitch/roll torque, gyro damping |
+| `Vehicle/Physics/TumbleMath.cs` | `TumbleMath` | `R8EOX.Vehicle.Physics` | static | Smoothstep, hysteresis, tilt angle |
+| `Vehicle/Config/MotorPresetConfig.cs` | `MotorPresetConfig` | `R8EOX.Vehicle.Config` | `ScriptableObject` | Motor preset data asset |
+| `Vehicle/Config/SuspensionConfig.cs` | `SuspensionConfig` | `R8EOX.Vehicle.Config` | `ScriptableObject` | Suspension tuning data asset |
+| `Vehicle/Config/TractionConfig.cs` | `TractionConfig` | `R8EOX.Vehicle.Config` | `ScriptableObject` | Grip/traction data asset |
+| `Input/RCInput.cs` | `RCInput` | `R8EOX.Input` | `MonoBehaviour` | Player input: keyboard + gamepad, implements IVehicleInput |
+| `Input/IVehicleInput.cs` | `IVehicleInput` | `R8EOX.Input` | interface | Swappable input source contract |
+| `Input/InputMath.cs` | `InputMath` | `R8EOX.Input` | static | Deadzone, steering curve, input merging |
+| `Camera/CameraController.cs` | `CameraController` | `R8EOX.Camera` | `MonoBehaviour` | Multi-mode camera (Chase/Orbit/FPV/Trackside) |
+| `Camera/CameraMode.cs` | `CameraMode` | `R8EOX.Camera` | enum | Camera mode enumeration |
+| `Camera/TracksideAnchor.cs` | `TracksideAnchor` | `R8EOX.Camera` | `MonoBehaviour` | Scene marker for trackside camera |
+| `Core/SurfaceType.cs` | `SurfaceType` | `R8EOX.Core` | enum | Surface type enumeration (Dirt, Gravel, etc.) |
+| `Core/SurfaceConfig.cs` | `SurfaceConfig` | `R8EOX.Core` | `ScriptableObject` | Surface friction properties |
+| `Track/SurfaceZone.cs` | `SurfaceZone` | `R8EOX.Track` | `MonoBehaviour` | Trigger zone for surface grip modifiers |
+| `Debug/TelemetryHUD.cs` | `TelemetryHUD` | `R8EOX.Debug` | `MonoBehaviour` | OnGUI telemetry overlay |
+| `Editor/SceneSetup.cs` | `SceneSetup` | `R8EOX.Editor` | static | Editor scene/prefab builder |
 
 ---
 
@@ -58,40 +69,34 @@ TestTrack.unity [Root scene]
 ### Physics Frame Pipeline (FixedUpdate)
 
 ```
-RCInput.Update()                    ← Polls keyboard/gamepad each frame
+RCInput.Update()                          ← Polls keyboard/gamepad via InputMath
   │
-RCCar.FixedUpdate(dt)              ← Main physics orchestrator
-  ├── CheckAirborne()               ← All wheels off ground for 5+ frames?
-  ├── ComputeTumbleFactor()          ← Tilt angle → smoothstep → physics material blend
-  ├── Read input (throttle, brake, steer) from RCInput
-  ├── Ramp throttle (smoothThrottle) ← Prevents instant full power
+RCCar.FixedUpdate(dt)                    ← Main physics orchestrator
+  ├── CheckAirborne()                     ← 5-frame threshold
+  ├── ComputeTumbleFactor()               ← delegates to TumbleMath
+  ├── Read input from IVehicleInput
+  ├── Ramp throttle (smoothThrottle)
   ├── if AIRBORNE:
-  │   ├── Zero engine/brake forces
-  │   └── RCAirPhysics.Apply(dt, throttle, brake, steer)
-  │       ├── Pitch torque (throttle → nose up, brake → nose down)
-  │       ├── Roll torque (steer → lateral roll)
-  │       └── Gyro damping (wheel RPM → angular velocity damping)
+  │   └── RCAirPhysics.Apply()
+  │       ├── AirPhysicsMath.ComputePitchTorque()
+  │       ├── AirPhysicsMath.ComputeRollTorque()
+  │       └── AirPhysicsMath.ComputeGyroDampingFactor()
   ├── if GROUNDED:
-  │   ├── ApplyGroundDrive(dt, throttle, brake, speed)
-  │   │   ├── Reverse ESC state machine
-  │   │   ├── Engine force = throttle × engineForceMax
-  │   │   ├── Brake force or coast drag
-  │   │   └── Sets currentEngineForce, currentBrakeForce
-  │   ├── Drivetrain.Distribute(engineForce, frontWheels, rearWheels)
-  │   │   ├── Split force by drive layout (RWD/AWD)
-  │   │   ├── Apply axle differentials (Open/BallDiff/Spool)
-  │   │   └── Sets motorForceShare on each wheel
-  │   └── ApplySteering(dt, steer, speed)
-  │       └── Speed-dependent steering reduction + reverse flip
+  │   ├── ApplyGroundDrive() → reverse ESC, engine/brake force
+  │   ├── Drivetrain.Distribute() → DrivetrainMath.ComputeAxleSplit()
+  │   └── ApplySteering() → speed-dependent reduction
   └── For each RaycastWheel:
       └── wheel.ApplyWheelPhysics(rb, dt)
-          ├── Raycast downward for ground contact
-          ├── ComputeSuspension()     ← Hooke's law: F = k*x + c*v
-          ├── ComputeLateralForce()   ← Grip curve × slip ratio × load
-          ├── ComputeLongitudinalForce() ← Forward friction + ramp hold
-          ├── ComputeMotorForce()     ← motorForceShare along wheel forward
-          ├── AddForceAtPosition(total, contactPoint)  ← TO RIGIDBODY
-          └── Update visual (position, spin rotation, RPM)
+          ├── Raycast → ground contact
+          ├── SuspensionMath.ComputeSpringLength()
+          ├── SuspensionMath.ComputeSuspensionForceWithDamping()
+          ├── SuspensionMath.ComputeGripLoad()
+          ├── GripMath.ComputeSlipRatio() → gripCurve.Evaluate()
+          ├── GripMath.ComputeLateralForceMagnitude()
+          ├── GripMath.ComputeEffectiveTraction()
+          ├── GripMath.ComputeLongitudinalForceMagnitude()
+          ├── AddForceAtPosition(total, contactPoint)
+          └── GripMath.ComputeWheelRpm()
 ```
 
 ### Camera Pipeline (LateUpdate)
@@ -99,24 +104,15 @@ RCCar.FixedUpdate(dt)              ← Main physics orchestrator
 ```
 CameraController.Update()
   ├── Check mode cycle key (C) → CycleMode()
-  └── If Orbit: read mouse/stick input → update yaw/pitch
+  └── If Orbit: read mouse/stick → update yaw/pitch
 
 CameraController.LateUpdate()
-  ├── If transitioning: smooth interpolate position/rotation between modes
+  ├── If transitioning: smooth interpolate between modes
   └── Apply current mode:
       ├── Chase: Lerp behind car, LookAt car
-      ├── Orbit: Spherical offset from yaw/pitch, LookAt car
+      ├── Orbit: Spherical offset from yaw/pitch
       ├── FPV: Lock to car body with local offset
       └── Trackside: Static position (nearest anchor), LookAt car
-```
-
-### Telemetry Pipeline (OnGUI)
-
-```
-TelemetryHUD.OnGUI()
-  ├── Read car state (speed, forces, airborne, tumble, steering)
-  ├── Read per-wheel state (ground, spring, slip, grip, RPM)
-  └── Render text overlay
 ```
 
 ---
@@ -124,35 +120,34 @@ TelemetryHUD.OnGUI()
 ## Dependency Graph
 
 ```
-RCCar (orchestrator)
-  ├── requires → Rigidbody (physics body)
-  ├── requires → RCInput (input source)
-  ├── requires → RaycastWheel[] (discovered in children)
-  ├── optional → Drivetrain (force distribution)
-  └── optional → RCAirPhysics (air control)
+R8EOX.Core (no dependencies)
+  └── SurfaceType, SurfaceConfig
 
-RaycastWheel (per-wheel physics)
-  ├── receives → Rigidbody reference from RCCar
-  ├── receives → springStrength, gripCoeff from RCCar
-  └── reads → RCCar.currentEngineForce for static friction
+R8EOX.Input (no dependencies)
+  └── IVehicleInput, InputMath, RCInput
 
-Drivetrain (differential logic)
-  ├── receives → RaycastWheel[] from RCCar
-  └── writes → motorForceShare on each wheel
+R8EOX.Vehicle (depends on: Input, Core)
+  ├── RCCar → uses IVehicleInput, TumbleMath
+  ├── RaycastWheel → uses SuspensionMath, GripMath
+  ├── Drivetrain → uses DrivetrainMath (inline, not yet delegated)
+  ├── RCAirPhysics → uses AirPhysicsMath
+  └── Config/ → MotorPresetConfig, SuspensionConfig, TractionConfig
 
-RCAirPhysics (air torques)
-  ├── requires → Rigidbody (parent)
-  └── reads → RaycastWheel[].wheelRpm for gyro
+R8EOX.Camera (no dependencies)
+  └── CameraController, CameraMode, TracksideAnchor
 
-CameraController (camera)
-  ├── requires → Transform target (set in inspector)
-  └── optional → TracksideAnchor[] (discovered at runtime for Trackside mode)
+R8EOX.Track (depends on: Core)
+  └── SurfaceZone → references SurfaceConfig
 
-TelemetryHUD (debug UI)
-  └── requires → RCCar reference (set in inspector)
+R8EOX.Debug (depends on: Vehicle)
+  └── TelemetryHUD → reads RCCar properties
 
-RCInput (input)
-  └── standalone — no dependencies (reads Unity Input Manager)
+R8EOX.Editor (depends on: Vehicle, Input, Camera, Debug, Core, Track)
+  └── SceneSetup → builds test scene and prefab
+
+R8EOX.Tests.EditMode (depends on: Vehicle, Input)
+  └── SuspensionMathTests, GripMathTests, DrivetrainMathTests,
+      AirPhysicsMathTests, TumbleMathTests, InputMathTests
 ```
 
 ---
