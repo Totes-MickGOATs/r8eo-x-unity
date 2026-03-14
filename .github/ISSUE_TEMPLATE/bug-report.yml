@@ -1,0 +1,83 @@
+name: Bug Report
+description: Report a bug with structured data for efficient AI agent diagnosis
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: dropdown
+    id: system
+    attributes:
+      label: System affected
+      options:
+        - Vehicle/Physics
+        - Input
+        - Camera
+        - Track
+        - UI
+        - Core
+        - Editor
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Blocker
+        - Major
+        - Minor
+        - Cosmetic
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Describe the actual behavior you observed.
+      placeholder: "The vehicle flips upside down when turning at low speed..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+      description: Describe the expected behavior.
+      placeholder: "The vehicle should maintain grip and turn smoothly..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Reproduction steps
+      description: Numbered steps to reproduce the issue.
+      placeholder: |
+        1. Open the OutpostTrack scene
+        2. Enter play mode
+        3. Apply full throttle and turn left
+        4. Observe the vehicle flipping
+
+  - type: textarea
+    id: diagnostic-data
+    attributes:
+      label: Diagnostic data
+      description: Paste console logs, audit output, error messages, or parameter values.
+      render: shell
+
+  - type: textarea
+    id: relevant-files
+    attributes:
+      label: Relevant files
+      description: List files or classes you think are involved.
+      placeholder: |
+        - Assets/Scripts/Vehicle/Motor.cs
+        - Assets/Scripts/Vehicle/Suspension.cs
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots/video
+      description: Attach visual evidence if available.
