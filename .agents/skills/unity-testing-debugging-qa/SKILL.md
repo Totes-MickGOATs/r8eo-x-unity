@@ -554,10 +554,35 @@ Revisit device benchmarks when adding features. A change that is fine on flagshi
 
 ---
 
+## Case Study: Phantom Input on Windows
+
+This case study illustrates the diagnostic pattern and TDD discipline described above. It took 4 PRs to fully resolve because testing was not comprehensive from the start.
+
+### Symptom
+
+Vehicle accelerated and braked with no controller connected on Windows. The Legacy Input Manager reported `-1.0` on the `CombinedTriggers` axis — a constant phantom value from Windows platform behavior, not a Unity bug.
+
+### Diagnostic Signal
+
+**Constant value = phantom input.** Attaching an `InputDiagnostics` MonoBehaviour to the vehicle and logging axis values every 30 frames revealed that trigger values showed zero variance across hundreds of frames. Real human input always shows micro-jitter. A value that never changes is stuck/phantom.
+
+### Resolution
+
+Three-layer defense: variance-based TriggerDetector (jitter < 0.02 = stuck), mode gating (zero output during Detecting/None modes), and deadzones (0.15 triggers, 0.2 steering). The critical insight was that the detection phase must **observe, never drive** — reading raw axes during detection leaked phantom values as real input.
+
+### Lesson
+
+Write the full test matrix first: ALL modes (Detecting, Separate, Combined, None) x ALL axes (throttle, brake, steering). Fixing one axis at a time without comprehensive tests caused 4 rounds of fixes instead of 1. The test matrix IS the specification.
+
+> **Deep dive:** See `unity-input-debugging` skill for the complete guide.
+
+---
+
 ## Related Skills
 
 | Skill | When to Use |
 |-------|-------------|
+| **`unity-input-debugging`** | Deep dive: Phantom input on Windows, variance-based detection, three-layer defense, input TDD matrix, diagnostic MonoBehaviour |
 | **`unity-testing-patterns`** | Deep dive: UTF code examples, assertions reference, mocking, parameterized tests, setup/teardown patterns |
 | **`unity-debugging-profiling`** | Deep dive: Unity Profiler, Frame Debugger, Memory Profiler, Gizmos, custom debug tools, logging |
 | **`unity-e2e-testing`** | Deep dive: E2E automation, InputTestFixture, visual testing, AltTester, third-party tools, CI integration |
