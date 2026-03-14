@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // Obsolete members under test
 using NUnit.Framework;
 using R8EOX.Vehicle.Physics;
 using UnityEngine;
@@ -144,3 +145,5 @@ namespace R8EOX.Tests.EditMode
         }
     }
 }
+
+#pragma warning restore CS0618

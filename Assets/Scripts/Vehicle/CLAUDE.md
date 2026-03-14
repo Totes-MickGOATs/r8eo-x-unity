@@ -9,7 +9,7 @@ RC car vehicle system: MonoBehaviour controllers that wire together physics, dri
 | `RCCar.cs` | `RCCar` | Root vehicle controller — reads input, applies forces, exposes tuning API |
 | `RaycastWheel.cs` | `RaycastWheel` | Raycast-based wheel: suspension, grip, surface detection |
 | `Drivetrain.cs` | `Drivetrain` | Differential force distribution across wheels |
-| `RCAirPhysics.cs` | `RCAirPhysics` | Airborne physics: pitch/roll torque and gyroscopic damping |
+| `RCAirPhysics.cs` | `RCAirPhysics` | Airborne physics: gyroscopic precession and reaction torque (physics-first) |
 | `R8EOX.Vehicle.asmdef` | — | Assembly definition for the Vehicle system |
 
 ## Subdirectories

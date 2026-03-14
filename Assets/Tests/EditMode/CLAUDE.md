@@ -10,7 +10,8 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 | `SuspensionStabilityTests.cs` | M7 landing damping spike suppression, M8 oscillation decay | `SuspensionMath` |
 | `GripMathTests.cs` | Slip ratio, lateral force, longitudinal friction, traction modes, RPM | `GripMath` |
 | `DrivetrainMathTests.cs` | Open/BallDiff/Spool diffs, one-wheel-off, AWD center diff, force conservation | `DrivetrainMath` |
-| `AirPhysicsMathTests.cs` | Pitch/roll torque, gyro damping, RPM averaging | `AirPhysicsMath` |
+| `AirPhysicsMathTests.cs` | Pitch/roll torque, gyro damping, RPM averaging (deprecated) | `AirPhysicsMath` |
+| `GyroscopicMathTests.cs` | Gyroscopic precession torque, reaction torque, wheel angular velocity | `GyroscopicMath` |
 | `TumbleMathTests.cs` | Smoothstep, hysteresis, airborne zeroing, tilt angle | `TumbleMath` |
 | `GripTractionCriticalTests.cs` | C1-C4 regression tests: grip curve baseline, damped grip load, friction direction, ramp sliding | `SuspensionMath`, `GripMath`, `RaycastWheel` |
 | `TuningApiTests.cs` | Setter API for runtime tuning: motor, suspension, traction, crash, CoM, mass | `RCCar` setters |

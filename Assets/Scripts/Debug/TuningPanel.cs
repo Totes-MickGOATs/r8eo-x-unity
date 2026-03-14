@@ -76,17 +76,10 @@ namespace R8EOX.Debug
         private float _springDamping;
         private float _gripCoeff;
         private float _comGroundY;
-        private float _comAirY;
         private float _tumbleEngageDeg;
         private float _tumbleFullDeg;
         private float _tumbleBounce;
         private float _tumbleFriction;
-        private float _pitchTorque;
-        private float _pitchSensitivity;
-        private float _rollTorque;
-        private float _rollSensitivity;
-        private float _gyroStrength;
-        private float _gyroFullRpm;
         private float _mass;
         private float _rearPreload;
         private int _motorPresetIndex;
@@ -175,7 +168,6 @@ namespace R8EOX.Debug
             _springDamping = _car.SpringDamping;
             _gripCoeff = _car.GripCoeff;
             _comGroundY = _car.ComGroundY;
-            _comAirY = _car.ComAirY;
             _tumbleEngageDeg = _car.TumbleEngageDeg;
             _tumbleFullDeg = _car.TumbleFullDeg;
             _tumbleBounce = _car.TumbleBounce;
@@ -186,12 +178,6 @@ namespace R8EOX.Debug
             var air = _car.AirPhysics;
             if (air != null)
             {
-                _pitchTorque = air.PitchTorque;
-                _pitchSensitivity = air.PitchSensitivity;
-                _rollTorque = air.RollTorque;
-                _rollSensitivity = air.RollSensitivity;
-                _gyroStrength = air.GyroStrength;
-                _gyroFullRpm = air.GyroFullRpm;
             }
 
             var dt = _car.DrivetrainRef;
@@ -440,15 +426,11 @@ namespace R8EOX.Debug
 
             float newGroundY = DrawSlider(x, y, "Ground Y (m)", _comGroundY, -1f, 0.5f);
             y += k_LineHeight;
-            float newAirY = DrawSlider(x, y, "Air Y (m)", _comAirY, -3f, 0f);
-            y += k_LineHeight;
 
-            if (!Mathf.Approximately(newGroundY, _comGroundY) ||
-                !Mathf.Approximately(newAirY, _comAirY))
+            if (!Mathf.Approximately(newGroundY, _comGroundY))
             {
                 _comGroundY = newGroundY;
-                _comAirY = newAirY;
-                _car.SetCentreOfMass(_comGroundY, _comAirY);
+                _car.SetCentreOfMass(_comGroundY);
             }
 
             y += k_SectionSpacing;
@@ -500,25 +482,9 @@ namespace R8EOX.Debug
                 return y;
             }
 
-            float newPitchT = DrawSlider(x, y, "Pitch Torque (N*m)", _pitchTorque, 0f, 100f, "F1");
+            GUI.Label(new Rect(x, y, k_PanelWidth, k_LineHeight),
+                "  Gyroscopic model (tune via WheelInertiaConfig asset)", _labelStyle);
             y += k_LineHeight;
-            float newPitchS = DrawSlider(x, y, "Pitch Sensitivity", _pitchSensitivity, 0f, 3f);
-            y += k_LineHeight;
-            float newRollT = DrawSlider(x, y, "Roll Torque (N*m)", _rollTorque, 0f, 50f, "F1");
-            y += k_LineHeight;
-            float newRollS = DrawSlider(x, y, "Roll Sensitivity", _rollSensitivity, 0f, 3f);
-            y += k_LineHeight;
-            float newGyroS = DrawSlider(x, y, "Gyro Strength", _gyroStrength, 0f, 20f);
-            y += k_LineHeight;
-            float newGyroR = DrawSlider(x, y, "Gyro Full RPM", _gyroFullRpm, 10f, 500f, "F0");
-            y += k_LineHeight;
-
-            if (!Mathf.Approximately(newPitchT, _pitchTorque)) { _pitchTorque = newPitchT; air.PitchTorque = _pitchTorque; }
-            if (!Mathf.Approximately(newPitchS, _pitchSensitivity)) { _pitchSensitivity = newPitchS; air.PitchSensitivity = _pitchSensitivity; }
-            if (!Mathf.Approximately(newRollT, _rollTorque)) { _rollTorque = newRollT; air.RollTorque = _rollTorque; }
-            if (!Mathf.Approximately(newRollS, _rollSensitivity)) { _rollSensitivity = newRollS; air.RollSensitivity = _rollSensitivity; }
-            if (!Mathf.Approximately(newGyroS, _gyroStrength)) { _gyroStrength = newGyroS; air.GyroStrength = _gyroStrength; }
-            if (!Mathf.Approximately(newGyroR, _gyroFullRpm)) { _gyroFullRpm = newGyroR; air.GyroFullRpm = _gyroFullRpm; }
 
             y += k_SectionSpacing;
             return y;
