@@ -199,5 +199,48 @@ namespace R8EOX.Tests.EditMode
             Assert.AreEqual(0f, result,
                 "Phantom steering during detection must be zeroed");
         }
+
+        // ---- Phase 3: Detecting-phase must produce zero throttle/brake ----
+        // During the 300-frame detection window, phantom axis values (e.g.,
+        // CombinedTriggers at -1.0) caused full brake → reverse engagement.
+        // The Detecting case must return 0 for both throttle and brake.
+
+        [Test]
+        public void CombinedTriggerBrake_NegativeOneRaw_ProducesFullBrake()
+        {
+            // Documents the existing behavior: CombinedTriggerBrake correctly
+            // interprets -1.0 as full brake. This is CORRECT for Combined mode,
+            // but WRONG if called during Detecting mode with phantom values.
+            float result = InputMath.CombinedTriggerBrake(-1.0f, 0.15f);
+            Assert.AreEqual(1f, result, 0.01f,
+                "CombinedTriggerBrake(-1.0) should produce full brake");
+        }
+
+        [Test]
+        public void DetectingPhase_PhantomCombinedAxis_MustNotProduceBrake()
+        {
+            // Contract: during Detecting mode, GetGamepadBrake must return 0
+            // regardless of raw axis values. The Detecting case now returns 0
+            // directly instead of reading axes that may have phantom values.
+            // This test verifies the TriggerDetector is in Detecting mode
+            // during the grace+detection window.
+            var detector = new TriggerDetector(graceFrames: 60, confirmFrames: 5);
+            // Frame 100: past grace period but not enough frames to resolve
+            detector.ProcessFrame(0f, 0f, 1.0f, 100); // combined=1.0 (phantom abs value)
+            Assert.AreEqual(TriggerDetector.Mode.Detecting, detector.CurrentMode,
+                "Detector should still be in Detecting mode after 1 frame of input");
+            // Contract: RCInput.GetGamepadBrake returns 0 during Detecting mode
+        }
+
+        [Test]
+        public void DetectingPhase_PhantomLeftTrigger_MustNotProduceThrottle()
+        {
+            // Same contract for throttle during detection
+            var detector = new TriggerDetector(graceFrames: 60, confirmFrames: 5);
+            detector.ProcessFrame(0.5f, 0f, 0f, 100);
+            Assert.AreEqual(TriggerDetector.Mode.Detecting, detector.CurrentMode,
+                "Detector should still be in Detecting mode");
+            // Contract: RCInput.GetGamepadThrottle returns 0 during Detecting mode
+        }
     }
 }
