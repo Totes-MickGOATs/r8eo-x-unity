@@ -22,15 +22,10 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Session Start — Self-Reflect Before Acting
 
-> **MANDATORY:** At the beginning of every session or task, before writing any code, perform this reflection.
-
-1. **Read relevant memories.** Scan `MEMORY.md` for topic files and feedback memories related to the current task. If the user's request touches a system with known gotchas (e.g., physics, terrain, audio, CI), read that memory file.
-2. **Check for past failures.** Search memories for feedback entries about mistakes, missed patterns, or corrections the user gave. Ask yourself: "Has an agent been burned by this before? What went wrong and how was it fixed?"
-3. **Flag stale memories.** If any memory you read looks outdated, incorrect, or references deleted files/old patterns — note it for cleanup during Session End. Don't let bad information persist.
-4. **Review the relevant CLAUDE.md files.** Read the `CLAUDE.md` in the directory you're about to modify. It may contain warnings, conventions, or recent changes that affect your approach.
-5. **Identify risks.** Based on your reflection, list any gotchas or non-obvious constraints that apply.
-6. **State your plan briefly** before starting implementation, incorporating lessons from steps 1-5.
-7. **Run the Ask-First workflow.** For any dev task (bug fix, feature, refactor), read and follow `.agents/skills/ask-first/SKILL.md`. This is the mandatory three-phase workflow: Interrogate -> Test-First -> Implement. Do NOT skip this — it prevents agents from charging ahead on misunderstood requirements and ensures tests are written by a separate agent with no implementation bias.
+> **MANDATORY:** Before writing code:
+> 1. Read relevant memories from `MEMORY.md` and the local `CLAUDE.md` for the directory you're modifying.
+> 2. Follow the Ask-First workflow (`.agents/skills/ask-first/SKILL.md`) — Interrogate -> Test-First -> Implement.
+> 3. State your plan briefly before starting.
 
 > **Why this matters:** Agents that skip reflection repeat mistakes that previous agents already solved. The 2 minutes spent reflecting saves 20 minutes of rework.
 
@@ -95,34 +90,10 @@ just worktree-cleanup <task>         # 7. Clean up worktree, branches, and tags
 
 Agents follow the same workflow: develop in worktree → push → PR → label `ready-to-merge` → auto-merge serializes. The worktree is created automatically by Claude Code — start at step 2.
 
-### Dispatching Subagents (Main Agent Responsibility)
-
-When you receive a task that requires code changes:
-
-1. **Do NOT start editing files.** You are likely on `main`.
-2. **Dispatch a subagent** with `isolation: "worktree"` to handle implementation.
-3. **The subagent is responsible for the full lifecycle:** code → test → commit → push → PR → CI green → `ready-to-merge` label.
-4. **After the subagent completes**, verify the PR was created and CI is green.
-5. **Mark done:** `just worktree-mark-done <task>` once the PR merges (auto-handled by hooks in most cases).
-6. **Cleanup:** `just worktree-cleanup <task>` once marked done. Session-start hook auto-cleans done worktrees.
-
-**Common mistake:** Starting to edit files directly, then discovering you can't commit because you're on main. Always dispatch first, edit never.
-
 ### Keeping Branches Fresh
 
-**Main agent (on main):** Before dispatching subagents, pull the latest remote main so worktrees start from the newest commit:
-
-```bash
-git fetch origin && git pull --ff-only origin main
-```
-
-**Subagents (on feature branches):** Before pushing, rebase onto the latest main to incorporate changes that landed while you were working:
-
-```bash
-git fetch origin && git rebase origin/main
-```
-
-If rebase conflicts occur, resolve them before pushing. Do not push a branch that is behind `origin/main` when commits have landed since your worktree was created.
+- **Main agent:** `git fetch origin && git pull --ff-only origin main` before dispatching subagents.
+- **Subagents:** `git fetch origin && git rebase origin/main` before pushing. Resolve conflicts before push.
 
 ### Definition of Done
 
@@ -158,88 +129,20 @@ If lint CI fails after you push, you are responsible for:
 
 ## Testing (TDD)
 
-> **MANDATORY:** Write tests FIRST, run them, then implement. Tests MUST be executed — never claim "fixed" or "verified" without running tests. No exceptions.
->
-> **Pre-implementation workflow:** Before writing any tests or code, complete the Ask-First workflow (`.agents/skills/ask-first/SKILL.md`). Tests must be written by a separate black-box agent — see Phase 2 of the Ask-First skill.
+> **MANDATORY:** Write tests FIRST, run them, then implement. Never claim "fixed" without running tests.
+> Full standards: `.ai/knowledge/architecture/coding-standards.md` | Skills: `unity-testing-patterns`, `clean-room-qa`
 
-<!-- ENGINE-SPECIFIC: Test framework, test directory layout, and runner commands added by setup-engine.sh -->
+**TDD Cycle:** Hypothesize -> Write failing test (RED) -> Implement (GREEN) -> Commit. Steps 2-3 are non-negotiable.
 
-### TDD Cycle (Red-Green-Commit)
+**Test Tiers:** Unit (every public method, 1 positive + 1 negative) + Integration (cross-system wiring) + E2E (user-facing features). All three required for user-facing changes.
 
-Every bug fix or feature MUST follow this exact cycle. No steps may be skipped.
+**Test naming:** `MethodName_Scenario_ExpectedOutcome`
 
-1. **Hypothesize** — Identify the potential cause of the issue or the behavior to implement
-2. **Write a failing test** — Write a test that confirms your hypothesis (demonstrates the bug or specifies the desired behavior)
-3. **Run the test → confirm RED** — Execute the test and verify it fails for the expected reason. If it passes, your hypothesis is wrong — revise it
-4. **Implement the fix/feature** — Write the minimum code to make the test pass
-5. **Run the test → confirm GREEN** — Execute the test and verify it now passes. If it still fails, iterate on the implementation
-6. **Commit** — Tests and implementation together (or tests first if independent)
+**Autonomous debugging:** Agents drive the entire debug cycle via MCP tools (`read_console`, `manage_editor`, `manage_components`). NEVER defer to user. Prefer unit tests over play-mode debugging when possible. When MCP disconnects during domain reload, wait and retry — don't hand off.
 
-> **CRITICAL:** Steps 3 and 5 are non-negotiable. A test that was never run proves nothing. An implementation that was never verified against a test is not done. Agents that skip test execution are violating this project's core development practice.
+**Postmortems:** For significant bugs, save `postmortem_<name>.md` to memory with: issue summary, diagnostic signal, fix approach, reusable pattern.
 
-### Test Tiers — Unit AND Integration AND E2E
-
-Most changes require ALL THREE test tiers. This is non-negotiable.
-
-| Tier | What it tests | When required | Minimum coverage |
-|------|--------------|---------------|-----------------|
-| **Unit** | Single function/class in isolation, mocked dependencies | Always — every public method | **1 positive + 1 negative test per method** |
-| **Integration** | Multiple systems working together at runtime | When the change involves wiring, signals, or cross-system interaction | **1 test per cross-class interaction path** |
-| **E2E** | Full game running, real scene tree | Every user-facing feature or behavior change | **1 test per feature/behavior** |
-
-- **Positive test:** Verifies correct behavior with valid input (happy path)
-- **Negative test:** Verifies correct handling of invalid/edge/boundary input (zero, null, out-of-range, NaN)
-- **Unit tests** verify the logic is correct in isolation
-- **Integration tests** verify the wiring is correct at runtime — signals connected, nodes found, systems interacting properly
-- **E2E tests** verify the complete user-facing behavior from input to visible outcome in PlayMode
-- A unit test passing does NOT mean the feature works in-game. If the change involves system wiring, write an integration test too
-- When in doubt, write more tests. It is better to over-test than to ship a "tested" feature that breaks at runtime
-- **Test naming:** `MethodName_Scenario_ExpectedOutcome` — must read like a sentence
-
-### Autonomous Debugging — NEVER Defer to User
-
-> **MANDATORY:** Agents MUST drive the entire debug → test → fix → verify cycle autonomously.
-> Never ask the user to manually attach components, enter play mode, read logs, or perform any
-> step that can be done via MCP tools or scripts. You have the tools — use them.
-
-**Debug workflow (fully autonomous):**
-
-1. **Read console** — `read_console` to check for errors/warnings
-2. **Attach debug components** — `manage_components(action="add")` to add temporary debug scripts
-3. **Enter play mode** — `manage_editor(action="play")` to start the game
-4. **Wait for data** — sleep 3-5 seconds for logs to accumulate
-5. **Read results** — `read_console` to capture debug output
-6. **Stop play mode** — `manage_editor(action="stop")`
-7. **Clean up** — remove temporary debug scripts
-
-**When MCP is unresponsive** (domain reload after script changes):
-- Wait and retry (sleep 10-15s between attempts)
-- Do NOT hand off to the user — the editor will come back
-- If truly stuck after 60s, fall back to unit tests to verify hypotheses
-
-**Prefer unit tests over play-mode debugging:**
-- If the bug can be reproduced in a unit test, write the test FIRST
-- Unit tests are faster, more reliable, and don't require MCP connectivity
-- Use play-mode debugging only for issues that require runtime wiring (scene tree, physics, rendering)
-
-### Postmortems — Learning from Significant Bugs
-
-When fixing a significant bug (Blocker/Major severity, or one that required novel diagnosis):
-1. Save a postmortem memory with: issue summary, diagnostic signal, fix approach, reusable pattern
-2. These memories help future sessions recognize similar problems faster
-3. Format: `postmortem_<short_name>.md` in the memory directory
-
-### Testing Strategy: Local TDD, Post-Merge Safety Net
-
-> **IMPORTANT:** Run tests locally during TDD. The full suite runs automatically post-merge on main.
-
-**Do NOT run the full test suite locally.** It ties up the developer's machine. Instead:
-
-1. Write your test, run it locally for the red-green TDD cycle
-2. Push to your feature branch — lint CI runs automatically
-3. Once lint passes, auto-merge handles the rest
-4. Full test suite runs post-merge on main
-5. If post-merge tests fail, a `ci-failure` issue is auto-created — run `/ci:next-fix` to pick it up
+**Local TDD only:** Run your test locally for red-green. Don't run full suite locally. CI runs post-merge. If post-merge tests fail, `/ci:next-fix` picks it up.
 
 ## Python Tooling (scripts/tools only, not game code)
 
@@ -264,74 +167,15 @@ uv run python <script.py>        # Run a script
 - **No magic numbers** — use named constants for layer IDs, type enumerations, algorithm parameters
 - **Type annotations** — always annotate function signatures and return types
 
-## Value Mutability Tiers
+## Coding Patterns
 
-When deciding how to declare a value, use the appropriate tier:
-
-| Tier | Mechanism | When to Use | Example |
-|------|-----------|-------------|---------|
-| **Const** | Language constant / `static readonly` | Algorithm logic, physics math, layer IDs, enum values — never changes at runtime | Layer bitmasks, string identifiers |
-| **Export** | Inspector-editable field | Per-instance tuning set in the editor — varies between scenes/nodes but fixed at runtime | Spring stiffness, difficulty tier |
-| **Settings** | Settings manager / config file | User preferences persisted to disk — changed via Options menu | Graphics quality, audio volumes, input bindings |
-| **Dynamic** | Runtime variable | Computed or changed every frame/event — driven by gameplay | Current speed, input vectors, health points |
-
-- **Central constant classes** for collision layers, surface types, or other domain enumerations
-- **Never use bare numeric literals** for values that have a named constant
-
-## DRY / Declarative Coding Patterns
-
-> **MANDATORY:** Prefer declarative data structures over imperative boilerplate. When you see 3+ instances
-> of the same pattern (UI creation, setup wiring, validation loops), extract a shared helper or use a
-> data-driven approach.
-
-### When to Extract
-
-- **3+ instances** of the same creation/validation/setup pattern → extract a helper
-- **200+ lines** of match/if arms for property routing → use a bridge/descriptor pattern
-- **10+ signal connections** between two nodes → use a wiring table
-- **5+ setup methods** in an orchestrator → consider a subsystem registry
-- Adding a new item should require **1 data entry**, not touching UI/logic code
-
-### Declarative Patterns
-
-| Pattern | When to Use |
-|---------|-------------|
-| **Data Model → Renderer** | Complex UI driven by configuration (tuning panels, option menus) |
-| **Property Bridge** | Multi-target property routing (replaces match/if chains) |
-| **Signal Wiring Table** | Connecting 5+ signals between two nodes |
-| **Subsystem Registry** | Orchestrators that init 5+ subsystems (editors, main scene) |
-| **Validation Runner** | Test loops that check arrays of items against rules |
-| **Extracted Processors** | Pipeline steps that can be unit-tested independently |
+See `.ai/knowledge/architecture/coding-standards.md` for value mutability tiers (Const/Export/Settings/Dynamic), DRY extraction thresholds, declarative patterns, and code organization rules. No bare numeric literals — use named constants.
 
 ## RC Car Physics Domain
 
-> **Context for all agents:** These constants and invariants apply to every physics-related system in the project. Reference them when writing or reviewing physics code.
-
-### Physical Constants (1/10 Scale RC Car)
-
-| Constant | Value | Unit | Notes |
-|----------|-------|------|-------|
-| Vehicle mass | 1.5 | kg | Typical 1/10 buggy with battery |
-| Wheel radius | 0.166 | m | Standard 1/10 buggy tire |
-| Gravity | 9.81 | m/s² | Standard Earth gravity |
-| Weight per wheel | ~3.68 | N | mass × gravity / 4 |
-| Wheelbase | ~0.28 | m | Front-to-rear axle |
-| Track width | ~0.24 | m | Left-to-right wheel |
-
-### Physics Invariants (MUST hold in all code)
-
-- **Suspension force ≥ 0** — suspension compresses but NEVER pulls (no tension)
-- **Lateral force opposes lateral velocity** — restores straight-line travel
-- **Differential conserves force** — left_share + right_share = total_input
-- **No grip without normal load** — zero suspension force = zero tire grip
-- **Throttle in air → nose pitches UP** — wheel spin reaction torque
-- **Brake in air → nose pitches DOWN**
-- **Gyroscopic stabilization** — spinning wheels resist tumbling
-
-### Relevant Skills
-
-- **`unity-physics-3d`** — Rigidbody, colliders, raycasting, WheelCollider
-- **`clean-room-qa`** — Black-box physics testing from domain first principles
+1/10 scale RC car: mass 1.5kg, wheel radius 0.166m, wheelbase 0.28m. Curve-sampled grip (NOT Pacejka).
+Key invariants: suspension force >= 0, no grip without normal load, differential conserves force.
+Full constants + invariants: `.ai/knowledge/architecture/adr-001-physics-model.md` | Skills: `unity-physics-3d`, `unity-physics-tuning`
 
 ## System Registry
 
@@ -359,65 +203,19 @@ When deciding how to declare a value, use the appropriate tier:
 
 ## Session End — Self-Reflect and Self-Improve
 
-> **MANDATORY:** At the end of every task or session, before reporting "done", perform this reflection.
-
-### 1. Reflect on What Happened
-
-- **What surprised me?** Unexpected behavior, undocumented constraints, gotchas discovered the hard way.
-- **What mistake did I make (or almost make)?** Wrong API usage, missed a project rule, off-by-one.
-- **What took longer than expected?** Usually means documentation or code comments are missing.
-- **What would I tell the next agent working on this system?** That's exactly what should be documented.
-
-### 2. Update Documentation
-
-- Update the local `CLAUDE.md` if it's stale or missing info about your change
-- Add new files to directory CLAUDE.md file listings, remove deleted files
-- Reference relevant skills from `.agents/skills/` — don't duplicate skill content
-
-### 3. Improve Code Comments Where You Struggled
-
-- Add comments for non-obvious constraints, workarounds, "why not the obvious approach"
-- Update stale/misleading comments based on what you now know
-- Comments explain **why**, not **what**
-
-### 4. Maintain Memories
-
-- **Add** feedback/project memories for gotchas discovered this session
-- **Update** memories your work affects (bug fixed that a memory warns about → update it)
-- **Prune** stale entries — remove links to deleted files, resolved items
-- **Verify** new memory files are indexed in MEMORY.md
-
-### 5. Evolve Strategies
-
-- Small improvement → update relevant CLAUDE.md
-- Reusable pattern → update or create a skill in `.agents/skills/`
-- Process friction → update workflow docs
-
-> **The goal:** Every agent session leaves the codebase smarter. A bug fix adds a test, updates docs, saves a memory. This compounds into self-improving documentation.
+> **MANDATORY:** Before reporting "done":
+> 1. **Reflect:** What surprised me? What mistake did I make? What would I tell the next agent?
+> 2. **Update docs:** Update local `CLAUDE.md` if stale. Add/remove files from listings.
+> 3. **Maintain memories:** Add gotchas discovered, update affected memories, prune stale entries.
+> 4. **Evolve:** Small improvement -> update CLAUDE.md. Reusable pattern -> update skill.
 
 ## Issue-Driven Workflow
 
-> **PREFERRED:** File issues for non-trivial work. This creates persistence, audit trails,
-> and allows agents to pick up work across sessions without losing context.
+> **PREFERRED:** File issues for non-trivial work (bug reports, features, CI failures).
 
-### When to Create Issues
-- Bug reports with diagnostic data (console logs, audit output)
-- Feature requests with acceptance criteria
-- Gameplay/physics feel issues with controller info and references
-- CI failures (auto-created by CI Monitor)
+**Agent workflow:** `/dev:next-task` -> work in worktree -> reference `#issue-number` in commits/PR -> PR merge auto-closes issue.
 
-### Agent Workflow
-1. **Pick up work:** `/dev:next-task` reads open issues sorted by priority
-2. **Work in worktree:** Agent creates feature branch, implements fix/feature
-3. **Reference the issue:** Commit messages and PR descriptions reference `#issue-number`
-4. **Close with context:** PR merge auto-closes the issue. Resolution details in PR body.
-5. **Postmortem (significant bugs):** Save diagnostic pattern to memory for future reference
-
-### Persistence Across Sessions
-- **Memory files** store diagnostic patterns, user preferences, project context
-- **Issue history** provides queryable record of past fixes and their approaches
-- **CLAUDE.md docs** give every new session immediate project understanding
-- **MCP reconnection** is handled automatically — see recovery procedure in memory
+**Persistence:** Memory files store diagnostic patterns. Issue history provides queryable record. CLAUDE.md docs give immediate understanding. MCP reconnects automatically (wait 10-15s after script changes).
 
 ## Troubleshooting — Common Agent Issues
 
