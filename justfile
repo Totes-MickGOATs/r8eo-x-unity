@@ -100,14 +100,14 @@ changelog-preview:
 
 # --- Release ---
 
-# Create a tagged release from master
+# Create a tagged release from main
 release version:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "Releasing {{ version }}..."
     BRANCH=$(git branch --show-current)
-    if [ "$BRANCH" != "master" ]; then
-        echo "ERROR: Releases must be created from master (currently on $BRANCH)"
+    if [ "$BRANCH" != "main" ]; then
+        echo "ERROR: Releases must be created from main (currently on $BRANCH)"
         exit 1
     fi
     if [ -n "$(git status --porcelain)" ]; then
@@ -122,7 +122,7 @@ release version:
 
 # --- Worktree Management ---
 
-# Create an isolated worktree for a task (branch: feat/<task> from origin/master)
+# Create an isolated worktree for a task (branch: feat/<task> from origin/main)
 worktree-create task:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -130,14 +130,14 @@ worktree-create task:
     # Use parent directory naming convention: <project>-<task>
     PROJECT_NAME=$(basename "$(pwd)")
     WORKTREE_DIR="../${PROJECT_NAME}-{{ task }}"
-    echo "Pulling latest master from remote..."
-    git fetch origin master
-    git update-ref refs/heads/master refs/remotes/origin/master
+    echo "Pulling latest main from remote..."
+    git fetch origin main
+    git update-ref refs/heads/main refs/remotes/origin/main
     if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
         echo "Branch $BRANCH already exists. Checking out in worktree..."
         git worktree add "$WORKTREE_DIR" "$BRANCH"
     else
-        git worktree add -b "$BRANCH" "$WORKTREE_DIR" origin/master
+        git worktree add -b "$BRANCH" "$WORKTREE_DIR" origin/main
     fi
     echo "--- Worktree created at $WORKTREE_DIR (branch: $BRANCH) ---"
     echo "cd $WORKTREE_DIR to start working"
@@ -161,9 +161,9 @@ worktree-cleanup task:
         git push origin --delete "$BRANCH" 2>/dev/null || true
         echo "Deleted remote branch $BRANCH"
     fi
-    git fetch origin master --quiet 2>/dev/null || true
-    git update-ref refs/heads/master refs/remotes/origin/master 2>/dev/null || true
-    echo "Local master -> $(git rev-parse --short origin/master 2>/dev/null || echo '?')"
+    git fetch origin main --quiet 2>/dev/null || true
+    git update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
+    echo "Local main -> $(git rev-parse --short origin/main 2>/dev/null || echo '?')"
     echo "--- Cleanup complete for {{ task }} ---"
 
 # Prune orphaned worktrees and branches with gone remotes
@@ -182,21 +182,21 @@ worktree-cleanup-all:
     else
         echo "No stale branches found."
     fi
-    git update-ref refs/heads/master refs/remotes/origin/master 2>/dev/null || true
-    echo "Local master -> $(git rev-parse --short origin/master 2>/dev/null || echo '?')"
+    git update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
+    echo "Local main -> $(git rev-parse --short origin/main 2>/dev/null || echo '?')"
     echo "--- Cleanup-all complete ---"
 
-# Sync master, delete merged branches, prune worktrees
+# Sync main, delete merged branches, prune worktrees
 worktree-sync:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Fetching latest master..."
-    git fetch origin master
-    git update-ref refs/heads/master refs/remotes/origin/master
-    MASTER_SHA=$(git rev-parse --short origin/master)
-    echo "Local master -> $MASTER_SHA"
-    echo "Deleting branches already merged into origin/master..."
-    MERGED=$(git branch --merged origin/master | grep -vE '^\*|master' | sed 's/^[ \t]*//' || true)
+    echo "Fetching latest main..."
+    git fetch origin main
+    git update-ref refs/heads/main refs/remotes/origin/main
+    MAIN_SHA=$(git rev-parse --short origin/main)
+    echo "Local main -> $MAIN_SHA"
+    echo "Deleting branches already merged into origin/main..."
+    MERGED=$(git branch --merged origin/main | grep -vE '^\*|main' | sed 's/^[ \t]*//' || true)
     if [ -n "$MERGED" ]; then
         echo "$MERGED" | xargs git branch -d 2>/dev/null || true
         echo "Deleted: $MERGED"
@@ -210,9 +210,9 @@ worktree-sync:
 worktree-list:
     #!/usr/bin/env bash
     set -euo pipefail
-    git fetch origin master --quiet 2>/dev/null || true
-    git update-ref refs/heads/master refs/remotes/origin/master 2>/dev/null || true
-    MASTER_SHA=$(git rev-parse origin/master 2>/dev/null || git rev-parse master)
+    git fetch origin main --quiet 2>/dev/null || true
+    git update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
+    MAIN_SHA=$(git rev-parse origin/main 2>/dev/null || git rev-parse main)
     printf "%-45s %-30s %-6s %s\n" "WORKTREE" "BRANCH" "BEHIND" "PR STATUS"
     printf "%-45s %-30s %-6s %s\n" "--------" "------" "------" "---------"
     git worktree list --porcelain | while IFS= read -r line; do
@@ -222,9 +222,9 @@ worktree-list:
                 ;;
             "branch "*)
                 BRANCH="${line#branch refs/heads/}"
-                BEHIND=$(git rev-list --count "$BRANCH..${MASTER_SHA}" 2>/dev/null || echo "?")
+                BEHIND=$(git rev-list --count "$BRANCH..${MAIN_SHA}" 2>/dev/null || echo "?")
                 PR_STATUS=""
-                if [ "$BRANCH" != "master" ] && command -v gh >/dev/null 2>&1; then
+                if [ "$BRANCH" != "main" ] && command -v gh >/dev/null 2>&1; then
                     PR_JSON=$(gh pr list --head "$BRANCH" --state all --json number,state --limit 1 2>/dev/null || echo "[]")
                     PR_NUM=$(echo "$PR_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['number'] if d else '')" 2>/dev/null || echo "")
                     if [ -n "$PR_NUM" ]; then
@@ -246,13 +246,13 @@ pr title="":
     #!/usr/bin/env bash
     set -euo pipefail
     BRANCH=$(git branch --show-current)
-    if [ "$BRANCH" = "master" ]; then
-        echo "ERROR: Cannot create PR from master. Use a feature branch."
+    if [ "$BRANCH" = "main" ]; then
+        echo "ERROR: Cannot create PR from main. Use a feature branch."
         exit 1
     fi
-    echo "Rebasing onto latest master..."
-    git fetch origin master --quiet
-    if ! git rebase origin/master; then
+    echo "Rebasing onto latest main..."
+    git fetch origin main --quiet
+    if ! git rebase origin/main; then
         echo "ERROR: Rebase failed. Resolve conflicts, then retry."
         git rebase --abort 2>/dev/null || true
         exit 1
@@ -272,7 +272,7 @@ pr title="":
     fi
     echo "Creating PR..."
     PR_BODY="## Summary\nFeature branch\n\n## Test plan\n- [ ] CI passes\n- [ ] Tests written and passing"
-    gh pr create --base master --title "$PR_TITLE" --body "$(echo -e "$PR_BODY")"
+    gh pr create --base main --title "$PR_TITLE" --body "$(echo -e "$PR_BODY")"
     NEW_PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number' 2>/dev/null || echo "")
     if [ -n "$NEW_PR_NUM" ]; then
         gh pr merge "$NEW_PR_NUM" --auto --squash 2>/dev/null || true
@@ -354,12 +354,12 @@ check-template-sync:
         echo "Add it: git remote add template https://github.com/Totes-MickGOATs/mcgoats-game-template.git"
         exit 0
     fi
-    git fetch template master --quiet 2>/dev/null || { echo "Could not fetch template remote."; exit 0; }
-    BEHIND=$(git rev-list --count HEAD..template/master 2>/dev/null || echo "0")
+    git fetch template main --quiet 2>/dev/null || { echo "Could not fetch template remote."; exit 0; }
+    BEHIND=$(git rev-list --count HEAD..template/main 2>/dev/null || echo "0")
     if [ "$BEHIND" -gt 0 ]; then
         echo "Template has $BEHIND new commit(s). Consider merging:"
-        echo "  git fetch template && git merge template/master --no-ff"
-        git log --oneline HEAD..template/master | head -10
+        echo "  git fetch template && git merge template/main --no-ff"
+        git log --oneline HEAD..template/main | head -10
     else
         echo "Up to date with template."
     fi
