@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="R8EOX Analyzer Rules" ToolsVersion="10.0">
+  <Rules AnalyzerId="Microsoft.Unity.Analyzers" RuleNamespace="Microsoft.Unity.Analyzers">
+    <!-- === ERRORS — Must fix before commit === -->
+
+    <!-- Time.fixedDeltaTime in Update (should be Time.deltaTime) -->
+    <Rule Id="UNT0004" Action="Error" />
+    <!-- Time.deltaTime in FixedUpdate (should be Time.fixedDeltaTime) -->
+    <Rule Id="UNT0005" Action="Error" />
+    <!-- Null coalescing on Unity objects (bypasses Unity's null check) -->
+    <Rule Id="UNT0007" Action="Error" />
+    <!-- Null propagation on Unity objects -->
+    <Rule Id="UNT0008" Action="Error" />
+    <!-- MonoBehaviour should not use constructor -->
+    <Rule Id="UNT0010" Action="Error" />
+    <!-- ScriptableObject should not use constructor -->
+    <Rule Id="UNT0011" Action="Error" />
+    <!-- Incorrect message signature -->
+    <Rule Id="UNT0006" Action="Error" />
+    <!-- Null coalescing assignment on Unity objects -->
+    <Rule Id="UNT0023" Action="Error" />
+
+    <!-- === WARNINGS — Should fix, review during PR === -->
+
+    <!-- Empty Unity message (empty Update/FixedUpdate) -->
+    <Rule Id="UNT0001" Action="Warning" />
+    <!-- Inefficient tag comparison (use CompareTag) -->
+    <Rule Id="UNT0002" Action="Warning" />
+    <!-- Non-generic GetComponent -->
+    <Rule Id="UNT0003" Action="Warning" />
+    <!-- Unused coroutine return value -->
+    <Rule Id="UNT0012" Action="Warning" />
+    <!-- Invalid SerializeField attribute -->
+    <Rule Id="UNT0013" Action="Warning" />
+    <!-- GetComponent with non-Component type -->
+    <Rule Id="UNT0014" Action="Warning" />
+    <!-- System.Reflection in Update (slow) -->
+    <Rule Id="UNT0018" Action="Warning" />
+    <!-- Unnecessary indirection through GameObject -->
+    <Rule Id="UNT0019" Action="Warning" />
+    <!-- Inefficient position/rotation setting -->
+    <Rule Id="UNT0022" Action="Warning" />
+    <!-- Prefer scalar calculations over vector -->
+    <Rule Id="UNT0024" Action="Warning" />
+  </Rules>
+</RuleSet>
