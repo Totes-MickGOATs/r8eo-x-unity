@@ -270,6 +270,36 @@ When deciding how to declare a value, use the appropriate tier:
 | **Validation Runner** | Test loops that check arrays of items against rules |
 | **Extracted Processors** | Pipeline steps that can be unit-tested independently |
 
+## RC Car Physics Domain
+
+> **Context for all agents:** These constants and invariants apply to every physics-related system in the project. Reference them when writing or reviewing physics code.
+
+### Physical Constants (1/10 Scale RC Car)
+
+| Constant | Value | Unit | Notes |
+|----------|-------|------|-------|
+| Vehicle mass | 1.5 | kg | Typical 1/10 buggy with battery |
+| Wheel radius | 0.166 | m | Standard 1/10 buggy tire |
+| Gravity | 9.81 | m/s² | Standard Earth gravity |
+| Weight per wheel | ~3.68 | N | mass × gravity / 4 |
+| Wheelbase | ~0.28 | m | Front-to-rear axle |
+| Track width | ~0.24 | m | Left-to-right wheel |
+
+### Physics Invariants (MUST hold in all code)
+
+- **Suspension force ≥ 0** — suspension compresses but NEVER pulls (no tension)
+- **Lateral force opposes lateral velocity** — restores straight-line travel
+- **Differential conserves force** — left_share + right_share = total_input
+- **No grip without normal load** — zero suspension force = zero tire grip
+- **Throttle in air → nose pitches UP** — wheel spin reaction torque
+- **Brake in air → nose pitches DOWN**
+- **Gyroscopic stabilization** — spinning wheels resist tumbling
+
+### Relevant Skills
+
+- **`unity-physics-3d`** — Rigidbody, colliders, raycasting, WheelCollider
+- **`clean-room-qa`** — Black-box physics testing from domain first principles
+
 ## System Registry
 
 > **MANDATORY:** Every game system must have a manifest in `resources/manifests/`.
