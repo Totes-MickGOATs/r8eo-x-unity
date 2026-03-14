@@ -1,0 +1,21 @@
+{
+    "name": "R8EOX.Editor",
+    "rootNamespace": "R8EOX.Editor",
+    "references": [
+        "R8EOX.Vehicle",
+        "R8EOX.Input",
+        "R8EOX.Camera",
+        "R8EOX.Debug"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

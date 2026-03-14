@@ -1,0 +1,11 @@
+{
+  "name": "editor",
+  "description": "Editor utilities for scene and prefab construction",
+  "status": "ACTIVE",
+  "files": [
+    "Assets/Scripts/Editor/SceneSetup.cs",
+    "Assets/Scripts/Editor/R8EOX.Editor.asmdef"
+  ],
+  "dependencies": ["vehicle", "input", "camera", "debug"],
+  "replaced_by": ""
+}

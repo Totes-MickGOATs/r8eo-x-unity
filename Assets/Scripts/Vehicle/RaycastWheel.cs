@@ -1,282 +1,299 @@
 using UnityEngine;
 
-/// <summary>
-/// Per-wheel physics: suspension spring, lateral grip, longitudinal friction, motor force.
-/// Ported from raycast_wheel.gd with Godot→Unity coordinate mapping.
-///
-/// Coordinate mapping:
-///   forward:  -basis.z → transform.forward
-///   right:     basis.x → transform.right
-///   down:     -basis.y → -transform.up
-///   apply_force(f, offset) → AddForceAtPosition(f, worldPos)
-///   get_point_velocity manual → rb.GetPointVelocity(worldPos)
-///
-/// Attach as MonoBehaviour on each wheel pivot GameObject (child of RCCar root).
-/// Each wheel pivot should have a child "WheelVisual" with the tire mesh.
-/// </summary>
-public class RaycastWheel : MonoBehaviour
+namespace R8EOX.Vehicle
 {
-    [Header("Suspension")]
-    [HideInInspector] public float springStrength = 75f;  // Set by RCCar
-    [HideInInspector] public float springDamping = 4.25f; // Set by RCCar
-    public float restDistance = 0.20f;
-    public float overExtend = 0.08f;
-    public float maxSpringForce = 50f;
-    public float minSpringLen = 0.032f;
-
-    [Header("Wheel")]
-    public float wheelRadius = 0.166f;
-
-    [Header("Motor/Steer")]
-    public bool isMotor = false;
-    public bool isSteer = false;
-
-    [Header("Traction")]
-    [HideInInspector] public float gripCoeff = 0.7f; // Set by RCCar
-    public float zTraction = 0.10f;
-    public float zBrakeTraction = 0.5f;
-    public AnimationCurve gripCurve = new AnimationCurve(
-        new Keyframe(0f, 0f),
-        new Keyframe(0.15f, 0.8f),
-        new Keyframe(0.4f, 1.0f),
-        new Keyframe(1.0f, 0.7f)
-    );
-
-    [Header("Ground Detection")]
-    public LayerMask groundMask = ~0; // Default: hit everything
-
-    [Header("Debug")]
-    public bool showDebug = false;
-
-    // Runtime state — read by RCCar and TelemetryHUD
-    [HideInInspector] public bool isBraking = false;
-    [HideInInspector] public float gripFactor = 0f;
-    [HideInInspector] public float slipRatio = 0f;
-    [HideInInspector] public bool isOnGround = false;
-    [HideInInspector] public float wheelRpm = 0f;
-    [HideInInspector] public float motorForceShare = 0f;
-    [HideInInspector] public float lastSpringLen = 0f;
-    [HideInInspector] public float lastGripLoad = 0f;
-
-    // Visual
-    Transform wheelVisual;
-    Transform hubVisual;
-
-    // Internal
-    RCCar cachedCar;
-    float prevSpringLen;
-    float rayLen;
-
-    // Per-frame physics state
-    Vector3 contactPoint;
-    Vector3 contactNormal;
-    float springLen;
-    float springForce;
-    float suspensionForce;
-    float gripLoad;
-    Vector3 tireVelocity;
-    float speed;
-    float fSpeed;
-    Vector3 yForce;
-    Vector3 xForce;
-    Vector3 zForce;
-    Vector3 motorForce;
-
-    // Debug
-    const float DBG_SCALE = 0.024f;
-
-    void Awake()
-    {
-        rayLen = restDistance + overExtend + wheelRadius;
-        prevSpringLen = restDistance;
-
-        // Find visual children
-        Transform wm = transform.Find("WheelVisual");
-        if (wm != null) wheelVisual = wm;
-        Transform hm = transform.Find("HubVisual");
-        if (hm != null) hubVisual = hm;
-    }
-
     /// <summary>
-    /// Main physics entry point. Called by RCCar each FixedUpdate.
+    /// Per-wheel physics: suspension spring, lateral grip, longitudinal friction, motor force.
+    /// Attach as MonoBehaviour on each wheel pivot GameObject (child of RCCar root).
+    /// Each wheel pivot should have a child "WheelVisual" with the tire mesh.
     /// </summary>
-    public void ApplyWheelPhysics(Rigidbody carRb, float dt)
+    public class RaycastWheel : MonoBehaviour
     {
-        if (cachedCar == null)
-            cachedCar = carRb.GetComponent<RCCar>();
-        rayLen = restDistance + overExtend + wheelRadius;
+        // ---- Constants ----
 
-        // Raycast downward from wheel anchor
-        Ray ray = new Ray(transform.position, -transform.up);
-        RaycastHit hit;
+        const float k_DebugScale = 0.024f;
+        const float k_MinSpeedForGrip = 0.1f;
+        const float k_StaticFrictionSpeed = 0.5f;
+        const float k_StaticFrictionTraction = 5.0f;
+        const float k_DroopSpeed = 20f;
+        const float k_RpmConversion = 60f / (2f * Mathf.PI);
 
-        if (!Physics.Raycast(ray, out hit, rayLen, groundMask))
+
+        // ---- Serialized Fields ----
+
+        [Header("Suspension")]
+        [Tooltip("Suspension rest distance in metres")]
+        [SerializeField] private float _restDistance = 0.20f;
+        [Tooltip("Extra droop extension when airborne in metres")]
+        [SerializeField] private float _overExtend = 0.08f;
+        [Tooltip("Maximum suspension force clamp in Newtons")]
+        [SerializeField] private float _maxSpringForce = 50f;
+        [Tooltip("Bump stop minimum spring length in metres")]
+        [SerializeField] private float _minSpringLen = 0.032f;
+
+        [Header("Wheel")]
+        [Tooltip("Tire radius in metres (1/10th scale)")]
+        [SerializeField] private float _wheelRadius = 0.166f;
+
+        [Header("Motor/Steer")]
+        [Tooltip("Whether this wheel receives motor force")]
+        [SerializeField] private bool _isMotor;
+        [Tooltip("Whether this wheel steers")]
+        [SerializeField] private bool _isSteer;
+
+        [Header("Traction")]
+        [Tooltip("Longitudinal slip traction factor")]
+        [SerializeField] private float _zTraction = 0.10f;
+        [Tooltip("Braking friction boost factor")]
+        [SerializeField] private float _zBrakeTraction = 0.5f;
+        [Tooltip("Grip curve mapping slip ratio to grip factor")]
+        [SerializeField] private AnimationCurve _gripCurve = new AnimationCurve(
+            new Keyframe(0f, 0f),
+            new Keyframe(0.15f, 0.8f),
+            new Keyframe(0.4f, 1.0f),
+            new Keyframe(1.0f, 0.7f)
+        );
+
+        [Header("Ground Detection")]
+        [Tooltip("Layer mask for ground raycast")]
+        [SerializeField] private LayerMask _groundMask = ~0;
+
+        [Header("Debug")]
+        [Tooltip("Show force debug arrows in Scene view")]
+        [SerializeField] private bool _showDebug;
+
+
+        // ---- Public Properties (set by RCCar) ----
+
+        public float SpringStrength { get; set; } = 75f;
+        public float SpringDamping { get; set; } = 4.25f;
+        public float GripCoeff { get; set; } = 0.7f;
+        public LayerMask GroundMask { get => _groundMask; set => _groundMask = value; }
+        public bool ShowDebug { get => _showDebug; set => _showDebug = value; }
+        public bool IsMotor { get => _isMotor; set => _isMotor = value; }
+        public bool IsSteer { get => _isSteer; set => _isSteer = value; }
+        public bool IsBraking { get; set; }
+        public float MotorForceShare { get; set; }
+
+
+        // ---- Public Properties (read by telemetry) ----
+
+        public float GripFactor { get; private set; }
+        public float SlipRatio { get; private set; }
+        public bool IsOnGround { get; private set; }
+        public float WheelRpm { get; private set; }
+        public float LastSpringLen { get; private set; }
+        public float LastGripLoad { get; private set; }
+
+
+        // ---- Private Fields ----
+
+        private Transform _wheelVisual;
+        private Transform _hubVisual;
+        private RCCar _cachedCar;
+        private float _prevSpringLen;
+        private float _rayLen;
+
+        // Per-frame physics state
+        private Vector3 _contactPoint;
+        private Vector3 _contactNormal;
+        private float _springLen;
+        private float _springForce;
+        private float _suspensionForce;
+        private float _gripLoad;
+        private Vector3 _tireVelocity;
+        private float _speed;
+        private float _fSpeed;
+        private Vector3 _yForce;
+        private Vector3 _xForce;
+        private Vector3 _zForce;
+        private Vector3 _motorForce;
+
+
+        // ---- Unity Lifecycle ----
+
+        void Awake()
         {
-            // Airborne — droop mesh toward full extension
-            gripFactor = 0f;
-            slipRatio = 0f;
-            isOnGround = false;
-            prevSpringLen = restDistance + overExtend;
+            _rayLen = _restDistance + _overExtend + _wheelRadius;
+            _prevSpringLen = _restDistance;
 
-            float droopTarget = -(restDistance + overExtend);
-            if (wheelVisual != null)
-                wheelVisual.localPosition = new Vector3(0f,
-                    Mathf.MoveTowards(wheelVisual.localPosition.y, droopTarget, 20f * dt), 0f);
-            if (hubVisual != null)
-                hubVisual.localPosition = new Vector3(0f,
-                    Mathf.MoveTowards(hubVisual.localPosition.y, droopTarget, 20f * dt), 0f);
-            return;
+            Transform wm = transform.Find("WheelVisual");
+            if (wm != null) _wheelVisual = wm;
+            Transform hm = transform.Find("HubVisual");
+            if (hm != null) _hubVisual = hm;
         }
 
-        // Validate normal (reject upside-down contacts)
-        if (hit.normal.y < 0f)
+
+        // ---- Public API ----
+
+        /// <summary>
+        /// Main physics entry point. Called by RCCar each FixedUpdate.
+        /// Computes suspension, grip, friction, and motor forces, then applies
+        /// the composite force to the car Rigidbody at the ground contact point.
+        /// </summary>
+        public void ApplyWheelPhysics(Rigidbody carRb, float dt)
         {
-            isOnGround = false;
-            prevSpringLen = restDistance + overExtend;
-            return;
+            if (_cachedCar == null)
+                _cachedCar = carRb.GetComponent<RCCar>();
+
+            _rayLen = _restDistance + _overExtend + _wheelRadius;
+
+            Ray ray = new Ray(transform.position, -transform.up);
+            RaycastHit hit;
+
+            if (!Physics.Raycast(ray, out hit, _rayLen, _groundMask))
+            {
+                HandleAirborne(dt);
+                return;
+            }
+
+            if (hit.normal.y < 0f)
+            {
+                IsOnGround = false;
+                _prevSpringLen = _restDistance + _overExtend;
+                return;
+            }
+
+            IsOnGround = true;
+            _contactPoint = hit.point;
+            _contactNormal = hit.normal;
+
+            ComputeSuspension(carRb, dt);
+            ComputeLateralForce();
+            ComputeLongitudinalForce(carRb);
+            ComputeMotorForce();
+
+            Vector3 totalForce = _yForce + _xForce + _zForce + _motorForce;
+            carRb.AddForceAtPosition(totalForce, _contactPoint);
+
+            UpdateVisuals(dt);
+
+            WheelRpm = (_fSpeed / _wheelRadius) * k_RpmConversion;
+
+            if (_showDebug)
+                DrawDebug();
         }
 
-        isOnGround = true;
-        contactPoint = hit.point;
-        contactNormal = hit.normal;
 
-        // --- Suspension ---
-        ComputeSuspension(carRb, dt);
+        // ---- Private Methods ----
 
-        // --- Lateral grip ---
-        ComputeLateralForce();
-
-        // --- Longitudinal friction ---
-        ComputeLongitudinalForce(carRb);
-
-        // --- Motor force ---
-        ComputeMotorForce();
-
-        // --- Apply composite force at contact point ---
-        Vector3 totalForce = yForce + xForce + zForce + motorForce;
-        carRb.AddForceAtPosition(totalForce, contactPoint);
-
-        // --- Visual wheel update ---
-        // Rotate around the pivot's right axis (the actual wheel axle), in world space.
-        // The visual cylinder is rotated 90° around Z so its local axes don't match the axle.
-        // Unity forward rolling = positive angle around +X (top moves forward).
-        // Sign: Godot uses -fSpeed (because forward=-Z); Unity uses +fSpeed (forward=+Z).
-        float spinAngle = fSpeed / wheelRadius * dt * Mathf.Rad2Deg;
-        if (wheelVisual != null)
+        private void HandleAirborne(float dt)
         {
-            wheelVisual.localPosition = new Vector3(0f, -springLen, 0f);
-            wheelVisual.Rotate(transform.right, spinAngle, Space.World);
-        }
-        if (hubVisual != null)
-        {
-            hubVisual.localPosition = new Vector3(0f, -springLen, 0f);
-            hubVisual.Rotate(transform.right, spinAngle, Space.World);
+            GripFactor = 0f;
+            SlipRatio = 0f;
+            IsOnGround = false;
+            _prevSpringLen = _restDistance + _overExtend;
+
+            float droopTarget = -(_restDistance + _overExtend);
+            if (_wheelVisual != null)
+                _wheelVisual.localPosition = new Vector3(0f,
+                    Mathf.MoveTowards(_wheelVisual.localPosition.y, droopTarget, k_DroopSpeed * dt), 0f);
+            if (_hubVisual != null)
+                _hubVisual.localPosition = new Vector3(0f,
+                    Mathf.MoveTowards(_hubVisual.localPosition.y, droopTarget, k_DroopSpeed * dt), 0f);
         }
 
-        // RPM for air physics gyro
-        wheelRpm = (fSpeed / wheelRadius) * 60f / (2f * Mathf.PI);
-
-        // Debug visualization
-        if (showDebug)
-            DrawDebug();
-    }
-
-    void ComputeSuspension(Rigidbody carRb, float dt)
-    {
-        springLen = Vector3.Distance(transform.position, contactPoint) - wheelRadius;
-        springLen = Mathf.Max(springLen, minSpringLen);
-
-        float offset = restDistance - springLen;
-        springForce = springStrength * offset;
-        float dampingForce = springDamping * (prevSpringLen - springLen) / dt;
-        float rawForce = springForce + dampingForce;
-        suspensionForce = Mathf.Max(rawForce, 0f);
-        prevSpringLen = springLen;
-
-        yForce = contactNormal * suspensionForce;
-
-        // Tire velocity at contact point
-        tireVelocity = carRb.GetPointVelocity(contactPoint);
-        speed = tireVelocity.magnitude;
-        fSpeed = Vector3.Dot(transform.forward, tireVelocity);
-
-        gripLoad = Mathf.Clamp(springForce, 0f, maxSpringForce);
-
-        lastSpringLen = springLen;
-        lastGripLoad = gripLoad;
-    }
-
-    void ComputeLateralForce()
-    {
-        Vector3 steerSideDir = transform.right;
-        float lateralVel = Vector3.Dot(steerSideDir, tireVelocity);
-
-        if (speed < 0.1f || gripCurve == null)
+        private void ComputeSuspension(Rigidbody carRb, float dt)
         {
-            gripFactor = 0f;
-            slipRatio = 0f;
-            xForce = Vector3.zero;
-            return;
+            _springLen = Vector3.Distance(transform.position, _contactPoint) - _wheelRadius;
+            _springLen = Mathf.Max(_springLen, _minSpringLen);
+
+            float offset = _restDistance - _springLen;
+            _springForce = SpringStrength * offset;
+            float dampingForce = SpringDamping * (_prevSpringLen - _springLen) / dt;
+            float rawForce = _springForce + dampingForce;
+            _suspensionForce = Mathf.Max(rawForce, 0f); // No tension
+            _prevSpringLen = _springLen;
+
+            _yForce = _contactNormal * _suspensionForce;
+
+            _tireVelocity = carRb.GetPointVelocity(_contactPoint);
+            _speed = _tireVelocity.magnitude;
+            _fSpeed = Vector3.Dot(transform.forward, _tireVelocity);
+
+            _gripLoad = Mathf.Clamp(_springForce, 0f, _maxSpringForce);
+
+            LastSpringLen = _springLen;
+            LastGripLoad = _gripLoad;
         }
 
-        slipRatio = Mathf.Clamp01(Mathf.Abs(lateralVel) / speed);
-        gripFactor = gripCurve.Evaluate(slipRatio);
-
-        xForce = -steerSideDir * lateralVel * gripFactor * gripCoeff * gripLoad;
-    }
-
-    void ComputeLongitudinalForce(Rigidbody carRb)
-    {
-        float effectiveZTraction = isBraking ? zBrakeTraction : zTraction;
-
-        // Static friction: hold on ramps when stopped
-        if (Mathf.Abs(fSpeed) < 0.5f && cachedCar != null && cachedCar.currentEngineForce == 0f)
-            effectiveZTraction = 5.0f;
-
-        // Longitudinal friction opposes forward motion along the CAR's axis
-        // Godot: _car.global_basis.z (backward) * fSpeed → Unity: -car.forward (backward) * fSpeed
-        zForce = -carRb.transform.forward * fSpeed * effectiveZTraction * gripCoeff * gripLoad;
-
-        // Ramp sliding fix: cancel the spring's horizontal component when stopped
-        if (Mathf.Abs(fSpeed) < 0.5f)
+        private void ComputeLateralForce()
         {
-            xForce.x -= contactNormal.x * suspensionForce;
-            zForce.z -= contactNormal.z * suspensionForce;
-        }
-    }
+            Vector3 steerSideDir = transform.right;
+            float lateralVel = Vector3.Dot(steerSideDir, _tireVelocity);
 
-    void ComputeMotorForce()
-    {
-        motorForce = Vector3.zero;
-        if (isMotor && motorForceShare != 0f)
+            if (_speed < k_MinSpeedForGrip || _gripCurve == null)
+            {
+                GripFactor = 0f;
+                SlipRatio = 0f;
+                _xForce = Vector3.zero;
+                return;
+            }
+
+            SlipRatio = Mathf.Clamp01(Mathf.Abs(lateralVel) / _speed);
+            GripFactor = _gripCurve.Evaluate(SlipRatio);
+
+            _xForce = -steerSideDir * lateralVel * GripFactor * GripCoeff * _gripLoad;
+        }
+
+        private void ComputeLongitudinalForce(Rigidbody carRb)
         {
-            // Motor drives along wheel's forward axis
-            // Godot: -global_basis.z (forward) → Unity: transform.forward
-            motorForce = transform.forward * motorForceShare;
+            float effectiveZTraction = IsBraking ? _zBrakeTraction : _zTraction;
+
+            // Static friction: hold on ramps when stopped
+            if (Mathf.Abs(_fSpeed) < k_StaticFrictionSpeed &&
+                _cachedCar != null && _cachedCar.CurrentEngineForce == 0f)
+            {
+                effectiveZTraction = k_StaticFrictionTraction;
+            }
+
+            _zForce = -carRb.transform.forward * _fSpeed * effectiveZTraction * GripCoeff * _gripLoad;
+
+            // Ramp sliding fix: cancel the spring's horizontal component when stopped
+            if (Mathf.Abs(_fSpeed) < k_StaticFrictionSpeed)
+            {
+                _xForce.x -= _contactNormal.x * _suspensionForce;
+                _zForce.z -= _contactNormal.z * _suspensionForce;
+            }
         }
-    }
 
-    void DrawDebug()
-    {
-        if (!isOnGround) return;
+        private void ComputeMotorForce()
+        {
+            _motorForce = Vector3.zero;
+            if (_isMotor && MotorForceShare != 0f)
+                _motorForce = transform.forward * MotorForceShare;
+        }
 
-        // White — suspension travel
-        Debug.DrawLine(transform.position, contactPoint, Color.white);
+        private void UpdateVisuals(float dt)
+        {
+            float spinAngle = _fSpeed / _wheelRadius * dt * Mathf.Rad2Deg;
 
-        // Yellow — suspension force
-        if (yForce.sqrMagnitude > 0.0001f)
-            Debug.DrawRay(contactPoint, yForce * DBG_SCALE, Color.yellow);
+            if (_wheelVisual != null)
+            {
+                _wheelVisual.localPosition = new Vector3(0f, -_springLen, 0f);
+                _wheelVisual.Rotate(transform.right, spinAngle, Space.World);
+            }
+            if (_hubVisual != null)
+            {
+                _hubVisual.localPosition = new Vector3(0f, -_springLen, 0f);
+                _hubVisual.Rotate(transform.right, spinAngle, Space.World);
+            }
+        }
 
-        // Red — lateral force
-        if (xForce.sqrMagnitude > 0.0001f)
-            Debug.DrawRay(contactPoint, xForce * DBG_SCALE, Color.red);
+        private void DrawDebug()
+        {
+            if (!IsOnGround) return;
 
-        // Green — longitudinal friction
-        if (zForce.sqrMagnitude > 0.0001f)
-            Debug.DrawRay(contactPoint, zForce * DBG_SCALE, Color.green);
+            Debug.DrawLine(transform.position, _contactPoint, Color.white);
 
-        // Cyan — motor force
-        if (motorForce.sqrMagnitude > 0.0001f)
-            Debug.DrawRay(contactPoint, motorForce * DBG_SCALE, Color.cyan);
+            if (_yForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _yForce * k_DebugScale, Color.yellow);
+            if (_xForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _xForce * k_DebugScale, Color.red);
+            if (_zForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _zForce * k_DebugScale, Color.green);
+            if (_motorForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _motorForce * k_DebugScale, Color.cyan);
+        }
     }
 }
