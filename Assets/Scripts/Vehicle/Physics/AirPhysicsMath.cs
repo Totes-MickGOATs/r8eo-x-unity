@@ -17,6 +17,7 @@ namespace R8EOX.Vehicle.Physics
         /// <param name="pitchTorque">Maximum pitch torque (N*m)</param>
         /// <param name="pitchSensitivity">Sensitivity multiplier</param>
         /// <returns>Pitch torque magnitude (N*m)</returns>
+        [System.Obsolete("Use GyroscopicMath.ComputeReactionTorque instead")]
         public static float ComputePitchTorque(float throttle, float brake,
             float pitchTorque, float pitchSensitivity)
         {
@@ -31,6 +32,7 @@ namespace R8EOX.Vehicle.Physics
         /// <param name="rollTorque">Maximum roll torque (N*m)</param>
         /// <param name="rollSensitivity">Sensitivity multiplier</param>
         /// <returns>Roll torque magnitude (N*m)</returns>
+        [System.Obsolete("Use GyroscopicMath.ComputeGyroscopicTorque instead")]
         public static float ComputeRollTorque(float steer, float rollTorque, float rollSensitivity)
         {
             return steer * rollTorque * rollSensitivity;
@@ -44,6 +46,7 @@ namespace R8EOX.Vehicle.Physics
         /// <param name="gyroStrength">Maximum gyro strength multiplier</param>
         /// <param name="gyroFullRpm">RPM at which full gyro effect is reached</param>
         /// <returns>Gyro damping factor (0 to gyroStrength)</returns>
+        [System.Obsolete("Use GyroscopicMath.ComputeGyroscopicTorque instead")]
         public static float ComputeGyroDampingFactor(float avgRpm, float gyroStrength, float gyroFullRpm)
         {
             const float k_MinRpmForGyro = 10f;

@@ -235,15 +235,14 @@ namespace R8EOX.Tests.EditMode
         // ---- SetCentreOfMass Tests ----
 
         [Test]
-        public void SetCentreOfMass_UpdatesComOffsets()
+        public void SetCentreOfMass_UpdatesComGroundY()
         {
             var car = CreateTestCar();
             InitialiseCar(car);
 
-            car.SetCentreOfMass(-0.15f, -1.0f);
+            car.SetCentreOfMass(-0.15f);
 
             Assert.AreEqual(-0.15f, car.ComGroundY, k_Epsilon);
-            Assert.AreEqual(-1.0f, car.ComAirY, k_Epsilon);
 
             DestroyTestCar(car);
         }

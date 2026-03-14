@@ -13,7 +13,7 @@ namespace R8EOX.Vehicle.Physics
         /// <summary>
         /// Compute gyroscopic precession torque from body rotation and wheel spin.
         /// tau_gyro = omega_body x (I_wheel * omega_spin * spin_axis)
-        /// This couples yaw to pitch and pitch to yaw — NOT damping.
+        /// This couples yaw to pitch and pitch to yaw -- NOT damping.
         /// </summary>
         /// <param name="bodyAngularVelocity">Body angular velocity in world space (rad/s)</param>
         /// <param name="wheelSpinAxis">Wheel spin axis in world space (unit vector)</param>
