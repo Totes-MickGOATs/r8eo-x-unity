@@ -36,6 +36,22 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _gyroFullRpm = 125f;
 
 
+        // ---- Public Properties (read/write for tuning) ----
+
+        /// <summary>Pitch torque magnitude in N*m.</summary>
+        public float PitchTorque { get => _pitchTorque; set => _pitchTorque = value; }
+        /// <summary>Pitch sensitivity multiplier.</summary>
+        public float PitchSensitivity { get => _pitchSensitivity; set => _pitchSensitivity = value; }
+        /// <summary>Roll torque magnitude in N*m.</summary>
+        public float RollTorque { get => _rollTorque; set => _rollTorque = value; }
+        /// <summary>Roll sensitivity multiplier.</summary>
+        public float RollSensitivity { get => _rollSensitivity; set => _rollSensitivity = value; }
+        /// <summary>Gyroscopic stabilization strength.</summary>
+        public float GyroStrength { get => _gyroStrength; set => _gyroStrength = value; }
+        /// <summary>Wheel RPM at which full gyro effect is reached.</summary>
+        public float GyroFullRpm { get => _gyroFullRpm; set => _gyroFullRpm = value; }
+
+
         // ---- Private Fields ----
 
         private Rigidbody _rb;

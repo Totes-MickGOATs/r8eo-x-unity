@@ -48,9 +48,14 @@ namespace R8EOX.Vehicle
 
         // ---- Public Properties ----
 
-        public DriveLayout ActiveDriveLayout => _driveLayout;
-        public DiffType RearDiff => _rearDiffType;
-        public DiffType FrontDiff => _frontDiffType;
+        /// <summary>Current drive layout (RWD or AWD).</summary>
+        public DriveLayout ActiveDriveLayout { get => _driveLayout; set => _driveLayout = value; }
+        /// <summary>Rear differential type.</summary>
+        public DiffType RearDiff { get => _rearDiffType; set => _rearDiffType = value; }
+        /// <summary>Front differential type.</summary>
+        public DiffType FrontDiff { get => _frontDiffType; set => _frontDiffType = value; }
+        /// <summary>Rear differential preload in Newtons.</summary>
+        public float RearPreload { get => _rearPreload; set => _rearPreload = value; }
 
 
         // ---- Public API ----

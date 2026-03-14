@@ -139,6 +139,55 @@ namespace R8EOX.Vehicle
         public float ForwardSpeed { get; private set; }
         public MotorPreset ActiveMotorPreset => _motorPreset;
 
+        // ---- Read-Only Accessors for Tuning Panel ----
+
+        /// <summary>Current engine force max in Newtons.</summary>
+        public float EngineForceMax => _engineForceMax;
+        /// <summary>Current max speed in m/s.</summary>
+        public float MaxSpeed => _maxSpeed;
+        /// <summary>Current brake force in Newtons.</summary>
+        public float BrakeForce => _brakeForce;
+        /// <summary>Current reverse force in Newtons.</summary>
+        public float ReverseForce => _reverseForce;
+        /// <summary>Current coast drag in Newtons.</summary>
+        public float CoastDrag => _coastDrag;
+        /// <summary>Current throttle ramp up rate in units/sec.</summary>
+        public float ThrottleRampUp => _throttleRampUp;
+        /// <summary>Current throttle ramp down rate in units/sec.</summary>
+        public float ThrottleRampDown => _throttleRampDown;
+        /// <summary>Current max steering angle in radians.</summary>
+        public float SteeringMax => _steeringMax;
+        /// <summary>Current steering speed in rad/s.</summary>
+        public float SteeringSpeed => _steeringSpeed;
+        /// <summary>Current steering speed limit in m/s.</summary>
+        public float SteeringSpeedLimit => _steeringSpeedLimit;
+        /// <summary>Current steering high speed factor (0-1).</summary>
+        public float SteeringHighSpeedFactor => _steeringHighSpeedFactor;
+        /// <summary>Current spring strength in N/m.</summary>
+        public float SpringStrength => _springStrength;
+        /// <summary>Current spring damping coefficient.</summary>
+        public float SpringDamping => _springDamping;
+        /// <summary>Current grip coefficient (0-1).</summary>
+        public float GripCoeff => _gripCoeff;
+        /// <summary>Centre of mass Y offset when grounded.</summary>
+        public float ComGroundY => _comGround.y;
+        /// <summary>Centre of mass Y offset when airborne.</summary>
+        public float ComAirY => _comAir.y;
+        /// <summary>Current tumble engage angle in degrees.</summary>
+        public float TumbleEngageDeg => _tumbleEngageDeg;
+        /// <summary>Current tumble full angle in degrees.</summary>
+        public float TumbleFullDeg => _tumbleFullDeg;
+        /// <summary>Current tumble bounce coefficient.</summary>
+        public float TumbleBounce => _tumbleBounce;
+        /// <summary>Current tumble friction coefficient.</summary>
+        public float TumbleFriction => _tumbleFriction;
+        /// <summary>The air physics subsystem, if present.</summary>
+        public RCAirPhysics AirPhysics => _airPhysics;
+        /// <summary>The drivetrain subsystem, if present.</summary>
+        public Drivetrain DrivetrainRef => _drivetrain;
+        /// <summary>Rigidbody mass in kg.</summary>
+        public float Mass => _rb != null ? _rb.mass : k_DefaultMass;
+
 
         // ---- Private Fields ----
 
@@ -284,6 +333,81 @@ namespace R8EOX.Vehicle
         {
             foreach (var w in _allWheels)
                 w.GripCoeff = _gripCoeff;
+        }
+
+        /// <summary>Sets motor parameters and switches to Custom preset.</summary>
+        public void SetMotorParams(float engineForce, float maxSpeed, float brakeForce,
+            float reverseForce, float coastDrag)
+        {
+            _motorPreset = MotorPreset.Custom;
+            _engineForceMax = engineForce;
+            _maxSpeed = maxSpeed;
+            _brakeForce = brakeForce;
+            _reverseForce = reverseForce;
+            _coastDrag = coastDrag;
+        }
+
+        /// <summary>Sets throttle response ramp rates.</summary>
+        public void SetThrottleResponse(float rampUp, float rampDown)
+        {
+            _throttleRampUp = rampUp;
+            _throttleRampDown = rampDown;
+        }
+
+        /// <summary>Sets steering parameters.</summary>
+        public void SetSteeringParams(float max, float speed, float speedLimit, float highSpeedFactor)
+        {
+            _steeringMax = max;
+            _steeringSpeed = speed;
+            _steeringSpeedLimit = speedLimit;
+            _steeringHighSpeedFactor = highSpeedFactor;
+        }
+
+        /// <summary>Sets suspension spring and damping, then pushes to all wheels.</summary>
+        public void SetSuspension(float springStrength, float damping)
+        {
+            _springStrength = springStrength;
+            _springDamping = damping;
+            if (_allWheels != null)
+                ApplySuspensionSettings();
+        }
+
+        /// <summary>Sets grip coefficient and pushes to all wheels.</summary>
+        public void SetTraction(float gripCoeff)
+        {
+            _gripCoeff = gripCoeff;
+            if (_allWheels != null)
+                ApplyTractionSettings();
+        }
+
+        /// <summary>Sets crash/tumble physics parameters.</summary>
+        public void SetCrashParams(float engageDeg, float fullDeg, float bounce, float friction)
+        {
+            _tumbleEngageDeg = engageDeg;
+            _tumbleFullDeg = fullDeg;
+            _tumbleBounce = bounce;
+            _tumbleFriction = friction;
+        }
+
+        /// <summary>Sets centre of mass Y offsets for ground and air.</summary>
+        public void SetCentreOfMass(float groundY, float airY)
+        {
+            _comGround = new UnityEngine.Vector3(0f, groundY, 0f);
+            _comAir = new UnityEngine.Vector3(0f, airY, 0f);
+        }
+
+        /// <summary>Sets mass on the Rigidbody.</summary>
+        public void SetMass(float mass)
+        {
+            if (_rb != null)
+                _rb.mass = mass;
+        }
+
+        /// <summary>Applies a named motor preset. Does nothing for Custom.</summary>
+        public void SelectMotorPreset(MotorPreset preset)
+        {
+            _motorPreset = preset;
+            ApplyMotorPreset();
         }
 
 
