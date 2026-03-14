@@ -30,4 +30,4 @@ Multi-mode camera system for following the RC buggy.
 
 ## Relevant Skills
 
-- `.agents/skills/branch-workflow/SKILL.md` — branch and PR workflow
+- **`unity-camera-systems`** — Camera modes, follow logic, and cinematic patterns

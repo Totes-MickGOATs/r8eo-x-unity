@@ -21,3 +21,8 @@ static classes. This separation allows:
 - Unit testing without Play mode or MonoBehaviour instantiation
 - Reuse of formulas across different vehicle types
 - Clear documentation of force units (Newtons, N·m)
+
+## Relevant Skills
+
+- **`unity-physics-3d`** — Raycast physics, force models, suspension math
+- **`unity-testing-patterns`** — All physics math has mandatory unit tests

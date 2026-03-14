@@ -2,6 +2,12 @@
 
 Unity scenes (.unity files). Scenes are binary-ish YAML — always use Force Text serialization.
 
+## Scenes
+
+| File | Purpose |
+|------|---------|
+| `TestTrack.unity` | Primary test scene with flat terrain, vehicle, and camera |
+
 ## Conventions
 
 - **One gameplay scene + additive scenes** for managers, UI, etc.

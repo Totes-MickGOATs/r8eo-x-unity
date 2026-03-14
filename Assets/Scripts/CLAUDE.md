@@ -26,6 +26,9 @@ Game scripts organized by system. Each subdirectory is a separate assembly with 
 
 ## Relevant Skills
 
-- `.agents/skills/unity-csharp-mastery/SKILL.md` — C# patterns and conventions
-- `.agents/skills/unity-composition/SKILL.md` — Component architecture
-- `.agents/skills/unity-testing-patterns/SKILL.md` — TDD with Unity Test Framework
+- **`unity-csharp-mastery`** — C# patterns and conventions
+- **`unity-composition`** — Component architecture
+- **`unity-testing-patterns`** — TDD with Unity Test Framework
+- **`unity-input-system`** — Input handling patterns (Input/)
+- **`unity-physics-3d`** — Vehicle physics and raycast wheels (Vehicle/)
+- **`unity-editor-scripting`** — Custom editor tools and menu items (Editor/)

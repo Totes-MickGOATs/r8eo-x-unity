@@ -16,3 +16,7 @@ Runtime debug overlays for vehicle development and tuning.
 - All overlays use `OnGUI` for immediate-mode rendering
 - Each panel toggles with a unique key (F2, Tab, etc.)
 - Panels reference `RCCar` via `[SerializeField]`
+
+## Relevant Skills
+
+- **`unity-debugging-profiling`** — Runtime debug overlays and profiling tools

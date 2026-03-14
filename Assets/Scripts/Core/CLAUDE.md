@@ -14,3 +14,8 @@ Shared types, enums, and data definitions used across all systems.
 - Core types have NO dependencies on other game assemblies
 - Enums and ScriptableObjects only — no MonoBehaviours
 - Other assemblies reference Core, never the reverse
+
+## Relevant Skills
+
+- **`unity-scriptable-objects`** — SurfaceConfig is a ScriptableObject
+- **`unity-architecture-patterns`** — Central enum patterns and shared type conventions
