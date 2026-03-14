@@ -39,3 +39,10 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `unity-physics-tuning` | RC Racing | PhysX config for 1/10-scale RC: solver, timestep, layers, scale fixes, determinism, common bugs |
 | `unity-weather-conditions` | RC Racing | Dynamic weather, wet track physics, rain/dust/wind, time of day, track evolution |
 | `unity-damage-progression` | RC Racing | Vehicle damage zones, tire/battery/motor wear, career mode, upgrades, economy |
+| `unity-terrain-track-creation` | 3D | Terrain setup, track layout, splines, MicroSplat, jump design, surface detection |
+| `unity-racing-ui` | UI | Racing HUD, minimap, menus, split-screen, leaderboards, race start sequence |
+| `unity-replay-ghost` | Systems | State recording, ghost playback, replay cameras, compression, anti-cheat |
+| `unity-save-settings` | Data | Settings persistence, keybinds, profiles, career saves, cloud saves, atomic writes |
+| `unity-build-distribution` | Tools | IL2CPP, Addressables, Steam integration, GameCI, demo strategy, crash reporting |
+| `unity-rc-audio` | Gameplay | Brushless motor audio, RPM crossfade, servo, surface audio, AudioMixer, CC0 sources |
+| `unity-genre-racing` | Core | Racing game architecture, AI opponents, race management, multiplayer, RC-specific physics |
