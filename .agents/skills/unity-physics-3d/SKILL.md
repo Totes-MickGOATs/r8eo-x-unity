@@ -4,6 +4,8 @@ Comprehensive guide to 3D physics in Unity using PhysX (Built-in/URP) or Havok (
 
 ## Rigidbody Fundamentals
 
+> **Unity 6:** `Rigidbody.drag` was renamed to `Rigidbody.linearDamping` and `Rigidbody.angularDrag` was renamed to `Rigidbody.angularDamping`. The old names are removed and will cause compile errors.
+
 The `Rigidbody` component makes a GameObject participate in physics simulation.
 
 ### Key Properties
@@ -11,8 +13,8 @@ The `Rigidbody` component makes a GameObject participate in physics simulation.
 | Property | Default | Purpose |
 |----------|---------|---------|
 | `mass` | 1 | Mass in kg. Affects force calculations, not gravity fall speed |
-| `drag` | 0 | Linear air resistance. 0 = no drag, higher = slower movement |
-| `angularDrag` | 0.05 | Rotational air resistance |
+| `linearDamping` | 0 | Linear air resistance. 0 = no drag, higher = slower movement |
+| `angularDamping` | 0.05 | Rotational air resistance |
 | `useGravity` | true | Whether gravity affects this body |
 | `isKinematic` | false | If true, not driven by physics — moved only via transform or `MovePosition` |
 | `interpolation` | None | Smoothing between physics steps for visual jitter reduction |
@@ -330,15 +332,17 @@ void OnCollisionExit(Collision collision)  { /* Separation */ }
 
 ## Physics Materials
 
-Create via **Assets > Create > Physic Material**.
+> **Unity 6:** \ was renamed to \ (with an 's') and \ was renamed to \. The menu item is now **Assets > Create > Physics Material**.
+
+Create via **Assets > Create > Physics Material**.
 
 ```csharp
-PhysicMaterial mat = new PhysicMaterial("Ice");
+PhysicsMaterial mat = new PhysicsMaterial("Ice");
 mat.staticFriction = 0.05f;     // Friction when stationary
 mat.dynamicFriction = 0.03f;    // Friction when moving
 mat.bounciness = 0.1f;          // 0 = no bounce, 1 = perfect bounce
-mat.frictionCombine = PhysicMaterialCombine.Minimum;   // How two materials combine
-mat.bounceCombine = PhysicMaterialCombine.Maximum;
+mat.frictionCombine = PhysicsMaterialCombine.Minimum;   // How two materials combine
+mat.bounceCombine = PhysicsMaterialCombine.Maximum;
 
 collider.material = mat;
 ```

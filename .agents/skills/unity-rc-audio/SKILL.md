@@ -233,11 +233,18 @@ public class RCImpactAudio : MonoBehaviour
 
 ### AudioRandomContainer
 
-Unity 2023+ provides `AudioRandomContainer` for automatic clip variation:
+> **Unity 6:** `AudioRandomContainer` is a standard feature (no longer experimental). It is an `AudioResource`, the new base type accepted by `AudioSource.resource` (which supplements the older `AudioSource.clip`). You can assign an `AudioRandomContainer` directly to an `AudioSource.resource` field -- the source will automatically handle clip variation without any scripting. This is the preferred approach for impact sounds, footsteps, and any one-shot with multiple variations.
 
+- Create via **Assets > Create > Audio > Audio Random Container**
 - Load 3-5 impact variations into the container
-- Automatic round-robin or random selection avoids repetition
-- If unavailable, manually randomize from an array as shown above
+- Configure: random or sequential mode, avoid-repeat count, volume/pitch randomization ranges
+- Assign to `AudioSource.resource` in the Inspector or via code:
+
+```csharp
+[SerializeField] private AudioResource impactContainer; // Assign AudioRandomContainer asset
+audioSource.resource = impactContainer;
+audioSource.Play(); // Automatically picks a variation
+```
 
 ### AudioSource Pooling
 

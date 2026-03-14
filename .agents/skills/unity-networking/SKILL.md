@@ -766,6 +766,13 @@ public class NetworkObjectPool : MonoBehaviour
 }
 ```
 
+### NGO 2.x: Distributed Authority and Unified RPCs (Unity 6)
+
+> **Unity 6 / NGO 2.x:** Two major additions:
+>
+> - **Distributed Authority topology:** A new session mode where clients share authority over objects without a dedicated server or host. Objects are owned by the client that spawns them. Ideal for peer-to-peer casual games. Enable via `NetworkManager.NetworkConfig.NetworkTopology = NetworkTopologyTypes.DistributedAuthority`.
+> - **Unified `[Rpc]` attribute:** Replaces the separate `[ServerRpc]` / `[ClientRpc]` attributes with a single `[Rpc(SendTo.Server)]`, `[Rpc(SendTo.Everyone)]`, `[Rpc(SendTo.NotMe)]`, etc. The old attributes still work but are deprecated. The method name suffix convention (`ServerRpc`/`ClientRpc`) is no longer required with the unified attribute.
+
 ### Host Migration Considerations
 
 NGO does not have built-in host migration. Options:

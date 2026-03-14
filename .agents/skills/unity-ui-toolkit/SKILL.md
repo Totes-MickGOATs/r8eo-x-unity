@@ -503,6 +503,15 @@ This is the most powerful tool for debugging layout issues. Use it before guessi
 
 ## Data Binding
 
+> **Unity 6: Runtime Data Binding** is now production-ready. Key features:
+>
+> - **`[CreateProperty]`** attribute on fields/properties makes them bindable without boilerplate.
+> - **`INotifyBindablePropertyChanged`** interface on your data source enables automatic UI updates when properties change (replaces manual event wiring).
+> - **`BindingMode`**: `TwoWay` (input controls), `ToTarget` (read-only display), `ToSource` (write-only from UI), `ToTargetOnce` (initial set only).
+> - **`[UxmlElement]` / `[UxmlAttribute]`** replace the deprecated `UxmlFactory` / `UxmlTraits` pattern for custom elements. Use these for all new custom controls.
+>
+> These features eliminate most manual C# event wiring for data-driven UIs like settings screens, tuning panels, and garage menus.
+
 For editor tools or runtime data binding:
 
 ```csharp

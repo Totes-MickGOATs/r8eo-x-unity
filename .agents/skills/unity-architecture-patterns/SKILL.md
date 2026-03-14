@@ -9,7 +9,7 @@ Use this skill when choosing, implementing, or combining design patterns in Unit
 | Observer | Decouple event senders from receivers | `OnLapComplete`, `OnCheckpointReached` |
 | State | Manage complex object states with transitions | Vehicle: Idle, Accelerating, Braking, Airborne, Crashed |
 | Factory | Create objects without exposing concrete types | Track obstacle spawning, vehicle configuration |
-| Command | Enable undo/redo, replay, queued actions | Input replay, ghost car recording |
+| Command | Enable undo/redo, replay, queued actions | Track editor undo/redo for obstacle placement |
 | MVP | Separate UI from game logic | Race HUD presenter wiring model to view |
 | MVVM | Automatic data binding for complex UIs | Settings screen, garage/tuning UI |
 | Strategy | Swap algorithms at runtime | Surface physics: grip/friction per terrain type |
@@ -319,101 +319,96 @@ Encapsulates actions as objects. Enables undo/redo, replay, queuing, and macro r
 
 ### RC Racing Example
 
-Input replay and ghost car recording: each frame's input (throttle, steering, brake) is stored as a command. Playing back the command sequence recreates the exact race run for ghost cars or replay viewing.
+Track editor undo/redo: each placement action (adding a ramp, barrier, or cone to the track) is stored as a command. Undoing the action removes the placed object; redoing re-places it. The command stack enables full edit history.
+
+> **Note:** Do NOT use Command pattern for ghost car replay in a PhysX-based game. PhysX is non-deterministic -- input replay diverges within seconds. Ghost systems must use state recording (position/rotation snapshots). See `unity-replay-ghost` for the correct approach.
 
 ### Code Example
 
 ```csharp
 // Command interface
-public interface IRaceCommand
+public interface IEditorCommand
 {
-    float Timestamp { get; }
-    void Execute(VehicleController vehicle);
-    void Undo(VehicleController vehicle);
+    void Execute();
+    void Undo();
 }
 
-// Input frame command for ghost car recording
-public class InputFrameCommand : IRaceCommand
+// Place a track obstacle in the editor
+public class PlaceObstacleCommand : IEditorCommand
 {
-    public float Timestamp { get; }
-    public float Throttle { get; }
-    public float Steering { get; }
-    public float Brake { get; }
+    private readonly TrackEditor _editor;
+    private readonly ObstacleType _type;
+    private readonly Vector3 _position;
+    private readonly Quaternion _rotation;
+    private GameObject _placed;
 
-    public InputFrameCommand(float timestamp, float throttle, float steering, float brake)
+    public PlaceObstacleCommand(TrackEditor editor, ObstacleType type,
+        Vector3 position, Quaternion rotation)
     {
-        Timestamp = timestamp;
-        Throttle = throttle;
-        Steering = steering;
-        Brake = brake;
+        _editor = editor;
+        _type = type;
+        _position = position;
+        _rotation = rotation;
     }
 
-    public void Execute(VehicleController vehicle)
+    public void Execute()
     {
-        vehicle.SetInput(Throttle, Steering, Brake);
+        _placed = _editor.SpawnObstacle(_type, _position, _rotation);
     }
 
-    public void Undo(VehicleController vehicle)
+    public void Undo()
     {
-        vehicle.SetInput(0f, 0f, 0f);
-    }
-}
-
-// Recorder captures commands during a race
-public class GhostRecorder : MonoBehaviour
-{
-    private readonly List<IRaceCommand> _recording = new();
-    private float _raceTime;
-
-    public void RecordFrame(float throttle, float steering, float brake)
-    {
-        _recording.Add(new InputFrameCommand(_raceTime, throttle, steering, brake));
-        _raceTime += Time.fixedDeltaTime;
-    }
-
-    public IReadOnlyList<IRaceCommand> GetRecording() => _recording;
-}
-
-// Player replays commands for ghost car
-public class GhostPlayer : MonoBehaviour
-{
-    [SerializeField] private VehicleController _ghostVehicle;
-
-    private IReadOnlyList<IRaceCommand> _commands;
-    private int _currentIndex;
-    private float _playbackTime;
-
-    public void StartPlayback(IReadOnlyList<IRaceCommand> commands)
-    {
-        _commands = commands;
-        _currentIndex = 0;
-        _playbackTime = 0f;
-    }
-
-    private void FixedUpdate()
-    {
-        if (_commands == null || _currentIndex >= _commands.Count) return;
-
-        while (_currentIndex < _commands.Count &&
-               _commands[_currentIndex].Timestamp <= _playbackTime)
+        if (_placed != null)
         {
-            _commands[_currentIndex].Execute(_ghostVehicle);
-            _currentIndex++;
+            _editor.RemoveObstacle(_placed);
+            _placed = null;
         }
-
-        _playbackTime += Time.fixedDeltaTime;
     }
+}
+
+// Command history with undo/redo stacks
+public class CommandHistory
+{
+    private readonly Stack<IEditorCommand> _undoStack = new();
+    private readonly Stack<IEditorCommand> _redoStack = new();
+
+    public void Execute(IEditorCommand command)
+    {
+        command.Execute();
+        _undoStack.Push(command);
+        _redoStack.Clear(); // New action invalidates redo history
+    }
+
+    public void Undo()
+    {
+        if (_undoStack.Count == 0) return;
+        var command = _undoStack.Pop();
+        command.Undo();
+        _redoStack.Push(command);
+    }
+
+    public void Redo()
+    {
+        if (_redoStack.Count == 0) return;
+        var command = _redoStack.Pop();
+        command.Execute();
+        _undoStack.Push(command);
+    }
+
+    public bool CanUndo => _undoStack.Count > 0;
+    public bool CanRedo => _redoStack.Count > 0;
 }
 ```
 
 ### When to Use
 
-- Actions need to be recorded and replayed (ghost cars, demo mode)
-- Undo/redo is required (level editor, vehicle setup)
+- Undo/redo is required (level editor, vehicle setup, track editor)
 - Actions need to be serialized and sent over the network
+- Macro recording or action batching is needed
 
 ### When NOT to Use
 
+- Ghost car replay -- use state recording instead (see `unity-replay-ghost`)
 - Actions are fire-and-forget with no need for history or replay
 - The overhead of creating command objects per frame is not justified by the feature set
 - Simple input handling that maps directly to behavior -- adding a command layer is unnecessary indirection
@@ -949,8 +944,9 @@ Need to manage complex object states with transitions?
 Need to create objects without exposing concrete types?
   --> Factory Pattern (abstract factory or dictionary lookup)
 
-Need undo/redo, replay, or queued actions?
-  --> Command Pattern (ICommand + invoker stacks or recording list)
+Need undo/redo or queued actions?
+  --> Command Pattern (ICommand + undo/redo stacks)
+  --> NOTE: For ghost car replay, use state recording (see unity-replay-ghost), NOT input commands
 
 Need to separate UI from game logic cleanly?
   --> MVP Pattern (Model + View + Presenter)
