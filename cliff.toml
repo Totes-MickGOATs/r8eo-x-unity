@@ -21,7 +21,7 @@ trim = true
 render_always = true
 postprocessors = [
     # Replace <REPO> with your repository URL
-    { pattern = '<REPO>', replace = "https://github.com/YOUR_ORG/YOUR_REPO" },
+    { pattern = '<REPO>', replace = "https://github.com/Totes-MickGOATs/r8eo-x-unity" },
 ]
 
 [git]
