@@ -3,7 +3,8 @@
     "rootNamespace": "R8EOX.Tests.EditMode",
     "references": [
         "R8EOX.Vehicle",
-        "R8EOX.Input"
+        "R8EOX.Input",
+        "R8EOX.GameFlow"
     ],
     "includePlatforms": [
         "Editor"

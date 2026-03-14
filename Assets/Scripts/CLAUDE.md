@@ -12,6 +12,7 @@ Game scripts organized by system. Each subdirectory is a separate assembly with 
 | `Debug/` | `R8EOX.Debug` | `R8EOX.Debug` | Telemetry HUD overlay |
 | `Core/` | `R8EOX.Core` | `R8EOX.Core` | Shared types: SurfaceType enum, SurfaceConfig |
 | `Track/` | `R8EOX.Track` | `R8EOX.Track` | Track systems: surface zones |
+| `GameFlow/` | `R8EOX.GameFlow` | `R8EOX.GameFlow` | Game flow state machine, navigation stack, session config, scene registry |
 | `Editor/` | `R8EOX.Editor` | `R8EOX.Editor` | Editor-only scene/prefab builders |
 
 ## Conventions

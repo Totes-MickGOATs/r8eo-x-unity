@@ -1,0 +1,16 @@
+{
+  "name": "gameflow",
+  "description": "Game flow state management, navigation stack, session config, and scene registry",
+  "status": "ACTIVE",
+  "files": [
+    "Assets/Scripts/GameFlow/GameState.cs",
+    "Assets/Scripts/GameFlow/SessionConfig.cs",
+    "Assets/Scripts/GameFlow/NavigationStack.cs",
+    "Assets/Scripts/GameFlow/GameFlowStateMachine.cs",
+    "Assets/Scripts/GameFlow/SceneEntry.cs",
+    "Assets/Scripts/GameFlow/SceneRegistry.cs",
+    "Assets/Scripts/GameFlow/R8EOX.GameFlow.asmdef"
+  ],
+  "dependencies": ["core"],
+  "replaced_by": ""
+}
