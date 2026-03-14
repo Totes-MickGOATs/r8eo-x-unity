@@ -170,6 +170,32 @@ Most changes require BOTH unit tests and integration tests:
 - A unit test passing does NOT mean the feature works in-game. If the change involves system wiring, write an integration test too
 - When in doubt, write both. It is better to over-test than to ship a "tested" feature that breaks at runtime
 
+### Autonomous Debugging — NEVER Defer to User
+
+> **MANDATORY:** Agents MUST drive the entire debug → test → fix → verify cycle autonomously.
+> Never ask the user to manually attach components, enter play mode, read logs, or perform any
+> step that can be done via MCP tools or scripts. You have the tools — use them.
+
+**Debug workflow (fully autonomous):**
+
+1. **Read console** — `read_console` to check for errors/warnings
+2. **Attach debug components** — `manage_components(action="add")` to add temporary debug scripts
+3. **Enter play mode** — `manage_editor(action="play")` to start the game
+4. **Wait for data** — sleep 3-5 seconds for logs to accumulate
+5. **Read results** — `read_console` to capture debug output
+6. **Stop play mode** — `manage_editor(action="stop")`
+7. **Clean up** — remove temporary debug scripts
+
+**When MCP is unresponsive** (domain reload after script changes):
+- Wait and retry (sleep 10-15s between attempts)
+- Do NOT hand off to the user — the editor will come back
+- If truly stuck after 60s, fall back to unit tests to verify hypotheses
+
+**Prefer unit tests over play-mode debugging:**
+- If the bug can be reproduced in a unit test, write the test FIRST
+- Unit tests are faster, more reliable, and don't require MCP connectivity
+- Use play-mode debugging only for issues that require runtime wiring (scene tree, physics, rendering)
+
 ### Testing Strategy: Local TDD, Post-Merge Safety Net
 
 > **IMPORTANT:** Run tests locally during TDD. The full suite runs automatically post-merge on main.
