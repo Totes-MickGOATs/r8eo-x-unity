@@ -1,6 +1,6 @@
 # engine/unity/skills/
 
-25 Unity game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
+26 Unity game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
 
 These are lazy-loaded reference guides — Claude Code agents read them on-demand when working on related topics.
 
@@ -30,6 +30,7 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `unity-testing-patterns` | Quality | Unity Test Framework, EditMode/PlayMode, TDD |
 | `unity-debugging-profiling` | Quality | Profiler, Frame Debugger, Memory Profiler, Gizmos |
 | `unity-performance-optimization` | Quality | Batching, GC, pooling, LOD, shader optimization |
+| `unity-testing-debugging-qa` | Quality | Testing philosophy, Roslyn analyzers, IDE debugging, UTF, TDD, CI/CD, QA |
 | `unity-editor-scripting` | Quality | Custom inspectors, editor windows, build pipeline |
 | `unity-mcp-workflows` | Tools | UnityMCP + coplay-mcp, paging, editor automation |
 | `unity-save-load` | Data | JSON, Addressables, PlayerPrefs, cloud saves |
