@@ -5,6 +5,12 @@
 
 cd "$CLAUDE_PROJECT_DIR" || { echo "session-start: skipped (no project dir)"; exit 0; }
 
+# Keep main branch fresh (only when on main)
+if [ "$(git branch --show-current 2>/dev/null)" = "main" ]; then
+    git fetch origin main --quiet 2>/dev/null || true
+    git pull --ff-only origin main 2>/dev/null || true
+fi
+
 # Verify git hooks are configured
 HOOKS_PATH=$(git config core.hooksPath 2>/dev/null)
 if [ "$HOOKS_PATH" != ".githooks" ]; then

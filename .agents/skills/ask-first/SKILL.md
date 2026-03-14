@@ -144,7 +144,33 @@ Before you touch anything, think about what could go wrong:
 
 Write these down. They become test cases in Phase 2.
 
-### 1.10 Rate Your Confidence (1-5)
+### 1.10 Audit All Call Sites
+
+Search for EVERY other location that uses the same pattern, API, or function you are about to fix or modify. Do not assume the bug exists in only one place.
+
+**Steps:**
+1. **Search broadly:** Use `Grep` to find all callers, all implementations, all references to the pattern you are fixing
+2. **List all found locations:** Write them down explicitly — file path and line
+3. **Assess each location:** Could the same bug exist there? Is the same pattern used incorrectly?
+4. **Include ALL affected locations in the test plan:** Every location with the same bug pattern gets a test case in Phase 2
+
+**Rationale:** The phantom input bug (postmortem_phantom_trigger_input.md) required 5 PRs (#25, #34, #40, #44, #52) because each agent only fixed one code path. The bug existed in multiple locations using the same pattern, but each agent found and fixed only their entry point. Always audit ALL paths.
+
+**Example searches:**
+```bash
+# Find all callers of the method you're fixing
+rg "MethodName\(" --type cs
+
+# Find all implementations of the same pattern
+rg "pattern-you-are-fixing" --type cs
+
+# Find all files that import/use the same API
+rg "using SomeNamespace" --type cs
+```
+
+If you find the same bug in multiple locations, your fix MUST address ALL of them — not just the one reported. File separate test cases for each location.
+
+### 1.11 Rate Your Confidence (1-5)
 
 Be honest with yourself:
 
@@ -158,9 +184,9 @@ Be honest with yourself:
 
 **If your confidence is below 3, STOP.** Do not proceed to Phase 2 until you've resolved your unknowns with the user. The cost of asking is low. The cost of building on a wrong assumption is high.
 
-### 1.11 State Your Plan
+### 1.12 State Your Plan
 
-Summarize your approach in 3-5 bullet points, incorporating lessons from steps 1.1-1.9. This plan is your contract with yourself. If you deviate significantly during implementation, come back to Phase 1.
+Summarize your approach in 3-5 bullet points, incorporating lessons from steps 1.1-1.11. This plan is your contract with yourself. If you deviate significantly during implementation, come back to Phase 1.
 
 ---
 
@@ -361,6 +387,7 @@ Copy this into your working notes at the start of every task:
 - [ ] Hypothesis formed (specific, testable)
 - [ ] Full contract verified (input, signals, collisions, scene wiring, dependencies, output, cleanup)
 - [ ] "What would break?" adversarial analysis done
+- [ ] All call sites audited — every location using the same pattern listed and assessed
 - [ ] Confidence rated (1-5). If < 3, asked user for clarification
 - [ ] Plan stated (3-5 bullets)
 
