@@ -365,6 +365,8 @@ Delete this file after PR merges and permanent memories are updated.
 | **Leaving stale in-flight memories after merge** | Future agents see phantom "in-flight" work that already landed | Delete in-flight entries and update permanent memories after merge |
 | **Overloading a single subagent with multiple tasks** | Defeats atomicity — large PRs are harder to review and more likely to conflict | One atomic task per subagent |
 
+> **See also:** `.ai/knowledge/architecture/subagent-patterns.md` for real-world failure cases — singleton file bottlenecks, rebase cascade costs, and why “CI green” doesn’t mean “correct.”
+
 ### When NOT to Use
 
 - **Simple single-task work** — just dispatch one subagent directly
@@ -416,3 +418,4 @@ Phase 5: Ship
 | **`reverse-engineering`** | Root cause analysis for bug fix swarms |
 | **`unity-testing-patterns`** | Test execution patterns for verification phase |
 | **`debug-system`** | Structured logging for diagnosing agent issues |
+| **`subagent-patterns`** | Lessons learned: singleton bottlenecks, rebase cascade cost, diff verification (`.ai/knowledge/architecture/subagent-patterns.md`) |
