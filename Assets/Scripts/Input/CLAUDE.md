@@ -16,6 +16,7 @@ Input processing pipeline: raw Unity input axes to vehicle commands (throttle, b
 ## Architecture
 
 - `RCInput` reads raw axes each frame, applies `InputGuard` suppression, detects trigger mode via `TriggerDetector`, and processes values through `InputMath`
+- `RCInput.DetectorMode` exposes `TriggerDetector.CurrentMode` as a read-only property for diagnostics and contract validation (used by `ContractDebugger`)
 - Pure logic classes (`InputMath`, `InputGuard`, `TriggerDetector`) have no Unity lifecycle dependency for testability
 - Namespace: `R8EOX.Input`
 
