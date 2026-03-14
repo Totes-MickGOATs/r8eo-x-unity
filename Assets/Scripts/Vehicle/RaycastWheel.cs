@@ -143,7 +143,7 @@ namespace R8EOX.Vehicle
             Ray ray = new Ray(transform.position, -transform.up);
             RaycastHit hit;
 
-            if (!Physics.Raycast(ray, out hit, _rayLen, _groundMask))
+            if (!UnityEngine.Physics.Raycast(ray, out hit, _rayLen, _groundMask))
             {
                 HandleAirborne(dt);
                 return;
