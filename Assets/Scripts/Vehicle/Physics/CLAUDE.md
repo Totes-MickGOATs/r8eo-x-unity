@@ -26,3 +26,4 @@ static classes. This separation allows:
 
 - **`unity-physics-3d`** — Raycast physics, force models, suspension math
 - **`unity-testing-patterns`** — All physics math has mandatory unit tests
+- **`clean-room-qa`** — Black-box physics testing from domain first principles
