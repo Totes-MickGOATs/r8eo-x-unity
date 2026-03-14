@@ -7,6 +7,7 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 | File | Tests | Coverage |
 |------|-------|----------|
 | `SuspensionMathTests.cs` | Hooke's law, damping, bump stop, grip load, ray length | `SuspensionMath` |
+| `SuspensionStabilityTests.cs` | M7 landing damping spike suppression, M8 oscillation decay | `SuspensionMath` |
 | `GripMathTests.cs` | Slip ratio, lateral force, longitudinal friction, traction modes, RPM | `GripMath` |
 | `DrivetrainMathTests.cs` | Open/BallDiff/Spool diffs, one-wheel-off, AWD center diff, force conservation | `DrivetrainMath` |
 | `AirPhysicsMathTests.cs` | Pitch/roll torque, gyro damping, RPM averaging | `AirPhysicsMath` |

@@ -100,6 +100,7 @@ namespace R8EOX.Vehicle
         private Transform _hubVisual;
         private RCCar _cachedCar;
         private float _prevSpringLen;
+        private bool _wasOnGround;
         private float _rayLen;
 
         // Per-frame physics state
@@ -159,15 +160,17 @@ namespace R8EOX.Vehicle
             if (hit.normal.y < 0f)
             {
                 IsOnGround = false;
+                _wasOnGround = false;
                 _prevSpringLen = _restDistance + _overExtend;
                 return;
             }
 
+            bool wasGroundedLastFrame = _wasOnGround;
             IsOnGround = true;
             _contactPoint = hit.point;
             _contactNormal = hit.normal;
 
-            ComputeSuspension(carRb, dt);
+            ComputeSuspension(carRb, dt, wasGroundedLastFrame);
             ComputeLateralForce();
             ComputeLongitudinalForce(carRb);
             ComputeMotorForce();
@@ -178,6 +181,8 @@ namespace R8EOX.Vehicle
             UpdateVisuals(dt);
 
             WheelRpm = PhysicsMath.GripMath.ComputeWheelRpm(_fSpeed, _wheelRadius);
+
+            _wasOnGround = IsOnGround;
 
             if (_showDebug)
                 DrawDebug();
@@ -191,6 +196,7 @@ namespace R8EOX.Vehicle
             GripFactor = 0f;
             SlipRatio = 0f;
             IsOnGround = false;
+            _wasOnGround = false;
             _prevSpringLen = _restDistance + _overExtend;
 
             float droopTarget = -(_restDistance + _overExtend);
@@ -202,14 +208,19 @@ namespace R8EOX.Vehicle
                     Mathf.MoveTowards(_hubVisual.localPosition.y, droopTarget, k_DroopSpeed * dt), 0f);
         }
 
-        private void ComputeSuspension(Rigidbody carRb, float dt)
+        private void ComputeSuspension(Rigidbody carRb, float dt, bool wasGroundedLastFrame)
         {
             float anchorToContact = Vector3.Distance(transform.position, _contactPoint);
             _springLen = PhysicsMath.SuspensionMath.ComputeSpringLength(anchorToContact, _wheelRadius, _minSpringLen);
 
             _springForce = SpringStrength * (_restDistance - _springLen);
+
+            // M7 fix: suppress damping spike on first ground frame after airborne
+            float effectivePrev = PhysicsMath.SuspensionMath.SanitizePrevSpringLenForLanding(
+                _springLen, _prevSpringLen, wasGroundedLastFrame);
+
             _suspensionForce = PhysicsMath.SuspensionMath.ComputeSuspensionForceWithDamping(
-                SpringStrength, SpringDamping, _restDistance, _springLen, _prevSpringLen, dt);
+                SpringStrength, SpringDamping, _restDistance, _springLen, effectivePrev, dt);
             _prevSpringLen = _springLen;
 
             _yForce = _contactNormal * _suspensionForce;

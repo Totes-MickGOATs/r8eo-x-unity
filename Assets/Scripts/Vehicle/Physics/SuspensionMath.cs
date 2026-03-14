@@ -104,6 +104,24 @@ namespace R8EOX.Vehicle.Physics
         }
 
         /// <summary>
+        /// Sanitize prevSpringLen on the first ground frame after being airborne.
+        /// When landing, prevSpringLen is at full droop which creates a massive
+        /// damping spike (M7 bug). Setting prev = current zeroes out damping
+        /// on the landing frame, allowing a clean spring-only response.
+        /// </summary>
+        /// <param name="springLen">Current spring length this frame (m)</param>
+        /// <param name="prevSpringLen">Previous frame spring length (m)</param>
+        /// <param name="wasOnGround">Whether the wheel was grounded last frame</param>
+        /// <returns>Sanitized prevSpringLen for damping calculation</returns>
+        public static float SanitizePrevSpringLenForLanding(
+            float springLen, float prevSpringLen, bool wasOnGround)
+        {
+            if (!wasOnGround)
+                return springLen; // Zero out damping on landing frame
+            return prevSpringLen;
+        }
+
+        /// <summary>
         /// Compute total raycast length needed for ground detection.
         /// </summary>
         public static float ComputeRayLength(float restDistance, float overExtend, float wheelRadius)
