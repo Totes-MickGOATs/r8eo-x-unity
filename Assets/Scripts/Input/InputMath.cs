@@ -36,6 +36,23 @@ namespace R8EOX.Input
         }
 
         /// <summary>
+        /// Apply symmetric deadzone with remapping for bipolar axes (-1 to +1).
+        /// Returns 0 when |raw| is below the deadzone threshold, then remaps
+        /// the remaining range to [-1, +1] with no discontinuous jump at the edge.
+        /// </summary>
+        /// <param name="raw">Raw input value (-1 to +1)</param>
+        /// <param name="deadzone">Deadzone threshold (0-1)</param>
+        /// <returns>Remapped value clamped to [-1, +1]</returns>
+        public static float ApplySymmetricDeadzone(float raw, float deadzone)
+        {
+            float abs = Mathf.Abs(raw);
+            if (abs < deadzone) return 0f;
+            float sign = Mathf.Sign(raw);
+            float remapped = (abs - deadzone) / (1f - deadzone);
+            return sign * Mathf.Clamp01(remapped);
+        }
+
+        /// <summary>
         /// Merge two input sources, taking whichever has the larger absolute value.
         /// Used to combine keyboard and gamepad seamlessly.
         /// </summary>

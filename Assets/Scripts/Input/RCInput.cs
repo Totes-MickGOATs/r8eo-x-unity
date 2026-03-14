@@ -4,15 +4,34 @@ namespace R8EOX.Input
 {
     /// <summary>
     /// Player input provider for the RC buggy using Unity's legacy Input Manager.
-    /// Supports keyboard (WASD) and gamepad (triggers + stick) with auto-detection.
+    /// Supports keyboard (WASD) and gamepad (separate triggers + left stick).
     /// Implements IVehicleInput for swappable input sources.
+    ///
+    /// Controller detection: defaults to separate triggers (modern Xbox/PS controllers).
+    /// A 60-frame grace period suppresses gamepad axes on startup to avoid ghost inputs
+    /// from uninitialized axis values. After the grace period, if no trigger input is
+    /// detected within 5 seconds, falls back to keyboard-only mode.
+    ///
+    /// No "combined axis" mode — it was a source of ghost brake inputs (see audit C5).
     /// </summary>
     public class RCInput : MonoBehaviour, IVehicleInput
     {
         // ---- Constants ----
 
+        /// <summary>Number of frames to suppress gamepad input on startup.</summary>
+        const int k_GraceFrames = 60;
+
+        /// <summary>Frames to wait for trigger input before falling back to keyboard-only.</summary>
         const int k_DetectWindow = 300;
+
+        /// <summary>Minimum input magnitude to confirm a real trigger press.</summary>
         const float k_StrongInputThreshold = 0.3f;
+
+        /// <summary>Default deadzone for gamepad stick axes.</summary>
+        const float k_DefaultStickDeadzone = 0.2f;
+
+        /// <summary>Default deadzone for gamepad trigger axes.</summary>
+        const float k_DefaultTriggerDeadzone = 0.2f;
 
 
         // ---- Serialized Fields ----
@@ -23,9 +42,10 @@ namespace R8EOX.Input
 
         [Header("Gamepad Deadzones")]
         [Tooltip("Deadzone for trigger axes — values below this are treated as 0")]
-        [SerializeField] private float _triggerDeadzone = 0.15f;
-        [Tooltip("Deadzone for steering stick")]
-        [SerializeField] private float _steerDeadzone = 0.1f;
+        [SerializeField] private float _triggerDeadzone = k_DefaultTriggerDeadzone;
+
+        [Tooltip("Deadzone for steering stick — values below this are treated as 0")]
+        [SerializeField] private float _steerDeadzone = k_DefaultStickDeadzone;
 
 
         // ---- IVehicleInput Properties ----
@@ -46,26 +66,59 @@ namespace R8EOX.Input
 
         // ---- Private Fields ----
 
-        private enum TriggerMode { Detecting, Separate, Combined, None }
-        private TriggerMode _triggerMode = TriggerMode.Detecting;
-        private int _detectFrames;
+        private enum TriggerMode { Grace, Detecting, Active, KeyboardOnly }
+        private TriggerMode _triggerMode = TriggerMode.Grace;
+        private int _frameCounter;
 
 
         // ---- Unity Lifecycle ----
 
         void Update()
         {
+            _frameCounter++;
+            UpdateTriggerMode();
+
             PollThrottle();
             PollBrake();
             PollSteering();
             PollButtons();
-
-            if (_triggerMode == TriggerMode.Detecting)
-                DetectTriggerMode();
         }
 
 
         // ---- Private Methods ----
+
+        private void UpdateTriggerMode()
+        {
+            switch (_triggerMode)
+            {
+                case TriggerMode.Grace:
+                    if (_frameCounter >= k_GraceFrames)
+                    {
+                        _triggerMode = TriggerMode.Detecting;
+                        _frameCounter = 0;
+                        UnityEngine.Debug.Log("[RCInput] Grace period ended, detecting gamepad triggers...");
+                    }
+                    break;
+
+                case TriggerMode.Detecting:
+                    float rt = Mathf.Abs(UnityEngine.Input.GetAxisRaw("GamepadThrottle"));
+                    float lt = Mathf.Abs(UnityEngine.Input.GetAxisRaw("GamepadBrake"));
+
+                    if (rt > k_StrongInputThreshold || lt > k_StrongInputThreshold)
+                    {
+                        _triggerMode = TriggerMode.Active;
+                        UnityEngine.Debug.Log("[RCInput] Gamepad triggers detected — controller active.");
+                        return;
+                    }
+
+                    if (_frameCounter >= k_DetectWindow)
+                    {
+                        _triggerMode = TriggerMode.KeyboardOnly;
+                        UnityEngine.Debug.Log("[RCInput] No gamepad triggers detected — keyboard only.");
+                    }
+                    break;
+            }
+        }
 
         private void PollThrottle()
         {
@@ -87,8 +140,7 @@ namespace R8EOX.Input
             if (UnityEngine.Input.GetKey(KeyCode.D)) kb += 1f;
             if (UnityEngine.Input.GetKey(KeyCode.A)) kb -= 1f;
 
-            float gp = UnityEngine.Input.GetAxisRaw("Horizontal");
-            if (Mathf.Abs(gp) < _steerDeadzone) gp = 0f;
+            float gp = GetGamepadSteering();
 
             float raw = InputMath.MergeInputs(gp, kb);
             Steer = InputMath.ApplySteeringCurve(raw, _steerCurveExponent);
@@ -103,85 +155,31 @@ namespace R8EOX.Input
                                  UnityEngine.Input.GetKeyDown(KeyCode.JoystickButton4);
         }
 
-        private void DetectTriggerMode()
-        {
-            _detectFrames++;
-
-            float sepRT = Mathf.Abs(UnityEngine.Input.GetAxisRaw("RightTrigger"));
-            float sepLT = Mathf.Abs(UnityEngine.Input.GetAxisRaw("LeftTrigger"));
-            float combined = Mathf.Abs(UnityEngine.Input.GetAxisRaw("CombinedTriggers"));
-
-            if (sepRT > k_StrongInputThreshold || sepLT > k_StrongInputThreshold)
-            {
-                _triggerMode = TriggerMode.Separate;
-                Debug.Log("[RCInput] Gamepad triggers: separate axes (9/10)");
-                return;
-            }
-
-            if (combined > k_StrongInputThreshold)
-            {
-                _triggerMode = TriggerMode.Combined;
-                Debug.Log("[RCInput] Gamepad triggers: combined axis (3)");
-                return;
-            }
-
-            if (_detectFrames >= k_DetectWindow)
-            {
-                _triggerMode = TriggerMode.None;
-                Debug.Log("[RCInput] No gamepad triggers detected — keyboard only.");
-            }
-        }
-
         private float GetGamepadThrottle()
         {
-            switch (_triggerMode)
-            {
-                case TriggerMode.Separate:
-                    return InputMath.ApplyDeadzone(
-                        UnityEngine.Input.GetAxisRaw("RightTrigger"), _triggerDeadzone);
+            if (_triggerMode == TriggerMode.Grace || _triggerMode == TriggerMode.KeyboardOnly)
+                return 0f;
 
-                case TriggerMode.Combined:
-                    return InputMath.ApplyDeadzone(
-                        UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
-
-                case TriggerMode.Detecting:
-                    float rt = UnityEngine.Input.GetAxisRaw("RightTrigger");
-                    if (rt > k_StrongInputThreshold)
-                        return InputMath.ApplyDeadzone(rt, _triggerDeadzone);
-                    float com = UnityEngine.Input.GetAxisRaw("CombinedTriggers");
-                    if (com > k_StrongInputThreshold)
-                        return InputMath.ApplyDeadzone(com, _triggerDeadzone);
-                    return 0f;
-
-                default:
-                    return 0f;
-            }
+            float raw = UnityEngine.Input.GetAxisRaw("GamepadThrottle");
+            return InputMath.ApplyDeadzone(raw, _triggerDeadzone);
         }
 
         private float GetGamepadBrake()
         {
-            switch (_triggerMode)
-            {
-                case TriggerMode.Separate:
-                    return InputMath.ApplyDeadzone(
-                        UnityEngine.Input.GetAxisRaw("LeftTrigger"), _triggerDeadzone);
+            if (_triggerMode == TriggerMode.Grace || _triggerMode == TriggerMode.KeyboardOnly)
+                return 0f;
 
-                case TriggerMode.Combined:
-                    return InputMath.ApplyDeadzone(
-                        -UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
+            float raw = UnityEngine.Input.GetAxisRaw("GamepadBrake");
+            return InputMath.ApplyDeadzone(raw, _triggerDeadzone);
+        }
 
-                case TriggerMode.Detecting:
-                    float lt = UnityEngine.Input.GetAxisRaw("LeftTrigger");
-                    if (lt > k_StrongInputThreshold)
-                        return InputMath.ApplyDeadzone(lt, _triggerDeadzone);
-                    float com = -UnityEngine.Input.GetAxisRaw("CombinedTriggers");
-                    if (com > k_StrongInputThreshold)
-                        return InputMath.ApplyDeadzone(com, _triggerDeadzone);
-                    return 0f;
+        private float GetGamepadSteering()
+        {
+            if (_triggerMode == TriggerMode.Grace || _triggerMode == TriggerMode.KeyboardOnly)
+                return 0f;
 
-                default:
-                    return 0f;
-            }
+            float raw = UnityEngine.Input.GetAxisRaw("GamepadSteerX");
+            return InputMath.ApplySymmetricDeadzone(raw, _steerDeadzone);
         }
     }
 }
