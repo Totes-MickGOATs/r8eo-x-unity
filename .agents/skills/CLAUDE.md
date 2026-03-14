@@ -1,6 +1,6 @@
 # engine/unity/skills/
 
-30 Unity game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
+37 Unity game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
 
 These are lazy-loaded reference guides — Claude Code agents read them on-demand when working on related topics.
 
