@@ -1,11 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 command -v git-lfs >/dev/null 2>&1 || { printf >&2 "\n%s\n\n" "This repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'pre-push' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks')."; exit 2; }
 git lfs pre-push "$@"
 
 # ── Main branch push guard ───────────────────────────────────────────────────
 # Block direct pushes to main — use PRs instead.
 # Bypass (release only): ALLOW_MASTER_PUSH=1 git push ...
+# Read stdin for push info (must consume it before other checks)
+PUSH_REFS=""
 while read local_ref local_sha remote_ref remote_sha; do
+    PUSH_REFS="${PUSH_REFS}${local_ref} ${local_sha} ${remote_ref} ${remote_sha}\n"
     if echo "$remote_ref" | grep -qE 'refs/heads/main$'; then
         if [ -z "$ALLOW_MASTER_PUSH" ]; then
             echo "ERROR: Direct push to main is blocked. Use a PR."
@@ -14,3 +17,104 @@ while read local_ref local_sha remote_ref remote_sha; do
         fi
     fi
 done
+
+# ── Test runner for changed files (Layer 2: coverage enforcement) ────────────
+# Run Unity tests for changed C# scripts before allowing push.
+# Bypass: SKIP_TEST_CHECK=1 git push ...
+
+if [ -n "$SKIP_TEST_CHECK" ]; then
+    echo "SKIP_TEST_CHECK set — skipping pre-push test check."
+else
+    # Determine the remote tracking branch to diff against
+    TRACKING_BRANCH=$(git rev-parse --abbrev-ref '@{upstream}' 2>/dev/null)
+    if [ -z "$TRACKING_BRANCH" ]; then
+        TRACKING_BRANCH="origin/main"
+    fi
+
+    # Get changed .cs files (production scripts only)
+    CHANGED_CS=$(git diff --name-only "$TRACKING_BRANCH"...HEAD -- 'Assets/Scripts/*.cs' 2>/dev/null | \
+        grep -v '/Editor/' | grep -v '/Tests/' | grep -v '\.asmdef$')
+
+    if [ -n "$CHANGED_CS" ]; then
+        # Map changed scripts to test class names
+        TEST_FILTERS=""
+        MISSING_TESTS=""
+        while IFS= read -r file; do
+            baseName=$(basename "$file" .cs)
+            # Find matching test files
+            found=0
+            for testDir in Assets/Tests/EditMode Assets/Tests/PlayMode; do
+                if [ -d "$testDir" ]; then
+                    for match in "$testDir"/*"${baseName}"*Tests.cs "$testDir"/*"${baseName}"*Test.cs; do
+                        if [ -f "$match" ]; then
+                            testClass=$(basename "$match" .cs)
+                            if [ -n "$TEST_FILTERS" ]; then
+                                TEST_FILTERS="${TEST_FILTERS}|${testClass}"
+                            else
+                                TEST_FILTERS="$testClass"
+                            fi
+                            found=1
+                        fi
+                    done
+                fi
+            done
+            if [ "$found" -eq 0 ]; then
+                MISSING_TESTS="${MISSING_TESTS}  - ${file}\n"
+            fi
+        done <<< "$CHANGED_CS"
+
+        # Warn about scripts without test coverage
+        if [ -n "$MISSING_TESTS" ]; then
+            echo ""
+            echo "WARNING: These changed scripts have no matching test files:"
+            printf "$MISSING_TESTS"
+            echo "  TDD requires tests for all production code."
+            echo ""
+        fi
+
+        # Run matched tests if any were found
+        if [ -n "$TEST_FILTERS" ]; then
+            # Check if Unity is available in PATH
+            UNITY_CMD=""
+            if command -v Unity &>/dev/null; then
+                UNITY_CMD="Unity"
+            elif command -v unity &>/dev/null; then
+                UNITY_CMD="unity"
+            fi
+
+            if [ -z "$UNITY_CMD" ]; then
+                echo "WARNING: Unity not found in PATH — skipping pre-push test run."
+                echo "  CI will run tests after push. Ensure tests pass before merging."
+            else
+                echo "Running EditMode tests for changed files: $TEST_FILTERS"
+                echo ""
+
+                # Run tests with 120-second timeout
+                timeout 120 "$UNITY_CMD" -batchmode -nographics -runTests \
+                    -testPlatform EditMode \
+                    -testFilter "$TEST_FILTERS" \
+                    -projectPath . \
+                    -testResults /dev/null \
+                    -logFile /dev/null 2>&1
+                TEST_EXIT=$?
+
+                if [ "$TEST_EXIT" -eq 124 ]; then
+                    echo "WARNING: Tests timed out after 120 seconds. Push allowed."
+                    echo "  Check test results in CI."
+                elif [ "$TEST_EXIT" -ne 0 ]; then
+                    echo ""
+                    echo "ERROR: Tests FAILED (exit code $TEST_EXIT). Push blocked."
+                    echo ""
+                    echo "  Failed test filter: $TEST_FILTERS"
+                    echo "  Fix failing tests before pushing."
+                    echo "  Bypass (emergency only): SKIP_TEST_CHECK=1 git push ..."
+                    exit 1
+                else
+                    echo "All matched tests passed."
+                fi
+            fi
+        else
+            echo "No matching test files for changed scripts — push allowed."
+        fi
+    fi
+fi

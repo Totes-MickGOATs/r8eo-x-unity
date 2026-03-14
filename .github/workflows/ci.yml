@@ -47,9 +47,8 @@ jobs:
 
       - name: Check test coverage (regression guard)
         id: coverage
-        continue-on-error: true
         run: |
-          uv run python scripts/tools/test_coverage_report.py --ci 2>&1 | tee coverage_output.txt || true
+          uv run python scripts/tools/test_coverage_report.py --ci 2>&1 | tee coverage_output.txt
           echo "report<<COVERAGE_EOF" >> "$GITHUB_OUTPUT"
           cat coverage_output.txt >> "$GITHUB_OUTPUT"
           echo "COVERAGE_EOF" >> "$GITHUB_OUTPUT"

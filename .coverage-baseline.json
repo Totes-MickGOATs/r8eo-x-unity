@@ -1,0 +1,30 @@
+{
+  "generated": "2026-03-14",
+  "total_tests": 373,
+  "categories": {
+    "Vehicle/Physics": {
+      "test_count": 101,
+      "source_files": 6
+    },
+    "Vehicle/ESC": {
+      "test_count": 8,
+      "source_files": 4
+    },
+    "Input": {
+      "test_count": 76,
+      "source_files": 5
+    },
+    "Core": {
+      "test_count": 12,
+      "source_files": 2
+    },
+    "GameFlow": {
+      "test_count": 33,
+      "source_files": 6
+    },
+    "BlackBox/Integration": {
+      "test_count": 143,
+      "source_files": 0
+    }
+  }
+}

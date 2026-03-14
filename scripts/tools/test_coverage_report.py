@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Test coverage report — tracks tested vs untested game systems.
 
-No addons needed. Counts production scripts vs test files and reports
-per-category coverage using the tiered approach.
+No addons needed. Counts [Test] and [UnityTest] attributes in test files
+and reports per-category coverage using the tiered approach.
 
 Modes:
   (default)       Human-readable report to stdout
@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -24,133 +25,164 @@ if sys.stdout and hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
-TESTS_DIR = PROJECT / "tests"
+TESTS_EDITMODE = PROJECT / "Assets" / "Tests" / "EditMode"
+TESTS_PLAYMODE = PROJECT / "Assets" / "Tests" / "PlayMode"
 BASELINE_FILE = PROJECT / ".coverage-baseline.json"
 
-# ── System categories with target ranges ──────────────────────────────────────
-# Customize this for your project. Add your game systems here.
+# Regex to match [Test] and [UnityTest] attributes
+TEST_ATTR_RE = re.compile(r"^\s*\[(Test|UnityTest)\]\s*$")
+
+# ── System categories with test-to-source mappings ────────────────────────────
 CATEGORIES: dict[str, dict] = {
-    "Example systems": {
-        "target": (50, 70),
-        "scripts": {
-            # "system_name": "path/to/system.gd",
-        },
+    "Vehicle/Physics": {
+        "test_patterns": [
+            "SuspensionMath*",
+            "GripMath*",
+            "DrivetrainMath*",
+            "AirPhysicsMath*",
+            "TumbleMath*",
+            "GroundDrive*",
+            "ForceDirection*",
+        ],
+        "source_patterns": ["Assets/Scripts/Vehicle/Physics/*.cs"],
+    },
+    "Vehicle/ESC": {
+        "test_patterns": ["ReverseESC*"],
+        "source_patterns": ["Assets/Scripts/Vehicle/*.cs"],
+    },
+    "Input": {
+        "test_patterns": [
+            "InputMath*",
+            "InputDetection*",
+            "InputProcessing*",
+            "PhantomTrigger*",
+            "SteeringTests*",
+            "ZeroInput*",
+        ],
+        "source_patterns": ["Assets/Scripts/Input/*.cs"],
+    },
+    "Core": {
+        "test_patterns": ["TuningApi*"],
+        "source_patterns": ["Assets/Scripts/Core/*.cs"],
+    },
+    "GameFlow": {
+        "test_patterns": [
+            "GameFlowStateMachine*",
+            "NavigationStack*",
+            "SceneRegistry*",
+            "SessionConfig*",
+        ],
+        "source_patterns": ["Assets/Scripts/GameFlow/*.cs"],
+    },
+    "BlackBox/Integration": {
+        "test_patterns": [
+            "BlackBoxPhysics*",
+            "GripTractionCritical*",
+            "VehicleIntegration*",
+        ],
+        "source_patterns": [],  # Cross-cutting tests
     },
 }
 
 
-def find_test_file(system_name: str) -> Path | None:
-    """Look for a test file matching the system name."""
-    # Try common patterns across engines
-    for prefix in ("test_", "Test"):
-        for ext in (".gd", ".cs", ".cpp"):
-            candidate = TESTS_DIR / f"{prefix}{system_name}{ext}"
-            if candidate.exists():
-                return candidate
-    # Fuzzy match
-    for test_file in TESTS_DIR.glob("test_*.*"):
-        if system_name in test_file.stem.removeprefix("test_"):
-            return test_file
-    return None
+def _glob_test_files(pattern: str) -> list[Path]:
+    """Find test files matching a glob pattern in both EditMode and PlayMode."""
+    results: list[Path] = []
+    for test_dir in (TESTS_EDITMODE, TESTS_PLAYMODE):
+        if test_dir.exists():
+            results.extend(test_dir.glob(f"{pattern}.cs"))
+    return results
 
 
-def count_test_methods(test_file: Path) -> int:
-    """Count test methods in a test file."""
+def count_test_attributes(test_file: Path) -> int:
+    """Count [Test] and [UnityTest] attributes in a C# test file."""
     count = 0
     text = test_file.read_text(encoding="utf-8")
     for line in text.splitlines():
-        stripped = line.strip()
-        if (
-            stripped.startswith("func test_")
-            or stripped.startswith("public void Test")
-            or stripped.startswith("public async Task Test")
-            or stripped.startswith("TEST(")
-            or stripped.startswith("TEST_F(")
-        ):
+        if TEST_ATTR_RE.match(line):
             count += 1
     return count
 
 
+def count_source_files(patterns: list[str]) -> int:
+    """Count source files matching the given glob patterns."""
+    files: set[Path] = set()
+    for pattern in patterns:
+        files.update(PROJECT.glob(pattern))
+    return len(files)
+
+
 def gather_snapshot() -> dict:
-    """Build a coverage snapshot."""
+    """Build a coverage snapshot from actual test files."""
     categories = {}
-    total_scripts = 0
-    total_tested = 0
     total_tests = 0
 
     for category, data in CATEGORIES.items():
-        target_lo, target_hi = data["target"]
-        scripts = data["scripts"]
-        tested = 0
         cat_tests = 0
-        systems = {}
+        test_files_found: dict[str, int] = {}
 
-        for name in scripts:
-            test_file = find_test_file(name)
-            if test_file:
-                n = count_test_methods(test_file)
-                systems[name] = {"tested": True, "test_file": test_file.name, "test_count": n}
-                tested += 1
-                cat_tests += n
-            else:
-                systems[name] = {"tested": False, "test_file": None, "test_count": 0}
+        for pattern in data["test_patterns"]:
+            matched = _glob_test_files(pattern)
+            for tf in matched:
+                if tf.name not in test_files_found:
+                    n = count_test_attributes(tf)
+                    test_files_found[tf.name] = n
+                    cat_tests += n
 
-        pct = (tested / len(scripts) * 100) if scripts else 0
+        source_count = count_source_files(data["source_patterns"])
+
         categories[category] = {
-            "tested": tested,
-            "total": len(scripts),
-            "pct": round(pct, 1),
-            "target_lo": target_lo,
-            "target_hi": target_hi,
-            "passing": pct >= target_lo,
             "test_count": cat_tests,
-            "systems": systems,
+            "test_files": len(test_files_found),
+            "source_files": source_count,
+            "test_file_details": test_files_found,
         }
-        total_scripts += len(scripts)
-        total_tested += tested
         total_tests += cat_tests
 
     return {
         "categories": categories,
-        "overall_tested": total_tested,
-        "overall_total": total_scripts,
-        "overall_pct": round((total_tested / total_scripts * 100) if total_scripts else 0, 1),
-        "total_test_methods": total_tests,
+        "total_tests": total_tests,
     }
 
 
 def print_report(snap: dict) -> bool:
-    """Print human-readable report. Returns True if all targets met."""
-    all_pass = True
+    """Print human-readable report. Returns True always (no target enforcement yet)."""
     print("=" * 72)
     print("TEST COVERAGE REPORT")
     print("=" * 72)
 
     for cat_name, cat in snap["categories"].items():
-        status = "OK" if cat["passing"] else "BELOW TARGET"
-        marker = "  " if cat["passing"] else "!! "
-        print(f"\n{marker}{cat_name} -- {cat['tested']}/{cat['total']} ({cat['pct']:.0f}%) "
-              f"[target: {cat['target_lo']}-{cat['target_hi']}%] [{status}]")
-        for name, info in cat["systems"].items():
-            if info["tested"]:
-                print(f"    {name:30s} + {info['test_file']} ({info['test_count']} tests)")
-            else:
-                print(f"    {name:30s} - NO TESTS")
-        if not cat["passing"]:
-            all_pass = False
+        src_info = f", {cat['source_files']} source files" if cat["source_files"] > 0 else ""
+        print(
+            f"\n  {cat_name} -- {cat['test_count']} tests "
+            f"in {cat['test_files']} test files{src_info}"
+        )
+        for fname, count in cat["test_file_details"].items():
+            print(f"    {fname:40s} {count} tests")
 
     print("\n" + "=" * 72)
-    print(f"OVERALL: {snap['overall_tested']}/{snap['overall_total']} "
-          f"systems tested ({snap['overall_pct']:.0f}%)")
-    print(f"TOTAL:   {snap['total_test_methods']} test methods")
+    print(f"TOTAL: {snap['total_tests']} test methods")
     print("=" * 72)
 
-    return all_pass
+    return True
 
 
 def save_baseline(snap: dict) -> None:
     """Save snapshot as the coverage baseline."""
-    BASELINE_FILE.write_text(json.dumps(snap, indent=2, default=str), encoding="utf-8")
+    from datetime import date
+
+    baseline = {
+        "generated": str(date.today()),
+        "total_tests": snap["total_tests"],
+        "categories": {
+            name: {
+                "test_count": cat["test_count"],
+                "source_files": cat["source_files"],
+            }
+            for name, cat in snap["categories"].items()
+        },
+    }
+    BASELINE_FILE.write_text(json.dumps(baseline, indent=2), encoding="utf-8")
     print(f"Baseline saved to {BASELINE_FILE}")
 
 
@@ -168,14 +200,34 @@ def ci_compare(snap: dict) -> int:
     regressions: list[str] = []
     improvements: list[str] = []
 
+    # Check total test count regression (ratchet)
+    prev_total = baseline.get("total_tests", 0)
+    curr_total = snap["total_tests"]
+    if curr_total < prev_total:
+        regressions.append(
+            f"Total tests: {prev_total} -> {curr_total} "
+            f"(lost {prev_total - curr_total} tests)"
+        )
+    elif curr_total > prev_total:
+        improvements.append(
+            f"Total tests: {prev_total} -> {curr_total} "
+            f"(gained {curr_total - prev_total} tests)"
+        )
+
+    # Check per-category regressions
     prev_cats = baseline.get("categories", {})
     for cat_name, cat in snap["categories"].items():
         prev = prev_cats.get(cat_name, {})
-        prev_tested = prev.get("tested", 0)
-        if cat["tested"] < prev_tested:
-            regressions.append(f"{cat_name}: coverage dropped {prev_tested} -> {cat['tested']}")
-        elif cat["tested"] > prev_tested:
-            improvements.append(f"{cat_name}: coverage improved {prev_tested} -> {cat['tested']}")
+        prev_count = prev.get("test_count", 0)
+        curr_count = cat["test_count"]
+        if curr_count < prev_count:
+            regressions.append(
+                f"{cat_name}: test count dropped {prev_count} -> {curr_count}"
+            )
+        elif curr_count > prev_count:
+            improvements.append(
+                f"{cat_name}: test count improved {prev_count} -> {curr_count}"
+            )
 
     print("\n--- COVERAGE DELTA (vs baseline) ---")
     if improvements:
@@ -200,7 +252,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Test coverage report")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     parser.add_argument("--ci", action="store_true", help="CI mode: compare vs baseline")
-    parser.add_argument("--save-baseline", action="store_true", help="Save current as baseline")
+    parser.add_argument(
+        "--save-baseline", action="store_true", help="Save current as baseline"
+    )
     args = parser.parse_args()
 
     snap = gather_snapshot()
@@ -215,8 +269,8 @@ def main() -> int:
     if args.ci:
         return ci_compare(snap)
 
-    all_pass = print_report(snap)
-    return 0 if all_pass else 1
+    print_report(snap)
+    return 0
 
 
 if __name__ == "__main__":

@@ -15,6 +15,16 @@ Unity Test Framework test suites organized by test mode.
 - TDD mandatory: RED → GREEN → COMMIT
 - 100% coverage on physics formulas
 
+## Coverage Enforcement
+
+Three layers enforce test coverage:
+1. **Pre-commit:** Warns if modified scripts have no corresponding test file
+2. **Pre-push:** Runs tests for changed files, blocks push on failure (bypass: `SKIP_TEST_CHECK=1`)
+3. **CI:** Coverage baseline ratchet -- total test count can never decrease
+
+Baseline file: `.coverage-baseline.json` (project root). Updated automatically when tests are added.
+Coverage report: `uv run python scripts/tools/test_coverage_report.py`
+
 ## Relevant Skills
 
 - **`unity-testing-patterns`** — TDD with Unity Test Framework
