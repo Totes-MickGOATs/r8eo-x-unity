@@ -165,12 +165,9 @@ namespace R8EOX.Input
                         UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
 
                 case TriggerDetector.Mode.Detecting:
-                    float rt = UnityEngine.Input.GetAxisRaw("RightTrigger");
-                    if (rt > strongThreshold)
-                        return InputMath.ApplyDeadzone(rt, _triggerDeadzone);
-                    float com = UnityEngine.Input.GetAxisRaw("CombinedTriggers");
-                    if (com > strongThreshold)
-                        return InputMath.CombinedTriggerThrottle(com, _triggerDeadzone);
+                    // Don't produce input during detection — phantom axis values
+                    // on Windows cause false throttle/brake while detecting.
+                    // Detection only observes axes to determine the mode.
                     return 0f;
 
                 default:
@@ -181,7 +178,6 @@ namespace R8EOX.Input
         private float GetGamepadBrake()
         {
             var mode = Detector.CurrentMode;
-            const float strongThreshold = 0.3f;
 
             switch (mode)
             {
@@ -194,12 +190,7 @@ namespace R8EOX.Input
                         UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
 
                 case TriggerDetector.Mode.Detecting:
-                    float lt = UnityEngine.Input.GetAxisRaw("LeftTrigger");
-                    if (lt > strongThreshold)
-                        return InputMath.ApplyDeadzone(lt, _triggerDeadzone);
-                    float com = UnityEngine.Input.GetAxisRaw("CombinedTriggers");
-                    if (com < -strongThreshold)
-                        return InputMath.CombinedTriggerBrake(com, _triggerDeadzone);
+                    // Don't produce input during detection — see GetGamepadThrottle comment.
                     return 0f;
 
                 default:
