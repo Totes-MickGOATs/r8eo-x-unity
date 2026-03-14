@@ -1,6 +1,6 @@
 # Unity Scene Management
 
-> Patterns for loading, unloading, and organizing scenes -- from simple single-scene to multi-scene additive architectures.
+Use this skill when loading, unloading, or organizing scenes, implementing additive scene architectures, or building scene transition flows in Unity.
 
 ## Scene Loading Basics
 

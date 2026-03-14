@@ -1,6 +1,6 @@
 # Unity ScriptableObject Architecture
 
-> Data-driven design patterns using ScriptableObjects for configuration, events, shared state, and runtime sets.
+Use this skill when designing data-driven systems with ScriptableObjects for configuration assets, event channels, shared runtime state, or runtime sets.
 
 ## What Are ScriptableObjects?
 

@@ -1,7 +1,6 @@
 # Unity Particles and VFX
 
-Reference guide for particle systems and visual effects in Unity. Covers the Shuriken
-Particle System, VFX Graph, common effect recipes, and optimization.
+Use this skill when creating particle effects, configuring the Shuriken Particle System, building VFX Graph effects, or optimizing visual effects performance.
 
 ## Particle System (Shuriken) Overview
 

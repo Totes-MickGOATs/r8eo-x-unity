@@ -1,6 +1,6 @@
 # Unity 3D Physics
 
-Comprehensive guide to 3D physics in Unity using PhysX (Built-in/URP) or Havok (DOTS).
+Use this skill when configuring Rigidbodies, colliders, joints, raycasts, or physics materials in Unity's PhysX-based 3D physics system.
 
 ## Rigidbody Fundamentals
 
