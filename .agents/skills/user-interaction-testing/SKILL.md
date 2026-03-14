@@ -1,6 +1,6 @@
 # User Interaction Testing Skill
 
-Patterns for testing user-facing interactions: input handling, menu navigation, and full user journeys. This skill covers how to write automated tests that simulate what a real user does.
+Use this skill when writing automated tests that simulate user-facing interactions such as input handling, menu navigation, button clicks, and full user journeys.
 
 ## Why Interaction Testing Matters
 

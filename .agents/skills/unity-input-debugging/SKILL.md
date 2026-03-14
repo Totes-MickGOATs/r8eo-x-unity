@@ -1,8 +1,6 @@
 # Unity Input Debugging: Phantom Input & Platform Quirks
 
-Hard-won lessons from debugging phantom vehicle input on Windows. This skill documents the root causes, defense patterns, diagnostic techniques, and testing strategies for Unity Legacy Input Manager issues — particularly phantom axis values that cause vehicles to move with no player input.
-
-**Origin:** 4 PRs across multiple debugging rounds to resolve phantom throttle/brake/steering on Windows. The core lesson: comprehensive testing up front would have resolved this in 1 PR.
+Use this skill when diagnosing phantom input values, platform-specific input quirks, or unexpected axis readings in Unity's Legacy Input Manager, especially on Windows.
 
 ---
 

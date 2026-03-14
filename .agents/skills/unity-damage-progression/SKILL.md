@@ -1,17 +1,6 @@
 # Unity Damage, Wear & Progression for RC Racing
 
-Comprehensive system for RC racing damage, wear, career progression, and vehicle upgrades.
-All designs are specific to 1/10-scale electric RC racing (brushless motors, LiPo batteries,
-independent suspension, lexan bodies).
-
-## When to Use
-
-- Implementing collision-based vehicle damage with visual and physics consequences
-- Modeling tire wear, battery discharge, or motor degradation
-- Building a repair/maintenance economy between races
-- Designing career mode progression (clubs, championships, unlocks)
-- Creating a vehicle upgrade and tuning system
-- Implementing currency economy and unlock gates
+Use this skill when implementing collision damage, tire wear, battery discharge, repair economies, career progression, or vehicle upgrade systems for RC racing.
 
 ## When NOT to Use
 
