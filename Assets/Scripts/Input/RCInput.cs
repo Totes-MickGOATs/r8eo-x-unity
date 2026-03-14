@@ -111,8 +111,14 @@ namespace R8EOX.Input
             if (UnityEngine.Input.GetKey(KeyCode.A)) kb -= 1f;
 
             // M4: Use symmetric deadzone that preserves sign
-            float gp = UnityEngine.Input.GetAxisRaw("Horizontal");
-            gp = InputMath.ApplySymmetricDeadzone(gp, _steerDeadzone);
+            // Phantom input fix: only read gamepad steering when a gamepad is actually detected.
+            // When TriggerDetector.Mode is None (no gamepad) or Detecting (not yet confirmed),
+            // gamepad steering is forced to 0 to prevent phantom Horizontal axis values.
+            var mode = Detector.CurrentMode;
+            bool gamepadDetected = mode == TriggerDetector.Mode.Separate ||
+                                   mode == TriggerDetector.Mode.Combined;
+            float gp = InputMath.FilterGamepadSteering(
+                UnityEngine.Input.GetAxisRaw("Horizontal"), _steerDeadzone, gamepadDetected);
 
             float raw = InputMath.MergeInputs(gp, kb);
             Steer = InputMath.ApplySteeringCurve(raw, _steerCurveExponent);
