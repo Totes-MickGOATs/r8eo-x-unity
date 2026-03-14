@@ -1,0 +1,14 @@
+{
+  "name": "vehicle",
+  "description": "RC buggy vehicle physics: car controller, raycast wheels, drivetrain, air physics",
+  "status": "ACTIVE",
+  "files": [
+    "Assets/Scripts/Vehicle/RCCar.cs",
+    "Assets/Scripts/Vehicle/RaycastWheel.cs",
+    "Assets/Scripts/Vehicle/Drivetrain.cs",
+    "Assets/Scripts/Vehicle/RCAirPhysics.cs",
+    "Assets/Scripts/Vehicle/R8EOX.Vehicle.asmdef"
+  ],
+  "dependencies": ["input"],
+  "replaced_by": ""
+}

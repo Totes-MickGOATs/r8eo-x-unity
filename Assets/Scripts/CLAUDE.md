@@ -1,14 +1,26 @@
 # Assets/Scripts/
 
-Game scripts organized by system. Each subdirectory groups related functionality.
+Game scripts organized by system. Each subdirectory is a separate assembly with its own namespace.
+
+## Subdirectories
+
+| Dir | Namespace | Assembly | Role |
+|-----|-----------|----------|------|
+| `Vehicle/` | `R8EOX.Vehicle` | `R8EOX.Vehicle` | RC car controller, raycast wheels, drivetrain, air physics |
+| `Input/` | `R8EOX.Input` | `R8EOX.Input` | Input abstraction: keyboard + gamepad |
+| `Camera/` | `R8EOX.Camera` | `R8EOX.Camera` | Chase camera system |
+| `Debug/` | `R8EOX.Debug` | `R8EOX.Debug` | Telemetry HUD overlay |
+| `Editor/` | `R8EOX.Editor` | `R8EOX.Editor` | Editor-only scene/prefab builders |
 
 ## Conventions
 
-- **Namespaces:** Every script must declare a namespace matching its folder path (e.g., `Game.Vehicle`)
+- **Namespaces:** Every script declares `namespace R8EOX.{Folder}`
 - **One class per file:** File name matches class name (PascalCase)
-- **MonoBehaviour:** Only for components that need Unity lifecycle. Pure C# classes for logic
-- **[SerializeField]:** Prefer over public fields for inspector exposure
-- **Assembly definitions:** Each major system should have its own .asmdef
+- **`[SerializeField]` + `[Tooltip]`:** All inspector fields use both attributes
+- **`_camelCase`:** All private fields use underscore prefix
+- **`k_PascalCase`:** All constants use `k_` prefix
+- **Assembly definitions:** Each system folder has its own `.asmdef`
+- **Full coding standards:** `.ai/knowledge/architecture/coding-standards.md`
 
 ## Relevant Skills
 

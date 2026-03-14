@@ -1,0 +1,16 @@
+{
+    "name": "R8EOX.Vehicle",
+    "rootNamespace": "R8EOX.Vehicle",
+    "references": [
+        "R8EOX.Input"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

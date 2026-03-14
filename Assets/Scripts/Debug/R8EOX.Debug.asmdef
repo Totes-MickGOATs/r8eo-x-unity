@@ -1,0 +1,16 @@
+{
+    "name": "R8EOX.Debug",
+    "rootNamespace": "R8EOX.Debug",
+    "references": [
+        "R8EOX.Vehicle"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

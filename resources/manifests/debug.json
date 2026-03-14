@@ -1,0 +1,11 @@
+{
+  "name": "debug",
+  "description": "Telemetry HUD overlay for vehicle physics debugging",
+  "status": "ACTIVE",
+  "files": [
+    "Assets/Scripts/Debug/TelemetryHUD.cs",
+    "Assets/Scripts/Debug/R8EOX.Debug.asmdef"
+  ],
+  "dependencies": ["vehicle"],
+  "replaced_by": ""
+}
