@@ -151,7 +151,7 @@ namespace R8EOX.Input
                         UnityEngine.Input.GetAxisRaw("RightTrigger"), _triggerDeadzone);
 
                 case TriggerDetector.Mode.Combined:
-                    return InputMath.ApplyDeadzone(
+                    return InputMath.CombinedTriggerThrottle(
                         UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
 
                 case TriggerDetector.Mode.Detecting:
@@ -160,7 +160,7 @@ namespace R8EOX.Input
                         return InputMath.ApplyDeadzone(rt, _triggerDeadzone);
                     float com = UnityEngine.Input.GetAxisRaw("CombinedTriggers");
                     if (com > strongThreshold)
-                        return InputMath.ApplyDeadzone(com, _triggerDeadzone);
+                        return InputMath.CombinedTriggerThrottle(com, _triggerDeadzone);
                     return 0f;
 
                 default:
@@ -180,16 +180,16 @@ namespace R8EOX.Input
                         UnityEngine.Input.GetAxisRaw("LeftTrigger"), _triggerDeadzone);
 
                 case TriggerDetector.Mode.Combined:
-                    return InputMath.ApplyDeadzone(
-                        -UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
+                    return InputMath.CombinedTriggerBrake(
+                        UnityEngine.Input.GetAxisRaw("CombinedTriggers"), _triggerDeadzone);
 
                 case TriggerDetector.Mode.Detecting:
                     float lt = UnityEngine.Input.GetAxisRaw("LeftTrigger");
                     if (lt > strongThreshold)
                         return InputMath.ApplyDeadzone(lt, _triggerDeadzone);
-                    float com = -UnityEngine.Input.GetAxisRaw("CombinedTriggers");
-                    if (com > strongThreshold)
-                        return InputMath.ApplyDeadzone(com, _triggerDeadzone);
+                    float com = UnityEngine.Input.GetAxisRaw("CombinedTriggers");
+                    if (com < -strongThreshold)
+                        return InputMath.CombinedTriggerBrake(com, _triggerDeadzone);
                     return 0f;
 
                 default:
