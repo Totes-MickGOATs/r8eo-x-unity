@@ -53,6 +53,39 @@ namespace R8EOX.Input
         }
 
         /// <summary>
+        /// Extract throttle from a combined trigger axis.
+        /// Only positive values produce throttle (RT pressed).
+        /// Negative values (LT pressed or resting at -1.0) return 0.
+        /// Fixes phantom trigger bug where resting value of -1.0 caused
+        /// phantom brake via negation in the old code path.
+        /// </summary>
+        /// <param name="raw">Raw combined trigger axis value</param>
+        /// <param name="deadzone">Deadzone threshold (0-1)</param>
+        /// <returns>Throttle value clamped to [0, 1]</returns>
+        public static float CombinedTriggerThrottle(float raw, float deadzone)
+        {
+            if (raw <= 0f) return 0f;
+            return ApplyDeadzone(raw, deadzone);
+        }
+
+        /// <summary>
+        /// Extract brake from a combined trigger axis.
+        /// Only negative values produce brake (LT pressed).
+        /// Positive values (RT pressed) and zero return 0.
+        /// The raw value is negated internally so the output is always non-negative.
+        /// Fixes phantom trigger bug where resting value of -1.0 caused
+        /// phantom brake when negated to +1.0 and passed through deadzone.
+        /// </summary>
+        /// <param name="raw">Raw combined trigger axis value</param>
+        /// <param name="deadzone">Deadzone threshold (0-1)</param>
+        /// <returns>Brake value clamped to [0, 1]</returns>
+        public static float CombinedTriggerBrake(float raw, float deadzone)
+        {
+            if (raw >= 0f) return 0f;
+            return ApplyDeadzone(-raw, deadzone);
+        }
+
+        /// <summary>
         /// Merge two input sources, taking whichever has the larger absolute value.
         /// Used to combine keyboard and gamepad seamlessly.
         /// </summary>
