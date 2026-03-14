@@ -1,1144 +1,947 @@
-# Unity Architecture Patterns
+# Unity Design Patterns
 
-> Comprehensive guide to C# best practices, design patterns, ScriptableObject architecture, YAML serialization, AI Navigation, and workflow optimization for Unity game development. Compiled from 22 official Unity sources.
+Use this skill when choosing, implementing, or combining design patterns in Unity. Covers 10 patterns with RC racing examples, Unity-specific implementation details, and guidance on when each pattern helps vs. when it is overkill.
+
+## Pattern Catalog
+
+| Pattern | Purpose | RC Racing Example |
+|---------|---------|-------------------|
+| Observer | Decouple event senders from receivers | `OnLapComplete`, `OnCheckpointReached` |
+| State | Manage complex object states with transitions | Vehicle: Idle, Accelerating, Braking, Airborne, Crashed |
+| Factory | Create objects without exposing concrete types | Track obstacle spawning, vehicle configuration |
+| Command | Enable undo/redo, replay, queued actions | Input replay, ghost car recording |
+| MVP | Separate UI from game logic | Race HUD presenter wiring model to view |
+| MVVM | Automatic data binding for complex UIs | Settings screen, garage/tuning UI |
+| Strategy | Swap algorithms at runtime | Surface physics: grip/friction per terrain type |
+| Flyweight | Share data across many similar instances | Track segments: same geometry, different positions |
+| Dirty Flag | Skip expensive recalculations | Recalculate race standings only when positions change |
+| Object Pooling | Reuse objects to avoid GC spikes | Tire smoke particles, dust effects, sound effects |
 
 ---
 
-## Section 1: C# Style & Formatting
+## Observer Pattern
 
-### Naming Conventions
+### Concept
 
-| Style | Usage | Examples |
-|-------|-------|---------|
-| `camelCase` | Local variables, parameters, private fields | `playerSpeed`, `maxHealth`, `_rigidbody` |
-| `PascalCase` | Classes, public fields, methods, properties, enums, interfaces | `PlayerController`, `MoveSpeed`, `GameState` |
-| `kebab-case` | UI Toolkit USS files only | `player-health-bar.uss` |
-| `I` prefix | Interfaces | `IPlayerController`, `IDamageable` |
-| `On` prefix | Event handlers | `OnPlayerDeath`, `OnCollisionEnter` |
+Subjects broadcast state changes to subscribers via C# events. Decouples sender from receivers so neither side knows about the other.
 
-**Rules:**
-- Hungarian notation (`strName`, `iCount`) is discouraged
-- Event handler naming: `Subject_EventName` pattern for UI callbacks (e.g., `Button_OnClicked()`)
-- Prefer `System.Action` and `System.Action<T>` over custom delegate declarations
-- Constants use `PascalCase`, not `SCREAMING_SNAKE_CASE`
+### RC Racing Example
+
+Race events: `OnLapComplete`, `OnCheckpointReached`, `OnRaceFinished`. The race manager raises events; the HUD, audio system, and telemetry recorder each subscribe independently.
+
+### Code Example
 
 ```csharp
-// Good: Action-based events
-public event Action<int> OnHealthChanged;
-public event Action OnPlayerDeath;
-
-// Good: Subject_EventName for UI callbacks
-private void StartButton_OnClicked() { }
-private void VolumeSlider_OnValueChanged(float value) { }
-
-// Avoid: custom delegate when Action works
-// BAD: public delegate void HealthChangedDelegate(int newHealth);
-```
-
-### Formatting Rules
-
-- **Brace style:** Allman/BSD -- opening brace on its own line
-- **Indentation:** 4 spaces per level, spaces over tabs
-- **Braces:** Never omit, even for single-line `if`/`for`/`while` blocks
-- **Line length:** Aim for 120 characters max
-
-```csharp
-// Allman brace style
-public class VehicleController : MonoBehaviour
+// Subject: broadcasts race events
+public class RaceManager : MonoBehaviour
 {
-    [SerializeField] private float _topSpeed = 25f;
-    [Range(0f, 1f)]
-    [SerializeField] private float _brakePower = 0.8f;
+    public event Action<int> OnLapComplete;        // lap number
+    public event Action<int> OnCheckpointReached;  // checkpoint index
+    public event Action OnRaceFinished;
 
-    [Serializable]
-    public struct WheelSettings
+    private int _currentLap;
+    private int _totalLaps = 5;
+
+    public void ReachCheckpoint(int index)
     {
-        public float Radius;
-        public float SpringRate;
-        public float DamperRate;
+        OnCheckpointReached?.Invoke(index);
     }
 
-    // Never omit braces
-    public void ApplyBrake(float input)
+    public void CompleteLap()
     {
-        if (input > 0f)
+        _currentLap++;
+        OnLapComplete?.Invoke(_currentLap);
+
+        if (_currentLap >= _totalLaps)
         {
-            _currentBrakeForce = input * _brakePower;
-        }
-    }
-}
-```
-
-### Inspector Attributes
-
-| Attribute | Purpose | Example |
-|-----------|---------|---------|
-| `[SerializeField]` | Expose private field in Inspector | `[SerializeField] private float _speed;` |
-| `[Range(min, max)]` | Numeric slider in Inspector | `[Range(0f, 100f)] private float _health;` |
-| `[Serializable]` | Nested struct/class grouping in Inspector | `[Serializable] public struct Config { }` |
-| `[Header("Section")]` | Visual grouping label | `[Header("Movement")]` |
-| `[Tooltip("text")]` | Hover description in Inspector | `[Tooltip("Units per second")]` |
-| `[Space(pixels)]` | Visual spacing | `[Space(10)]` |
-| `[HideInInspector]` | Hide public field from Inspector | `[HideInInspector] public int internalId;` |
-
----
-
-## Section 2: Workflow Optimization
-
-### Enter Play Mode Settings
-
-Fast iteration without full domain/scene reload:
-
-1. **Edit > Project Settings > Editor**
-2. Disable **Domain Reload** and/or **Scene Reload**
-3. Play mode entry drops from seconds to near-instant
-
-**Caveats:**
-- Static variables retain values between plays -- reset in `[RuntimeInitializeOnLoadMethod]`
-- Re-enable before making script structural changes
-- Test with full reload periodically to catch stale-state bugs
-
-```csharp
-// Reset statics when Domain Reload is disabled
-public class GameManager : MonoBehaviour
-{
-    private static GameManager _instance;
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics()
-    {
-        _instance = null;
-    }
-}
-```
-
-### Assembly Definitions (.asmdef)
-
-By default, all scripts compile into `Assembly-CSharp.dll` -- any change recompiles everything.
-
-**Benefits of .asmdef files:**
-- Faster compilation (only changed assemblies recompile)
-- Enforced architectural boundaries (explicit dependencies)
-- Platform-specific code isolation
-- Reusable library packaging
-
-**Recommended assembly structure:**
-
-| Assembly | Contents |
-|----------|----------|
-| `Game.Core` | Interfaces, data types, constants |
-| `Game.Runtime` | MonoBehaviours, game systems (references Core) |
-| `Game.Editor` | Custom inspectors, editor tools (Editor-only platform) |
-| `Game.Tests.EditMode` | Edit-mode tests (references Core + Runtime) |
-| `Game.Tests.PlayMode` | Play-mode tests (references Core + Runtime) |
-
-### Script Templates
-
-Override Unity defaults per-project:
-
-- **Default location:** `C:\Program Files\Unity\Editor\Data\Resources\ScriptTemplates`
-- **Project override:** `Assets/ScriptTemplates/`
-- **Variables:** `#SCRIPTNAME#`, `#NOTRIM#` (preserves whitespace)
-
-```csharp
-// Example: Assets/ScriptTemplates/81-C# Script-NewBehaviourScript.cs.txt
-using UnityEngine;
-
-namespace MyGame
-{
-    /// <summary>
-    /// TODO: Describe #SCRIPTNAME#
-    /// </summary>
-    public class #SCRIPTNAME# : MonoBehaviour
-    {
-        #NOTRIM#
-    }
-}
-```
-
-### IDE Tips (Rider / Visual Studio)
-
-| Feature | How | Benefit |
-|---------|-----|---------|
-| Conditional breakpoints | Right-click breakpoint > set expression | Debug specific object instances |
-| Roslyn analyzers | Install `Microsoft.Unity.Analyzers` NuGet | Catch `CompareTag`, `GetComponent` in Update, etc. |
-| TODO/HACK tokens | View > Tool Windows > TODO (Rider) | Track technical debt |
-| Bulk rename | Ctrl+R, Ctrl+R (VS) / Shift+F6 (Rider) | Rename with preview across solution |
-| Attach to Unity | Run > Attach to Unity Process | Debug with breakpoints in play mode |
-
----
-
-## Section 3: YAML Serialization
-
-Unity uses a custom high-performance YAML subset for scene, prefab, and asset files. This is **not** full YAML spec -- comments are not supported.
-
-### File Structure
-
-```yaml
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
---- !u!1 &6543210
-GameObject:
-  m_ObjectHideFlags: 0
-  m_Name: PlayerCar
-  m_Component:
-  - component: {fileID: 6543211}
-  - component: {fileID: 6543212}
---- !u!4 &6543211
-Transform:
-  m_Father: {fileID: 0}
-  m_LocalPosition: {x: 0, y: 0.5, z: 0}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-```
-
-### Key Concepts
-
-| Element | Meaning | Example |
-|---------|---------|---------|
-| `!u!{CLASS_ID}` | Numeric object type | `!u!1` = GameObject, `!u!4` = Transform |
-| `&{FILE_ID}` | Unique identifier within file | `&6543210` |
-| `{fileID: N}` | Cross-reference to another object | `{fileID: 6543211}` |
-| `{fileID: 0}` | Null reference | No parent, no target |
-| `m_` prefix | Serialized property convention | `m_Name`, `m_LocalPosition` |
-
-### Common Class IDs
-
-| ID | Type | ID | Type |
-|----|------|----|------|
-| 1 | GameObject | 114 | MonoBehaviour |
-| 4 | Transform | 120 | LineRenderer |
-| 20 | Camera | 135 | SphereCollider |
-| 23 | MeshRenderer | 136 | CapsuleCollider |
-| 33 | MeshFilter | 143 | CharacterController |
-| 54 | Rigidbody | 212 | SpriteRenderer |
-| 65 | BoxCollider | 1001 | Prefab |
-
-### Practical Uses
-
-- **Search-and-replace** for animation track retactoring (rename animated property paths)
-- **Merge conflict resolution** -- understanding fileID references helps resolve scene merge conflicts
-- **Scripted asset manipulation** -- batch update serialized fields across many prefabs
-- **Debugging** -- find broken references by searching for `{fileID: 0}` where values are expected
-
-**WARNING:** Unity YAML is not designed for manual editing. Always:
-1. Back up files before editing
-2. Use version control
-3. Validate by opening in Unity Editor after changes
-4. Prefer Editor scripting over raw YAML manipulation when possible
-
----
-
-## Section 4: Design Patterns
-
-### Observer Pattern
-
-Subjects broadcast state changes to subscribers via C# events. Decouples sender from receivers.
-
-**When to use:** UI updates, objectives, death events, item collection, achievements, analytics.
-
-```csharp
-// Subject: broadcasts events
-public class Health : MonoBehaviour
-{
-    public event Action<int> OnHealthChanged;
-    public event Action OnDied;
-
-    private int _currentHealth;
-    private int _maxHealth = 100;
-
-    public void TakeDamage(int amount)
-    {
-        _currentHealth = Mathf.Max(0, _currentHealth - amount);
-        OnHealthChanged?.Invoke(_currentHealth);
-
-        if (_currentHealth <= 0)
-        {
-            OnDied?.Invoke();
+            OnRaceFinished?.Invoke();
         }
     }
 }
 
 // Observer: subscribes to events
-public class HealthUI : MonoBehaviour
+public class RaceHUD : MonoBehaviour
 {
-    [SerializeField] private Health _health;
-    [SerializeField] private Slider _healthBar;
+    [SerializeField] private RaceManager _raceManager;
+    [SerializeField] private TextMeshProUGUI _lapText;
 
+    // C# events: subscribe in Awake, unsubscribe in OnDestroy
     private void Awake()
     {
-        _health.OnHealthChanged += HandleHealthChanged;
-        _health.OnDied += HandleDied;
+        _raceManager.OnLapComplete += HandleLapComplete;
+        _raceManager.OnRaceFinished += HandleRaceFinished;
     }
 
     private void OnDestroy()
     {
-        _health.OnHealthChanged -= HandleHealthChanged;
-        _health.OnDied -= HandleDied;
+        _raceManager.OnLapComplete -= HandleLapComplete;
+        _raceManager.OnRaceFinished -= HandleRaceFinished;
     }
 
-    private void HandleHealthChanged(int newHealth)
-    {
-        _healthBar.value = newHealth;
-    }
-
-    private void HandleDied()
-    {
-        gameObject.SetActive(false);
-    }
+    private void HandleLapComplete(int lap) => _lapText.text = $"Lap {lap}";
+    private void HandleRaceFinished() => _lapText.text = "FINISHED";
 }
 ```
 
-**Critical rules:**
-- Subscribe in `Awake()`, unsubscribe in `OnDestroy()` -- prevents memory leaks and null reference errors
-- Use `?.Invoke()` for null safety (no subscribers = no crash)
-- `UnityEvent` is Inspector-configurable but slower; `Action` is faster for code-only wiring
+**Subscription lifetime rules:**
+
+| Event Type | Subscribe In | Unsubscribe In | Why |
+|------------|-------------|----------------|-----|
+| C# events (`Action`) | `Awake()` | `OnDestroy()` | Lifetime matches the object; survives enable/disable toggles |
+| SO Event Channels | `OnEnable()` | `OnDisable()` | SO outlives scenes; must disconnect when object is inactive to prevent stale callbacks |
+
+**Static EventManager pattern:** For truly global events where no SO asset is desired, a static class with `static event Action<T>` fields works. Subscribers must still unsubscribe in `OnDestroy()` to avoid leaks. Prefer SO Event Channels over static events for testability and Inspector visibility.
+
+**`ObservableCollection<T>`:** When observers need to react to list changes (items added/removed), use `System.Collections.ObjectModel.ObservableCollection<T>` instead of plain `List<T>`.
 
 | Approach | Inspector | Performance | Use Case |
 |----------|-----------|-------------|----------|
 | `System.Action` | No | Fast | Code-wired events |
 | `UnityEvent` | Yes | Slower (reflection) | Designer-configurable events |
-| `UnityAction` | No | Fast | Callbacks for UnityEvent |
+| SO Event Channel | Yes (asset ref) | Fast | Cross-scene decoupling |
 
-### State Pattern
+### When to Use
 
-Encapsulates each state as a separate class. Eliminates complex switch/if chains.
+- Multiple systems need to react to the same event (lap complete updates HUD, plays sound, logs telemetry)
+- You want to add new reactions without modifying the event source
+- Cross-scene communication via SO Event Channels
 
-**When to use:** Player states, AI behaviors, game phases, menu navigation.
+### When NOT to Use
+
+- Only one receiver exists and will never change -- a direct method call is simpler
+- High-frequency per-frame data (every `FixedUpdate` tick) -- polling or direct reference is cheaper than event overhead
+- When subscription order matters -- events do not guarantee invocation order
+
+---
+
+## State Pattern
+
+### Concept
+
+Encapsulates each state as a separate class. Eliminates complex switch/if chains. Each state manages its own behavior and transition conditions.
+
+### RC Racing Example
+
+Vehicle states: Idle (parked), Accelerating (throttle applied), Braking (brake applied), Airborne (all wheels off ground), Crashed (collision detected). Each state has different physics behavior, audio, and visual effects.
+
+### Code Example
 
 ```csharp
 // State interface
-public interface IState
+public interface IVehicleState
 {
-    void Enter();
-    void Update();
-    void Exit();
+    void Enter(VehicleController vehicle);
+    void Update(VehicleController vehicle);
+    void FixedUpdate(VehicleController vehicle);
+    void Exit(VehicleController vehicle);
 }
 
-// Concrete state
-public class IdleState : IState
+// Concrete state: Accelerating
+public class AcceleratingState : IVehicleState
 {
-    private readonly PlayerController _player;
-
-    public IdleState(PlayerController player)
+    public void Enter(VehicleController vehicle)
     {
-        _player = player;
+        vehicle.EngineAudio.Play();
     }
 
-    public void Enter()
-    {
-        _player.Animator.Play("Idle");
-    }
+    public void Update(VehicleController vehicle) { }
 
-    public void Update()
+    public void FixedUpdate(VehicleController vehicle)
     {
-        if (_player.MoveInput.magnitude > 0.1f)
+        vehicle.ApplyThrottle();
+
+        if (vehicle.ThrottleInput <= 0f)
         {
-            _player.StateMachine.TransitionTo(_player.StateMachine.MovingState);
+            vehicle.StateMachine.TransitionTo(vehicle.StateMachine.IdleState);
+        }
+        else if (!vehicle.IsGrounded)
+        {
+            vehicle.StateMachine.TransitionTo(vehicle.StateMachine.AirborneState);
         }
     }
 
-    public void Exit() { }
+    public void Exit(VehicleController vehicle) { }
+}
+
+// Concrete state: Airborne
+public class AirborneState : IVehicleState
+{
+    public void Enter(VehicleController vehicle)
+    {
+        vehicle.DisableTractionControl();
+    }
+
+    public void Update(VehicleController vehicle) { }
+
+    public void FixedUpdate(VehicleController vehicle)
+    {
+        vehicle.ApplyAirDrag();
+
+        if (vehicle.IsGrounded)
+        {
+            vehicle.StateMachine.TransitionTo(vehicle.StateMachine.AcceleratingState);
+        }
+    }
+
+    public void Exit(VehicleController vehicle)
+    {
+        vehicle.EnableTractionControl();
+    }
 }
 
 // State machine
-public class StateMachine
+public class VehicleStateMachine
 {
-    public event Action<IState> OnStateChanged;
+    public event Action<IVehicleState> OnStateChanged;
 
-    private IState _currentState;
+    private IVehicleState _currentState;
 
-    public IState IdleState { get; set; }
-    public IState MovingState { get; set; }
-    public IState JumpingState { get; set; }
+    public IVehicleState IdleState { get; set; }
+    public IVehicleState AcceleratingState { get; set; }
+    public IVehicleState BrakingState { get; set; }
+    public IVehicleState AirborneState { get; set; }
+    public IVehicleState CrashedState { get; set; }
 
-    public void Initialize(IState startingState)
+    public void Initialize(IVehicleState startingState)
     {
         _currentState = startingState;
-        _currentState.Enter();
+        _currentState.Enter(null); // Pass vehicle ref in real implementation
     }
 
-    public void TransitionTo(IState nextState)
+    public void TransitionTo(IVehicleState nextState)
     {
-        _currentState.Exit();
+        _currentState.Exit(null);
         _currentState = nextState;
-        _currentState.Enter();
+        _currentState.Enter(null);
         OnStateChanged?.Invoke(nextState);
     }
 
-    public void Update()
-    {
-        _currentState?.Update();
-    }
+    public void Update() => _currentState?.Update(null);
+    public void FixedUpdate() => _currentState?.FixedUpdate(null);
 }
 ```
 
-**Advantages over switch statements:**
-- Each state is independent -- adding new states does not affect existing ones
-- States manage their own transition conditions
-- `OnStateChanged` event notifies external objects (UI, analytics) without coupling
-- Easy to unit test individual states in isolation
+### When to Use
 
-### Factory Pattern
+- Object has 3+ distinct behavioral modes with different logic per mode
+- State transitions have entry/exit side effects (play sound, enable physics, change visuals)
+- You want to add new states without modifying existing ones
 
-Encapsulates object creation behind an interface. Callers request products without knowing concrete types.
+### When NOT to Use
 
-**When to use:** Spawning enemies, projectiles, power-ups, UI elements, level chunks.
+- Only 2 states (e.g., on/off) -- a simple bool is clearer
+- States have no meaningful entry/exit behavior -- a switch statement is fine
+- State transitions are trivial and do not need to be tracked or observed
+
+---
+
+## Factory Pattern
+
+### Concept
+
+Encapsulates object creation behind an interface. Callers request products without knowing concrete types or creation details.
+
+### RC Racing Example
+
+Track obstacle spawning: a factory creates different obstacle types (ramps, barriers, cones) based on track configuration data. Vehicle configuration creation: a factory assembles vehicles from chassis + motor + tire combinations.
+
+### Code Example
 
 ```csharp
 // Product interface
-public interface IProjectile
+public interface ITrackObstacle
 {
-    void Initialize(Vector3 position, Vector3 direction, float speed);
-    void Launch();
+    void Place(Vector3 position, Quaternion rotation);
+    ObstacleType Type { get; }
 }
 
-// Concrete products
-public class Bullet : MonoBehaviour, IProjectile
+// Factory with dictionary lookup for data-driven spawning
+public class TrackObstacleFactory : MonoBehaviour
 {
-    public void Initialize(Vector3 position, Vector3 direction, float speed) { /* ... */ }
-    public void Launch() { /* ... */ }
-}
+    [SerializeField] private ObstaclePrefabEntry[] _prefabEntries;
 
-public class Missile : MonoBehaviour, IProjectile
-{
-    public void Initialize(Vector3 position, Vector3 direction, float speed) { /* ... */ }
-    public void Launch() { /* ... */ }
-}
+    private Dictionary<ObstacleType, GameObject> _prefabMap;
 
-// Factory
-public abstract class ProjectileFactory : MonoBehaviour
-{
-    public abstract IProjectile Create(Vector3 position, Vector3 direction);
-}
-
-public class BulletFactory : ProjectileFactory
-{
-    [SerializeField] private Bullet _prefab;
-
-    public override IProjectile Create(Vector3 position, Vector3 direction)
+    private void Awake()
     {
-        Bullet bullet = Instantiate(_prefab, position, Quaternion.LookRotation(direction));
-        bullet.Initialize(position, direction, 50f);
-        return bullet;
+        _prefabMap = new Dictionary<ObstacleType, GameObject>();
+        foreach (ObstaclePrefabEntry entry in _prefabEntries)
+        {
+            _prefabMap[entry.Type] = entry.Prefab;
+        }
+    }
+
+    public ITrackObstacle Create(ObstacleType type, Vector3 position, Quaternion rotation)
+    {
+        if (!_prefabMap.TryGetValue(type, out GameObject prefab))
+        {
+            Debug.LogError($"No prefab registered for obstacle type: {type}");
+            return null;
+        }
+
+        GameObject instance = Instantiate(prefab, position, rotation);
+        return instance.GetComponent<ITrackObstacle>();
+    }
+
+    [Serializable]
+    public struct ObstaclePrefabEntry
+    {
+        public ObstacleType Type;
+        public GameObject Prefab;
     }
 }
 ```
 
 **Adaptations:**
-- **Dictionary lookup:** Map enum/string keys to prefabs for data-driven spawning
-- **Static factory:** Single class with static methods for simple cases
 - **Pool integration:** Factory pulls from ObjectPool instead of calling Instantiate
+- **SO-based config:** Factory reads a ScriptableObject to determine what to spawn
+- **Abstract factory:** Multiple factory implementations for different track themes
 
-### Command Pattern
+### When to Use
+
+- Creation logic is complex (multi-step assembly, conditional components)
+- You need to swap product types without changing callers (different track themes)
+- Creation must be testable in isolation
+
+### When NOT to Use
+
+- Only one product type exists and will not change -- `Instantiate()` directly is simpler
+- No conditional logic in creation -- adding a factory layer adds indirection for no benefit
+- Object creation is a one-liner with no setup steps
+
+---
+
+## Command Pattern
+
+### Concept
 
 Encapsulates actions as objects. Enables undo/redo, replay, queuing, and macro recording.
 
-**When to use:** Turn-based games, strategy games, puzzle undo/redo, editor tools, input replay.
+### RC Racing Example
+
+Input replay and ghost car recording: each frame's input (throttle, steering, brake) is stored as a command. Playing back the command sequence recreates the exact race run for ghost cars or replay viewing.
+
+### Code Example
 
 ```csharp
 // Command interface
-public interface ICommand
+public interface IRaceCommand
 {
-    void Execute();
-    void Undo();
+    float Timestamp { get; }
+    void Execute(VehicleController vehicle);
+    void Undo(VehicleController vehicle);
 }
 
-// Concrete command
-public class MoveCommand : ICommand
+// Input frame command for ghost car recording
+public class InputFrameCommand : IRaceCommand
 {
-    private readonly Transform _transform;
-    private readonly Vector3 _direction;
+    public float Timestamp { get; }
+    public float Throttle { get; }
+    public float Steering { get; }
+    public float Brake { get; }
 
-    public MoveCommand(Transform transform, Vector3 direction)
+    public InputFrameCommand(float timestamp, float throttle, float steering, float brake)
     {
-        _transform = transform;
-        _direction = direction;
+        Timestamp = timestamp;
+        Throttle = throttle;
+        Steering = steering;
+        Brake = brake;
     }
 
-    public void Execute()
+    public void Execute(VehicleController vehicle)
     {
-        _transform.position += _direction;
+        vehicle.SetInput(Throttle, Steering, Brake);
     }
 
-    public void Undo()
+    public void Undo(VehicleController vehicle)
     {
-        _transform.position -= _direction; // Inverse operation
+        vehicle.SetInput(0f, 0f, 0f);
     }
 }
 
-// Invoker with undo/redo stacks
-public class CommandInvoker
+// Recorder captures commands during a race
+public class GhostRecorder : MonoBehaviour
 {
-    private readonly Stack<ICommand> _undoStack = new();
-    private readonly Stack<ICommand> _redoStack = new();
+    private readonly List<IRaceCommand> _recording = new();
+    private float _raceTime;
 
-    public void ExecuteCommand(ICommand command)
+    public void RecordFrame(float throttle, float steering, float brake)
     {
-        command.Execute();
-        _undoStack.Push(command);
-        _redoStack.Clear(); // New action invalidates redo history
+        _recording.Add(new InputFrameCommand(_raceTime, throttle, steering, brake));
+        _raceTime += Time.fixedDeltaTime;
     }
 
-    public void Undo()
+    public IReadOnlyList<IRaceCommand> GetRecording() => _recording;
+}
+
+// Player replays commands for ghost car
+public class GhostPlayer : MonoBehaviour
+{
+    [SerializeField] private VehicleController _ghostVehicle;
+
+    private IReadOnlyList<IRaceCommand> _commands;
+    private int _currentIndex;
+    private float _playbackTime;
+
+    public void StartPlayback(IReadOnlyList<IRaceCommand> commands)
     {
-        if (_undoStack.Count == 0) return;
-        ICommand command = _undoStack.Pop();
-        command.Undo();
-        _redoStack.Push(command);
+        _commands = commands;
+        _currentIndex = 0;
+        _playbackTime = 0f;
     }
 
-    public void Redo()
+    private void FixedUpdate()
     {
-        if (_redoStack.Count == 0) return;
-        ICommand command = _redoStack.Pop();
-        command.Execute();
-        _undoStack.Push(command);
+        if (_commands == null || _currentIndex >= _commands.Count) return;
+
+        while (_currentIndex < _commands.Count &&
+               _commands[_currentIndex].Timestamp <= _playbackTime)
+        {
+            _commands[_currentIndex].Execute(_ghostVehicle);
+            _currentIndex++;
+        }
+
+        _playbackTime += Time.fixedDeltaTime;
     }
 }
 ```
 
-**Key insight:** Undo is the inverse operation. For movement, negate the vector. For property changes, store the previous value. For creation, destroy on undo.
+### When to Use
 
-### MVC / MVP Pattern
+- Actions need to be recorded and replayed (ghost cars, demo mode)
+- Undo/redo is required (level editor, vehicle setup)
+- Actions need to be serialized and sent over the network
 
-Separates data (Model), presentation (View), and logic (Controller/Presenter).
+### When NOT to Use
 
-**MVP is preferred in Unity** because the Presenter acts as a testable intermediary between Model and View, avoiding direct coupling.
+- Actions are fire-and-forget with no need for history or replay
+- The overhead of creating command objects per frame is not justified by the feature set
+- Simple input handling that maps directly to behavior -- adding a command layer is unnecessary indirection
+
+---
+
+## MVP Pattern (Model-View-Presenter)
+
+### Concept
+
+Separates data (Model), presentation (View), and logic (Presenter). The Presenter acts as a testable intermediary, keeping the View passive and the Model pure.
+
+### RC Racing Example
+
+Race HUD: the Model tracks lap times, positions, and speed. The View is a set of UI elements. The Presenter formats model data for display and handles input events from the View.
+
+### Code Example
 
 ```csharp
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 // Model: pure data, no Unity dependencies
-public class HealthModel
+public class RaceModel
 {
-    public event Action<int> OnHealthChanged;
+    public event Action<float> OnSpeedChanged;
+    public event Action<int, int> OnLapChanged; // current, total
 
-    private int _currentHealth;
-    public int MaxHealth { get; }
+    private float _speed;
+    private int _currentLap;
 
-    public HealthModel(int maxHealth)
+    public int TotalLaps { get; }
+
+    public RaceModel(int totalLaps)
     {
-        MaxHealth = maxHealth;
-        _currentHealth = maxHealth;
+        TotalLaps = totalLaps;
+        _currentLap = 1;
     }
 
-    public int CurrentHealth
+    public float Speed
     {
-        get => _currentHealth;
+        get => _speed;
         set
         {
-            _currentHealth = Mathf.Clamp(value, 0, MaxHealth);
-            OnHealthChanged?.Invoke(_currentHealth);
+            _speed = value;
+            OnSpeedChanged?.Invoke(_speed);
+        }
+    }
+
+    public int CurrentLap
+    {
+        get => _currentLap;
+        set
+        {
+            _currentLap = Mathf.Clamp(value, 1, TotalLaps);
+            OnLapChanged?.Invoke(_currentLap, TotalLaps);
         }
     }
 }
 
 // View: handles UI only, no game logic
-public class HealthView : MonoBehaviour
+public class RaceHUDView : MonoBehaviour
 {
-    [SerializeField] private Slider _healthBar;
-    [SerializeField] private TextMeshProUGUI _healthText;
+    [SerializeField] private TextMeshProUGUI _speedText;
+    [SerializeField] private TextMeshProUGUI _lapText;
+    [SerializeField] private Slider _speedBar;
 
-    public void UpdateHealth(int current, int max)
+    public void UpdateSpeed(string text, float normalizedValue)
     {
-        _healthBar.value = (float)current / max;
-        _healthText.text = $"{current}/{max}";
+        _speedText.text = text;
+        _speedBar.value = normalizedValue;
+    }
+
+    public void UpdateLap(string text)
+    {
+        _lapText.text = text;
     }
 }
 
 // Presenter: wires Model and View together
-public class HealthPresenter : MonoBehaviour
+public class RaceHUDPresenter : MonoBehaviour
 {
-    [SerializeField] private HealthView _view;
+    [SerializeField] private RaceHUDView _view;
+    [SerializeField] private float _maxDisplaySpeed = 120f;
 
-    private HealthModel _model;
+    private RaceModel _model;
 
     private void Awake()
     {
-        _model = new HealthModel(100);
-        _model.OnHealthChanged += HandleHealthChanged;
-        _view.UpdateHealth(_model.CurrentHealth, _model.MaxHealth);
+        _model = new RaceModel(totalLaps: 5);
+        _model.OnSpeedChanged += HandleSpeedChanged;
+        _model.OnLapChanged += HandleLapChanged;
     }
 
     private void OnDestroy()
     {
-        _model.OnHealthChanged -= HandleHealthChanged;
+        _model.OnSpeedChanged -= HandleSpeedChanged;
+        _model.OnLapChanged -= HandleLapChanged;
     }
 
-    public void ApplyDamage(int amount)
+    private void HandleSpeedChanged(float speed)
     {
-        _model.CurrentHealth -= amount;
+        string text = $"{speed:F0} km/h";
+        float normalized = Mathf.Clamp01(speed / _maxDisplaySpeed);
+        _view.UpdateSpeed(text, normalized);
     }
 
-    private void HandleHealthChanged(int newHealth)
+    private void HandleLapChanged(int current, int total)
     {
-        _view.UpdateHealth(newHealth, _model.MaxHealth);
-    }
-}
-```
-
-**When to use:** Large teams, long-maintained projects, UI-heavy applications.
-**Caution:** Overkill for simple scripts. Not everything needs MVC.
-
-### MVVM Pattern
-
-Model-View-ViewModel with automatic data binding. Eliminates manual UI update code.
-
-| Component | Responsibility |
-|-----------|---------------|
-| Model | Game data and business logic |
-| View | Visual presentation (UI Builder or Canvas) |
-| ViewModel | Exposes bindable properties, transforms data for UI |
-
-**Data binding approaches:**
-- **UI Builder (visual):** Bind in UXML inspector directly to ViewModel properties
-- **C# scripting:** Register property change callbacks manually
-- **Data converters:** Transform model data to UI-compatible formats (e.g., `float` to formatted `string`)
-
-**Best for:** Complex UIs with many elements dependent on shared state (inventory, settings, HUD).
-
-### Strategy Pattern
-
-Swap algorithms at runtime through a shared interface. ScriptableObject-based strategies are Inspector-assignable.
-
-```csharp
-// Strategy base
-public abstract class AttackStrategySO : ScriptableObject
-{
-    public abstract void Execute(GameObject attacker, GameObject target);
-}
-
-// Concrete strategies as ScriptableObject assets
-[CreateAssetMenu(menuName = "Strategies/Melee Attack")]
-public class MeleeAttackSO : AttackStrategySO
-{
-    [SerializeField] private float _damage = 10f;
-    [SerializeField] private float _range = 2f;
-
-    public override void Execute(GameObject attacker, GameObject target)
-    {
-        float distance = Vector3.Distance(attacker.transform.position, target.transform.position);
-        if (distance <= _range)
-        {
-            target.GetComponent<Health>()?.TakeDamage((int)_damage);
-        }
-    }
-}
-
-// Client swaps strategies at runtime
-public class Fighter : MonoBehaviour
-{
-    [SerializeField] private AttackStrategySO _currentAttack;
-
-    public void SetStrategy(AttackStrategySO newStrategy)
-    {
-        _currentAttack = newStrategy;
-    }
-
-    public void Attack(GameObject target)
-    {
-        _currentAttack.Execute(gameObject, target);
+        _view.UpdateLap($"Lap {current}/{total}");
     }
 }
 ```
 
-**Use cases:** Ability systems, AI behaviors, combat modes, navigation algorithms, difficulty scaling.
+### When to Use
 
-### Flyweight Pattern
+- UI is complex with many elements dependent on shared state
+- You want to unit test presentation logic without running Unity
+- Multiple views need to display the same model data differently
 
-Separate shared (intrinsic) data from unique (extrinsic) instance data to minimize memory.
+### When NOT to Use
 
-```csharp
-// Shared data (flyweight) -- one asset, many references
-[CreateAssetMenu(menuName = "Data/Unit Stats")]
-public class UnitStatsSO : ScriptableObject
-{
-    public string UnitName;
-    public Sprite Icon;
-    public int BaseHealth;
-    public float MoveSpeed;
-    public GameObject Prefab;
-}
+- Simple UI with 1-2 elements -- a single MonoBehaviour with direct references is clearer
+- Prototype or jam code where iteration speed matters more than architecture
+- The "View" is not visual (e.g., audio-only feedback) -- Observer alone is sufficient
 
-// Instance data (extrinsic) -- unique per unit
-public class UnitInstance : MonoBehaviour
-{
-    [SerializeField] private UnitStatsSO _stats; // Shared reference
+---
 
-    // Unique per instance
-    private int _currentHealth;
-    private Vector3 _position;
-    private float _statusTimer;
+## MVVM Pattern (Model-View-ViewModel)
 
-    private void Awake()
-    {
-        _currentHealth = _stats.BaseHealth;
-    }
-}
-```
+### Concept
 
-**Sweet spot:** Hundreds or more similar objects (crowds, swarms, particle-like entities). Use Memory Profiler to validate the savings justify the pattern's complexity.
+Model-View-ViewModel with automatic data binding. Eliminates manual UI update code by binding View elements directly to ViewModel properties.
 
-### Dirty Flag Pattern
+### RC Racing Example
 
-Track whether state has changed since last processing. Skip expensive recalculations when nothing changed.
+Garage/tuning UI: sliders bound to vehicle tuning parameters. Changing a slider automatically updates the ViewModel property, which updates the Model, which persists to the vehicle config. No manual wiring code per slider.
+
+### Code Example
 
 ```csharp
-public class TransformHierarchy : MonoBehaviour
+// ViewModel exposes bindable properties
+public class VehicleTuningViewModel : MonoBehaviour
 {
-    private bool _isDirty = true;
-    private Matrix4x4 _worldMatrix;
+    // UI Toolkit data binding uses these properties directly
+    public float SuspensionStiffness { get; set; }
+    public float GearRatio { get; set; }
+    public float CamberAngle { get; set; }
 
-    public Vector3 LocalPosition
+    // For C# scripting binding (without UI Toolkit):
+    public event Action<string> OnPropertyChanged;
+
+    private float _suspensionStiffness;
+
+    public float BoundSuspensionStiffness
     {
-        get => transform.localPosition;
+        get => _suspensionStiffness;
         set
         {
-            transform.localPosition = value;
-            _isDirty = true;
+            _suspensionStiffness = value;
+            OnPropertyChanged?.Invoke(nameof(BoundSuspensionStiffness));
         }
     }
+}
+```
 
-    public Matrix4x4 GetWorldMatrix()
+**Data binding approaches:**
+- **UI Toolkit (visual):** Bind in UXML inspector directly to ViewModel properties
+- **C# scripting:** Register property change callbacks with `INotifyPropertyChanged` or custom events
+- **Data converters and ConverterGroups:** Transform model data to UI-compatible formats (e.g., `float` to formatted `string`). `ConverterGroups` chain multiple converters together.
+- **BindingMode:** `TwoWay` (default for input controls), `ToTarget` (read-only display), `ToSource` (write-only from UI)
+
+### When to Use
+
+- Complex UIs with many elements bound to shared state (settings screens, inventory, garage tuning)
+- Using UI Toolkit, which has native data binding support
+- UI updates are frequent and manual wiring would be tedious
+
+### When NOT to Use
+
+- Using legacy Canvas/UGUI -- MVVM binding requires manual implementation that may not justify the effort
+- Simple HUD with a few text fields -- MVP or direct Observer is simpler
+- Game logic is tightly coupled to display timing (e.g., animation-driven UI) -- data binding adds latency
+
+---
+
+## Strategy Pattern
+
+### Concept
+
+Swap algorithms at runtime through a shared interface. ScriptableObject-based strategies are Inspector-assignable and support hot-swapping.
+
+### RC Racing Example
+
+Surface physics: different grip/friction strategies per terrain type. Asphalt has high grip, dirt has low grip with oversteer, gravel has loose traction. The vehicle swaps its surface strategy based on what the wheels are touching.
+
+### Code Example
+
+```csharp
+// Strategy base as ScriptableObject
+public abstract class SurfacePhysicsSO : ScriptableObject
+{
+    public abstract float GetGrip(float speed, float slipAngle);
+    public abstract float GetRollingResistance(float speed);
+    public abstract bool AllowsDrifting { get; }
+}
+
+// Concrete strategies as assets
+[CreateAssetMenu(menuName = "RC/Surface Physics/Asphalt")]
+public class AsphaltPhysicsSO : SurfacePhysicsSO
+{
+    [SerializeField] private float _gripMultiplier = 1.0f;
+    [SerializeField] private float _rollingResistance = 0.01f;
+
+    public override bool AllowsDrifting => false;
+
+    public override float GetGrip(float speed, float slipAngle)
+    {
+        return _gripMultiplier * Mathf.Clamp01(1f - slipAngle / 90f);
+    }
+
+    public override float GetRollingResistance(float speed)
+    {
+        return _rollingResistance * speed;
+    }
+}
+
+[CreateAssetMenu(menuName = "RC/Surface Physics/Dirt")]
+public class DirtPhysicsSO : SurfacePhysicsSO
+{
+    [SerializeField] private float _gripMultiplier = 0.6f;
+    [SerializeField] private float _looseThreshold = 15f;
+
+    public override bool AllowsDrifting => true;
+
+    public override float GetGrip(float speed, float slipAngle)
+    {
+        float baseGrip = _gripMultiplier * Mathf.Clamp01(1f - slipAngle / 45f);
+        return slipAngle > _looseThreshold ? baseGrip * 0.5f : baseGrip;
+    }
+
+    public override float GetRollingResistance(float speed)
+    {
+        return 0.03f * speed; // Higher resistance on dirt
+    }
+}
+
+// Client swaps strategies based on terrain
+public class WheelSurfaceHandler : MonoBehaviour
+{
+    [SerializeField] private SurfacePhysicsSO _currentSurface;
+
+    public void SetSurface(SurfacePhysicsSO surface)
+    {
+        _currentSurface = surface;
+    }
+
+    public float GetCurrentGrip(float speed, float slipAngle)
+    {
+        return _currentSurface.GetGrip(speed, slipAngle);
+    }
+}
+```
+
+**Runtime SO creation:** For strategies that need unique runtime instances (e.g., modified copies of a base strategy), use `ScriptableObject.CreateInstance<T>()`. Note that runtime-created SOs are not saved to disk and must be managed manually.
+
+### When to Use
+
+- Multiple interchangeable algorithms exist for the same operation
+- Algorithms need to be swapped at runtime (surface changes, difficulty scaling)
+- Designers need to create new behaviors without touching code (Inspector-assignable SO assets)
+
+### When NOT to Use
+
+- Only one algorithm exists with no foreseeable variants -- a direct method is clearer
+- The "strategy" is a single line of code -- the interface overhead is not justified
+- Algorithms differ only in a numeric parameter -- use a configurable field instead of separate classes
+
+---
+
+## Flyweight Pattern
+
+### Concept
+
+Separate shared (intrinsic) data from unique (extrinsic) instance data to minimize memory. In Unity, ScriptableObjects naturally serve as flyweights: one SO asset, many MonoBehaviour references.
+
+### RC Racing Example
+
+Track segment shared data: all instances of a "hairpin turn" segment share the same geometry, surface type, and width from a single SO asset. Each placed instance only stores its own position, rotation, and runtime state (e.g., tire marks applied).
+
+### Code Example
+
+```csharp
+// Shared data (flyweight) -- one asset per segment type
+[CreateAssetMenu(menuName = "RC/Track Segment Data")]
+public class TrackSegmentDataSO : ScriptableObject
+{
+    [Header("Geometry")]
+    public Mesh SegmentMesh;
+    public Material SurfaceMaterial;
+
+    [Header("Properties")]
+    public float TrackWidth = 2.5f;
+    public SurfacePhysicsSO SurfacePhysics;
+
+    [Header("Racing Line")]
+    public AnimationCurve IdealSpeedCurve;
+}
+
+// Instance data (extrinsic) -- unique per placed segment
+public class TrackSegmentInstance : MonoBehaviour
+{
+    [SerializeField] private TrackSegmentDataSO _segmentData; // Shared reference
+
+    // Unique per instance
+    private int _tireMarkCount;
+    private float _surfaceDegradation;
+
+    public TrackSegmentDataSO Data => _segmentData;
+
+    public void ApplyTireMark()
+    {
+        _tireMarkCount++;
+        _surfaceDegradation = Mathf.Min(1f, _tireMarkCount * 0.01f);
+    }
+}
+```
+
+### When to Use
+
+- Hundreds or more similar objects that share common read-only data (crowds, track segments, tree instances)
+- Memory profiling confirms significant duplication of identical data
+- Shared data is truly read-only at runtime
+
+### When NOT to Use
+
+- Fewer than ~50 instances -- memory savings do not justify the pattern
+- Each instance needs unique copies of the "shared" data (they modify it at runtime)
+- Data is already small (a few floats) -- the SO reference overhead may exceed the savings
+
+---
+
+## Dirty Flag Pattern
+
+### Concept
+
+Track whether state has changed since last processing. Skip expensive recalculations when nothing changed. Set the flag when state mutates; check and clear it when the result is needed.
+
+### RC Racing Example
+
+Race standings: recalculate positions only when a vehicle passes a checkpoint or changes track segment, not every frame. The flag is set by checkpoint events and cleared when the leaderboard UI reads the standings.
+
+### Code Example
+
+```csharp
+public class RaceStandings : MonoBehaviour
+{
+    private bool _isDirty = true;
+    private List<RacerPosition> _cachedStandings;
+    private List<RacerData> _racers;
+
+    // Called by checkpoint trigger
+    public void MarkPositionChanged(int racerId)
+    {
+        _isDirty = true;
+    }
+
+    // Called by UI when it needs to display standings
+    public IReadOnlyList<RacerPosition> GetStandings()
     {
         if (_isDirty)
         {
-            _worldMatrix = CalculateWorldMatrix();
+            RecalculateStandings();
             _isDirty = false;
         }
-        return _worldMatrix;
+        return _cachedStandings;
     }
 
-    private Matrix4x4 CalculateWorldMatrix() { /* expensive calculation */ return Matrix4x4.identity; }
+    private void RecalculateStandings()
+    {
+        // Expensive: sort all racers by lap, checkpoint, distance to next checkpoint
+        _cachedStandings = _racers
+            .OrderByDescending(r => r.CurrentLap)
+            .ThenByDescending(r => r.LastCheckpoint)
+            .ThenBy(r => r.DistanceToNextCheckpoint)
+            .Select((r, i) => new RacerPosition(r.Id, i + 1))
+            .ToList();
+    }
 }
 ```
 
-**Use cases:** Transform hierarchies, physics state, pathfinding, procedural generation, UI layouts, LOD in open worlds.
+### When to Use
 
-### Object Pooling
+- An expensive computation depends on state that changes infrequently relative to how often the result is read
+- Multiple sources can trigger recalculation but you only want to compute once
+- The result is read many times between changes
 
-Pre-instantiate and reuse objects instead of Instantiate/Destroy to avoid GC spikes.
+### When NOT to Use
 
-**Built-in API:** `UnityEngine.Pool.ObjectPool<T>` (Unity 2021+)
+- State changes every frame anyway -- the flag check adds overhead without skipping any work
+- The computation is cheap (a few arithmetic operations) -- caching is unnecessary
+- Multiple independent dirty flags are needed for the same data -- complexity may outweigh benefit; consider Observer instead
+
+---
+
+## Object Pooling
+
+### Concept
+
+Pre-instantiate and reuse objects instead of Instantiate/Destroy to avoid GC spikes. Unity provides `UnityEngine.Pool.ObjectPool<T>` (Unity 2021+).
+
+### RC Racing Example
+
+Tire smoke particles, dust effects, and sound effects: these spawn and despawn frequently during races. Pooling eliminates frame hitches from GC collection during intense racing moments.
+
+### Code Example
 
 ```csharp
 using UnityEngine;
 using UnityEngine.Pool;
 
-public class ProjectilePool : MonoBehaviour
+public class DustEffectPool : MonoBehaviour
 {
-    [SerializeField] private Projectile _prefab;
+    [SerializeField] private ParticleSystem _dustPrefab;
     [SerializeField] private int _defaultCapacity = 20;
-    [SerializeField] private int _maxSize = 100;
+    [SerializeField] private int _maxSize = 50;
 
-    private IObjectPool<Projectile> _pool;
+    private IObjectPool<ParticleSystem> _pool;
 
     private void Awake()
     {
-        _pool = new ObjectPool<Projectile>(
+        _pool = new ObjectPool<ParticleSystem>(
             createFunc: () =>
             {
-                Projectile obj = Instantiate(_prefab);
-                obj.SetPool(_pool);
-                return obj;
+                ParticleSystem ps = Instantiate(_dustPrefab, transform);
+                return ps;
             },
-            actionOnGet: obj =>
+            actionOnGet: ps =>
             {
-                obj.gameObject.SetActive(true);
+                ps.gameObject.SetActive(true);
             },
-            actionOnRelease: obj =>
+            actionOnRelease: ps =>
             {
-                obj.gameObject.SetActive(false);
-                obj.ResetState(); // CRITICAL: always reset
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                ps.gameObject.SetActive(false);
             },
-            actionOnDestroy: obj =>
+            actionOnDestroy: ps =>
             {
-                Destroy(obj.gameObject);
+                Destroy(ps.gameObject);
             },
+            collectionCheck: true,  // Debug: warns if releasing an already-pooled object
             defaultCapacity: _defaultCapacity,
             maxSize: _maxSize
         );
     }
 
-    public Projectile Get(Vector3 position, Quaternion rotation)
+    public ParticleSystem SpawnDust(Vector3 position, Quaternion rotation)
     {
-        Projectile projectile = _pool.Get();
-        projectile.transform.SetPositionAndRotation(position, rotation);
-        return projectile;
-    }
-}
-
-public class Projectile : MonoBehaviour
-{
-    private IObjectPool<Projectile> _pool;
-    private Rigidbody _rb;
-
-    public void SetPool(IObjectPool<Projectile> pool) => _pool = pool;
-
-    public void ResetState()
-    {
-        // CRITICAL: Reset ALL state
-        _rb.linearVelocity = Vector3.zero;
-        _rb.angularVelocity = Vector3.zero;
-        transform.rotation = Quaternion.identity;
+        ParticleSystem ps = _pool.Get();
+        ps.transform.SetPositionAndRotation(position, rotation);
+        ps.Play();
+        return ps;
     }
 
-    public void ReturnToPool()
+    public void ReturnDust(ParticleSystem ps)
     {
-        _pool.Release(this);
+        _pool.Release(ps);
     }
 }
 ```
+
+**Constructor parameter: `collectionCheck`** (default: `false`). When `true`, the pool throws if you release an object that is already in the pool. Enable during development to catch double-release bugs; disable in release builds for performance.
+
+**Additional pool types in `UnityEngine.Pool`:**
+- `LinkedPool<T>` -- uses a linked list internally; lower memory overhead than `ObjectPool<T>` when pool size fluctuates significantly
+- `DictionaryPool<TKey, TValue>` -- pools `Dictionary` instances to avoid allocation when you need temporary dictionaries
+- `HashSetPool<T>` -- pools `HashSet` instances for temporary set operations
+- `ListPool<T>` -- pools `List` instances (common for temporary query results)
+- `GenericPool<T>` / `CollectionPool<TCollection, TItem>` -- base utilities for custom collection pooling
 
 **Critical rules:**
-- Always reset object state on release (velocities, animations, transforms, timers)
+- Always reset object state on release (velocities, animations, transforms, timers, particle state)
 - Profile before implementing -- do not pool without evidence of GC pressure
-- `defaultCapacity` is the initial collection size, `maxSize` caps total instances
+- `defaultCapacity` is the initial backing collection size, `maxSize` caps total instances (excess are destroyed)
+
+**Rigidbody velocity property name:**
+- Unity 6+: `rb.linearVelocity` / `rb.angularVelocity`
+- Unity 2022 LTS: `rb.velocity` / `rb.angularVelocity`
+
+### When to Use
+
+- Objects are spawned and destroyed frequently (particles, projectiles, sound effects)
+- Profiler shows GC allocation spikes from Instantiate/Destroy patterns
+- Object creation is expensive (complex prefab hierarchies, initialization)
+
+### When NOT to Use
+
+- Objects are created once and persist for the scene lifetime -- pooling adds complexity for no benefit
+- Fewer than ~10 total instances over the scene's lifetime -- GC impact is negligible
+- Object state is extremely difficult to reset reliably (complex component graphs with hidden state) -- stale state bugs may cost more than GC spikes
 
 ---
 
-## Section 5: ScriptableObject Architecture Patterns
+## Pattern Compatibility Matrix
 
-### Data/Logic Separation
+Patterns frequently combine. Each row shows a proven combination with an RC racing context.
 
-ScriptableObjects store configuration data separate from runtime behavior. They persist on disk, are referenced across scenes, and provide designer-friendly Inspector editing.
-
-```csharp
-[CreateAssetMenu(fileName = "New Vehicle", menuName = "Config/Vehicle Data")]
-public class VehicleDataSO : ScriptableObject
-{
-    [Header("Performance")]
-    public float TopSpeed = 25f;
-    public float Acceleration = 12f;
-    public AnimationCurve TorqueCurve;
-
-    [Header("Handling")]
-    public float SteeringAngle = 30f;
-    public float GripFactor = 1.0f;
-
-    [Header("Visual")]
-    public GameObject BodyPrefab;
-    public Material PaintMaterial;
-}
-
-// Runtime behavior references the data asset
-public class VehicleController : MonoBehaviour
-{
-    [SerializeField] private VehicleDataSO _data;
-
-    private void FixedUpdate()
-    {
-        float torque = _data.TorqueCurve.Evaluate(_currentRpm);
-        // Use _data.TopSpeed, _data.SteeringAngle, etc.
-    }
-}
-```
-
-### Event Channels
-
-ScriptableObject-based pub/sub messaging. Decouples systems without singletons or direct references.
-
-```csharp
-// Base event channel
-[CreateAssetMenu(menuName = "Events/Void Event Channel")]
-public class VoidEventChannelSO : ScriptableObject
-{
-    private Action _onEventRaised;
-
-    public void RaiseEvent()
-    {
-        _onEventRaised?.Invoke();
-    }
-
-    public void Subscribe(Action listener)
-    {
-        _onEventRaised += listener;
-    }
-
-    public void Unsubscribe(Action listener)
-    {
-        _onEventRaised -= listener;
-    }
-}
-
-// Typed event channel
-[CreateAssetMenu(menuName = "Events/Int Event Channel")]
-public class IntEventChannelSO : ScriptableObject
-{
-    private Action<int> _onEventRaised;
-
-    public void RaiseEvent(int value)
-    {
-        _onEventRaised?.Invoke(value);
-    }
-
-    public void Subscribe(Action<int> listener)
-    {
-        _onEventRaised += listener;
-    }
-
-    public void Unsubscribe(Action<int> listener)
-    {
-        _onEventRaised -= listener;
-    }
-}
-
-// Publisher
-public class ScoreManager : MonoBehaviour
-{
-    [SerializeField] private IntEventChannelSO _scoreChangedChannel;
-
-    public void AddScore(int points)
-    {
-        _totalScore += points;
-        _scoreChangedChannel.RaiseEvent(_totalScore);
-    }
-}
-
-// Subscriber
-public class ScoreUI : MonoBehaviour
-{
-    [SerializeField] private IntEventChannelSO _scoreChangedChannel;
-
-    private void OnEnable() => _scoreChangedChannel.Subscribe(UpdateDisplay);
-    private void OnDisable() => _scoreChangedChannel.Unsubscribe(UpdateDisplay);
-
-    private void UpdateDisplay(int score)
-    {
-        _scoreText.text = score.ToString();
-    }
-}
-```
-
-**Key rules:**
-- Subscribe in `OnEnable()`, unsubscribe in `OnDisable()` for SO event channels
-- Both publisher and subscriber reference the same SO asset via Inspector
-- No direct coupling -- either side can be swapped without touching the other
-
-### SO-Based Enums
-
-Replace C# enums with empty ScriptableObject subclasses for safe refactoring and Inspector-friendly usage.
-
-```csharp
-// Base type
-[CreateAssetMenu(menuName = "Enums/Surface Type")]
-public class SurfaceTypeSO : ScriptableObject { }
-
-// Create assets: Dirt.asset, Gravel.asset, Asphalt.asset, Grass.asset
-// Compare by reference (== operator), not by integer value
-// Renaming assets does NOT break serialized references (unlike C# enum reordering)
-
-public class Wheel : MonoBehaviour
-{
-    [SerializeField] private SurfaceTypeSO _currentSurface;
-    [SerializeField] private SurfaceTypeSO _dirtSurface; // Drag asset reference
-
-    private void CheckSurface()
-    {
-        if (_currentSurface == _dirtSurface)
-        {
-            ApplyDirtPhysics();
-        }
-    }
-}
-```
-
-**Advantages over C# enums:**
-- Renaming an asset does not break serialized references
-- Adding/removing values does not shift integer indices
-- Inspector drag-and-drop assignment
-- Can add data fields to the base class later without refactoring consumers
-
-### Delegate Objects
-
-ScriptableObjects as pluggable behavior containers. The Strategy pattern applied to Unity assets.
-
-```csharp
-// Delegate base
-public abstract class DamageProcessorSO : ScriptableObject
-{
-    public abstract int Process(int baseDamage, GameObject target);
-}
-
-// Concrete delegates
-[CreateAssetMenu(menuName = "Damage/Armor Reduction")]
-public class ArmorReductionSO : DamageProcessorSO
-{
-    [SerializeField] private float _reductionPercent = 0.2f;
-
-    public override int Process(int baseDamage, GameObject target)
-    {
-        return Mathf.RoundToInt(baseDamage * (1f - _reductionPercent));
-    }
-}
-
-// Client uses delegate chain
-public class DamageSystem : MonoBehaviour
-{
-    [SerializeField] private DamageProcessorSO[] _processors;
-
-    public int CalculateFinalDamage(int baseDamage, GameObject target)
-    {
-        int damage = baseDamage;
-        foreach (var processor in _processors)
-        {
-            damage = processor.Process(damage, target);
-        }
-        return damage;
-    }
-}
-```
-
-Designers create new processor assets and add them to the chain without touching code.
-
-### Runtime Sets
-
-ScriptableObject-based collections that track GameObjects at runtime. Self-registering.
-
-```csharp
-// Generic runtime set
-public abstract class RuntimeSetSO<T> : ScriptableObject
-{
-    [HideInInspector] // Inspector cannot serialize scene objects
-    public List<T> Items = new();
-
-    public void Add(T item)
-    {
-        if (!Items.Contains(item))
-        {
-            Items.Add(item);
-        }
-    }
-
-    public void Remove(T item)
-    {
-        Items.Remove(item);
-    }
-}
-
-// Concrete set
-[CreateAssetMenu(menuName = "Runtime Sets/Enemy Set")]
-public class EnemyRuntimeSetSO : RuntimeSetSO<EnemyController> { }
-
-// Self-registration
-public class EnemyController : MonoBehaviour
-{
-    [SerializeField] private EnemyRuntimeSetSO _enemySet;
-
-    private void OnEnable() => _enemySet.Add(this);
-    private void OnDisable() => _enemySet.Remove(this);
-}
-
-// Consumer queries the set without knowing about specific enemies
-public class EnemyRadar : MonoBehaviour
-{
-    [SerializeField] private EnemyRuntimeSetSO _enemySet;
-
-    public EnemyController FindClosest(Vector3 position)
-    {
-        return _enemySet.Items
-            .OrderBy(e => Vector3.Distance(e.transform.position, position))
-            .FirstOrDefault();
-    }
-}
-```
-
-**Limitation:** Inspector cannot serialize references to scene objects. Use `[HideInInspector]` on the Items list. The set is populated at runtime via self-registration.
+| Combination | How They Work Together | RC Racing Example |
+|-------------|----------------------|-------------------|
+| Factory + Pool | Factory pulls from pool instead of Instantiate | Obstacle factory reuses cone/barrier instances across races |
+| Observer + MVP | Model emits events, Presenter formats and updates View | Speed model fires `OnSpeedChanged`, presenter formats "85 km/h" for HUD |
+| State + Command | Each state generates commands for undo/redo history | Level editor: placing track pieces is a command, each editor state (place/delete/rotate) generates different commands |
+| Strategy + SO | Strategies as ScriptableObject assets, swapped via Inspector | Surface physics SOs assigned per terrain material |
+| Flyweight + SO | Shared data in SO, unique data in MonoBehaviour | Track segment data SO referenced by hundreds of placed segment instances |
+| Dirty Flag + Observer | Flag set by event, checked on demand | Checkpoint event sets standings dirty; leaderboard UI reads on next frame |
+| Command + Pool | Reuse command objects to avoid per-frame allocation | Input frame commands pooled during ghost car recording |
+| State + Observer | State machine fires `OnStateChanged` for UI/audio reactions | Vehicle state change notifies HUD (show "AIRBORNE" label) and audio (switch engine sound) |
+| Factory + Strategy | Factory selects creation strategy based on config | Vehicle factory uses different assembly strategies for buggy vs. truck vs. truggy |
+| Observer + SO Event Channel | SO-based events decouple across scenes | `OnRaceFinished` SO channel notifies both in-race HUD and post-race results scene |
 
 ---
 
-## Section 6: AI Navigation
-
-### Setup
-
-AI Navigation is a **separate package** (not included by default since Unity 2022+).
-
-1. **Window > Package Manager** > search "AI Navigation" > Install
-2. **Create NavMesh:** Select a ground object > Add Component > NavMesh Surface
-3. **Bake:** Click "Bake" on the NavMesh Surface component
-4. **Add Agent:** Add Component > NavMesh Agent to moving characters
-
-**Breaking change (2022+):** "Navigation Static" checkbox is removed. Use NavMesh Modifier components instead.
-
-### Key Components
-
-| Component | Purpose | Key Setting |
-|-----------|---------|-------------|
-| NavMesh Surface | Bakes NavMesh for an area | Agent Type (determines walkable dimensions) |
-| NavMesh Modifier | Include/exclude objects from baking | Override Area checkbox |
-| NavMesh Obstacle | Dynamic holes in NavMesh | Carve checkbox (cuts real holes vs. avoidance) |
-| NavMesh Link | Jump/drop points between surfaces | Start/End points, width, bidirectional toggle |
-
-### Object Collection Options
-
-NavMesh Surface > Object Collection:
-
-| Option | Behavior |
-|--------|----------|
-| All GameObjects | Bakes everything in scene (default) |
-| Volume | Constrains baking to a box area |
-| Current Object Hierarchy | Only the surface's own children |
-| NavMeshModifier Component Only | Only objects with NavMesh Modifier |
-
-### Multiple Agent Types
-
-Different-sized agents need separate NavMeshes:
-
-1. **Window > AI > Navigation** > Agents tab > create agent types (e.g., Small, Medium, Large)
-2. **Create one NavMesh Surface per agent type**
-3. Configure per-agent: Step Height, Max Slope, Drop Height, Radius, Height
-4. Enable "Generate Links" for auto-detected jump/drop points
-
-```
-Example:
-- Small Agent: Radius 0.3, Height 0.8, Step Height 0.2, Max Slope 45
-- Large Agent: Radius 1.0, Height 2.0, Step Height 0.4, Max Slope 30
-```
-
-### Clean NavMesh Tips
-
-| Goal | Setting |
-|------|---------|
-| Ground-only (no stairs) | Step Height = 0, Max Slope = 0 |
-| Separate stair mesh | Create second surface with Step Height > 0 |
-| Constrain area | Use Volume collection, adjust box size |
-| Exclude decorations | Add NavMesh Modifier > Not Walkable |
-
-### Upgrading from 2021 LTS
-
-If migrating a project that used the legacy baked NavMesh:
-
-1. **Window > AI > NavMesh Updater**
-2. Select objects to convert
-3. Click "Convert" -- this:
-   - Creates NavMesh Surface components on objects that had baked data
-   - Replaces "Navigation Static" flags with NavMesh Modifier components
-   - Preserves NavMesh Agent and Obstacle settings
-
----
-
-## Section 7: Related Skills
-
-| Skill | Relationship |
-|-------|-------------|
-| `unity-csharp-mastery` | Deeper C# lifecycle, attributes, anti-patterns |
-| `unity-scriptable-objects` | Extended SO patterns, runtime sets, event systems |
-| `unity-state-machines` | Advanced FSM: hierarchical states, Animator integration |
-| `unity-composition` | Component architecture, dependency injection, interfaces |
-| `unity-performance-optimization` | Profiling, batching, GC reduction, LOD |
-| `unity-testing-patterns` | Unit testing patterns for these architectures |
-| `unity-project-foundations` | .asmdef setup, folder structure, .gitignore |
-| `unity-3d-world-building` | NavMesh in context of terrain and level design |
-| `unity-editor-scripting` | Custom inspectors for SO-heavy architectures |
-| `unity-ui-toolkit` | UXML/USS for MVC/MVVM data binding |
-
----
-
-## Section 8: Quick Reference -- Pattern Selection
-
-Use this decision tree when choosing a pattern:
+## Quick Reference: Which Pattern Do I Need?
 
 ```
 Need to decouple event sender from receivers?
-  --> Observer Pattern (Action events or SO Event Channels)
+  --> Observer Pattern (Action events for same-object, SO Event Channels for cross-scene)
 
 Need to manage complex object states with transitions?
   --> State Pattern (IState + StateMachine)
@@ -1147,7 +950,7 @@ Need to create objects without exposing concrete types?
   --> Factory Pattern (abstract factory or dictionary lookup)
 
 Need undo/redo, replay, or queued actions?
-  --> Command Pattern (ICommand + invoker stacks)
+  --> Command Pattern (ICommand + invoker stacks or recording list)
 
 Need to separate UI from game logic cleanly?
   --> MVP Pattern (Model + View + Presenter)
@@ -1164,18 +967,51 @@ Need to skip expensive recalculations?
 
 Need to avoid GC spikes from frequent spawn/destroy?
   --> Object Pooling (ObjectPool<T> built-in API)
+
+Need scene-decoupled pub/sub messaging?
+  --> SO Event Channel (see unity-scriptable-objects skill)
+
+Need to track active objects of a type without FindObjectsOfType?
+  --> SO Runtime Set (see unity-scriptable-objects skill)
+
+Need to store configuration data separate from behavior?
+  --> SO Data Container (see unity-scriptable-objects skill)
+
+Need type-safe "enum" values that survive refactoring?
+  --> SO-Based Enum (see unity-scriptable-objects skill)
 ```
 
-### Pattern Compatibility Matrix
+**WARNING: ScriptableObjects retain runtime state in the Editor.** When using RuntimeSetSO or any SO that stores runtime data, the Items list is NOT cleared automatically when exiting Play Mode. You must clear it manually:
 
-Patterns frequently combine:
+```csharp
+public abstract class RuntimeSetSO<T> : ScriptableObject
+{
+    [HideInInspector]
+    public List<T> Items = new();
 
-| Combination | Example |
-|-------------|---------|
-| Factory + Pool | Factory pulls from pool instead of Instantiate |
-| Observer + MVP | Model emits events, Presenter updates View |
-| State + Command | Each state generates commands for undo history |
-| Strategy + SO | Strategies as ScriptableObject assets |
-| Flyweight + SO | Shared data in SO, unique data in MonoBehaviour |
-| Dirty Flag + Observer | Flag set by event, checked on demand |
-| Command + Pool | Reuse command objects to avoid allocation |
+    private void OnDisable()
+    {
+        // Called when exiting Play Mode in Editor -- prevents stale data
+        Items.Clear();
+    }
+}
+```
+
+This applies to any SO that accumulates runtime state. Without this cleanup, re-entering Play Mode starts with stale data from the previous run.
+
+---
+
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| `unity-csharp-mastery` | C# lifecycle, attributes, naming conventions, anti-patterns |
+| `unity-scriptable-objects` | Extended SO patterns: event channels, runtime sets, SO-based enums, delegate objects |
+| `unity-state-machines` | Advanced FSM: hierarchical states, Animator integration |
+| `unity-composition` | Component architecture, dependency injection, interfaces |
+| `unity-performance-optimization` | Profiling, batching, GC reduction, LOD |
+| `unity-testing-patterns` | Unit testing patterns for these architectures |
+| `unity-project-foundations` | .asmdef setup, folder structure, YAML serialization, workflow optimization |
+| `unity-3d-world-building` | NavMesh, terrain, level design, AI navigation |
+| `unity-editor-scripting` | Custom inspectors for SO-heavy architectures |
+| `unity-ui-toolkit` | UXML/USS for MVC/MVVM data binding |
