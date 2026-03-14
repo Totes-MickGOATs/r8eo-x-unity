@@ -50,12 +50,16 @@ namespace R8EOX.Input
 
         private TriggerDetector _triggerDetector;
 
+        /// <summary>Lazy accessor ensures detector is never null, even if accessed before Awake.</summary>
+        private TriggerDetector Detector =>
+            _triggerDetector ??= new TriggerDetector(k_GraceFrames, k_ConfirmFrames);
+
 
         // ---- Unity Lifecycle ----
 
         void Awake()
         {
-            _triggerDetector = new TriggerDetector(k_GraceFrames, k_ConfirmFrames);
+            _triggerDetector ??= new TriggerDetector(k_GraceFrames, k_ConfirmFrames);
         }
 
         void Update()
@@ -77,7 +81,7 @@ namespace R8EOX.Input
             PollSteering();
             PollButtons();
 
-            if (_triggerDetector.CurrentMode == TriggerDetector.Mode.Detecting)
+            if (Detector.CurrentMode == TriggerDetector.Mode.Detecting)
             {
                 DetectTriggerMode();
             }
@@ -129,19 +133,19 @@ namespace R8EOX.Input
             float sepLT = Mathf.Abs(UnityEngine.Input.GetAxisRaw("LeftTrigger"));
             float combined = Mathf.Abs(UnityEngine.Input.GetAxisRaw("CombinedTriggers"));
 
-            _triggerDetector.ProcessFrame(sepRT, sepLT, combined, Time.frameCount);
+            Detector.ProcessFrame(sepRT, sepLT, combined, Time.frameCount);
 
-            if (_triggerDetector.CurrentMode == TriggerDetector.Mode.Separate)
+            if (Detector.CurrentMode == TriggerDetector.Mode.Separate)
                 UnityEngine.Debug.Log("[RCInput] Gamepad triggers: separate axes (9/10)");
-            else if (_triggerDetector.CurrentMode == TriggerDetector.Mode.Combined)
+            else if (Detector.CurrentMode == TriggerDetector.Mode.Combined)
                 UnityEngine.Debug.Log("[RCInput] Gamepad triggers: combined axis (3)");
-            else if (_triggerDetector.CurrentMode == TriggerDetector.Mode.None)
+            else if (Detector.CurrentMode == TriggerDetector.Mode.None)
                 UnityEngine.Debug.Log("[RCInput] No gamepad triggers detected — keyboard only.");
         }
 
         private float GetGamepadThrottle()
         {
-            var mode = _triggerDetector.CurrentMode;
+            var mode = Detector.CurrentMode;
             const float strongThreshold = 0.3f;
 
             switch (mode)
@@ -170,7 +174,7 @@ namespace R8EOX.Input
 
         private float GetGamepadBrake()
         {
-            var mode = _triggerDetector.CurrentMode;
+            var mode = Detector.CurrentMode;
             const float strongThreshold = 0.3f;
 
             switch (mode)
