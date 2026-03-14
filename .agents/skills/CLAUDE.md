@@ -1,6 +1,6 @@
 # engine/unity/skills/
 
-37 Unity game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
+44 game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
 
 These are lazy-loaded reference guides — Claude Code agents read them on-demand when working on related topics.
 
@@ -46,3 +46,9 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `unity-build-distribution` | Tools | IL2CPP, Addressables, Steam integration, GameCI, demo strategy, crash reporting |
 | `unity-rc-audio` | Gameplay | Brushless motor audio, RPM crossfade, servo, surface audio, AudioMixer, CC0 sources |
 | `unity-genre-racing` | Core | Racing game architecture, AI opponents, race management, multiplayer, RC-specific physics |
+| `unity-e2e-testing` | Quality | End-to-end testing automation, testing pyramid, full gameplay flow validation |
+| `branch-workflow` | Process | Merge queue, worktree recipes, PR lifecycle, CI/CD, branch protection |
+| `debug-system` | Process | Debug overlays, logging, diagnostic tools, runtime inspection |
+| `reverse-engineering` | Process | Chain-of-custody debugging, symptom-to-root-cause, decompilation, analysis |
+| `user-interaction-testing` | Quality | Input injection, menu flow mocking, user journey simulation |
+| `user-test-monitoring` | Quality | Observing and analyzing user testing sessions, telemetry, feedback loops |
