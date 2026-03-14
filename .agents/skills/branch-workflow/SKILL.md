@@ -20,7 +20,7 @@ cd ../<project>-<task-name>
 
 This **always pulls the latest main from remote** before branching, so your feature branch starts from the true current state of main — not a stale local copy.
 
-If you're a Claude Code agent launched with `isolation: "worktree"`, the worktree is already created for you — skip this step. Note that Claude Code's built-in worktree uses its own branching; if you need to guarantee you're on latest main, run `git fetch origin main && git rebase origin/main` inside the worktree.
+If you're a Claude Code agent launched with `isolation: "worktree"`, the worktree is already created for you — skip this step. The `WorktreeCreate` hook automatically fetches `origin/main` and rebases your branch onto it, so your worktree starts from the latest remote main. If the hook reported a rebase conflict warning, resolve it manually with `git fetch origin main && git rebase origin/main`.
 
 ### 2. Develop on the Feature Branch
 

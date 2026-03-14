@@ -92,8 +92,12 @@ Agents follow the same workflow: develop in worktree → push → PR → label `
 
 ### Keeping Branches Fresh
 
-- **Main agent:** `git fetch origin && git pull --ff-only origin main` before dispatching subagents.
-- **Subagents:** `git fetch origin && git rebase origin/main` before pushing. Resolve conflicts before push.
+Freshness is enforced automatically by hooks — manual steps are belt-and-suspenders:
+
+- **SessionStart hook** fetches all remote refs and updates local `main` to match `origin/main` (every session, every agent).
+- **WorktreeCreate hook** fetches `origin/main` and rebases the worktree branch onto it (every `isolation: "worktree"` subagent).
+- **Main agent (manual):** `git fetch origin && git pull --ff-only origin main` before dispatching subagents.
+- **Subagents (manual):** `git fetch origin && git rebase origin/main` before pushing if the worktree has been alive for a while. Resolve conflicts before push.
 
 ### Definition of Done
 
