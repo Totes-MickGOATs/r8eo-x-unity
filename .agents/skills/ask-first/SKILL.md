@@ -1,6 +1,6 @@
 # Ask-First: Mandatory Pre-Implementation Workflow
 
-> **MANDATORY for every dev task.** No agent may write implementation code without completing Phase 1 and Phase 2 first. The only exceptions are pure documentation changes, formatting fixes, and CLAUDE.md updates.
+Use this skill when starting any new dev task to clarify requirements and write failing tests before implementation. Covers the three-phase interrogate-test-implement cycle that every bug fix, feature, and refactor must follow.
 
 Every dev task — bug fix, feature, refactor — follows three phases in strict order:
 

@@ -1,6 +1,6 @@
 # Unity Performance Optimization
 
-Practical techniques for keeping your game running at target frame rate. Always profile first — never optimize blindly.
+Use this skill when profiling frame rate issues, reducing draw calls, optimizing memory usage, or addressing CPU/GPU bottlenecks in Unity.
 
 ## Profiling Workflow
 

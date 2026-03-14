@@ -1,6 +1,6 @@
 # Debug System Skill
 
-How to build and use a debug overlay/logging system for development and diagnostics. This covers the Debug autoload pattern, F-key overlays, structured logging, and CI integration.
+Use this skill when building debug overlays, structured logging, runtime inspection tools, or F-key diagnostic displays. Covers the debug autoload pattern, overlay management, and CI integration.
 
 ## Architecture: Debug Autoload
 

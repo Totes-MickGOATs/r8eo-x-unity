@@ -1,7 +1,6 @@
 # Unity Camera Systems
 
-Reference guide for camera systems in Unity using Cinemachine. Covers virtual cameras,
-body/aim algorithms, state-driven cameras, blending, and advanced techniques.
+Use this skill when setting up cameras, configuring Cinemachine virtual cameras, implementing camera blending, or building state-driven camera rigs in Unity.
 
 ## Package Setup
 

@@ -1,7 +1,6 @@
 # Unity Input System
 
-Reference guide for Unity's New Input System package. Covers setup, action configuration,
-reading input, rebinding, multiplayer, and migration from legacy Input.
+Use this skill when configuring input actions, reading player input, implementing rebinding, or migrating from Unity's legacy Input Manager to the New Input System.
 
 ## Package Installation and Setup
 

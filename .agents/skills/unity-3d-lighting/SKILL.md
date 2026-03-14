@@ -1,6 +1,6 @@
 # Unity 3D Lighting
 
-Comprehensive guide to lighting in Unity across URP and HDRP render pipelines.
+Use this skill when configuring lights, shadows, global illumination, or baked lighting in Unity across URP and HDRP render pipelines.
 
 ## Light Types
 

@@ -1,6 +1,6 @@
 # Unity Save & Settings Persistence
 
-Patterns for player settings, preferences, career data, and save file architecture in Unity.
+Use this skill when implementing player settings persistence, preferences files, career save data, or modular save file architecture in Unity.
 
 ## Modular File Layout
 

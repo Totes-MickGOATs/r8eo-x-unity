@@ -1,6 +1,6 @@
 # Unity Debugging and Profiling
 
-Techniques for finding and fixing bugs, measuring performance, and building custom debug tools.
+Use this skill when diagnosing bugs with Debug.Log, profiling frame time or memory usage, or building custom debug visualization tools in Unity.
 
 ## Debug Logging
 

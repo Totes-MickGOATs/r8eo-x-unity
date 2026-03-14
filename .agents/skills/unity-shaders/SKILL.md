@@ -1,6 +1,6 @@
 # Unity Shaders
 
-Comprehensive guide to shader development in Unity — Shader Graph, custom HLSL shaders, compute shaders, and render features.
+Use this skill when writing custom HLSL shaders, building Shader Graph materials, creating compute shaders, or implementing custom render features in Unity.
 
 ## Shader Graph Overview
 

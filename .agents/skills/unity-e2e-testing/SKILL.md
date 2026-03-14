@@ -1,6 +1,6 @@
 # Unity E2E Testing Automation
 
-Comprehensive guide to automating end-to-end testing in Unity projects.
+Use this skill when writing PlayMode end-to-end tests that simulate full user journeys from input to visible outcome in a running game loop.
 
 ## E2E Coverage Requirement (MANDATORY)
 

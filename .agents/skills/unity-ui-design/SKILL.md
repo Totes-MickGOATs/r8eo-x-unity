@@ -1,6 +1,6 @@
 # Unity UI/UX Design Patterns
 
-Practical patterns for building game UI: menu flows, HUD, settings, gamepad support, localization, and accessibility.
+Use this skill when designing menu flows, HUD layouts, settings screens, gamepad navigation, or accessibility features for game UI.
 
 ## Menu Flow Architecture
 

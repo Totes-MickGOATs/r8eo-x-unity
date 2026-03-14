@@ -1,9 +1,5 @@
 # Unity Replay & Ghost System -- RC Racing
 
-> **Scope:** State-based replay recording, ghost playback, compression, storage,
-> Cinemachine replay cameras, time scrubbing, anti-cheat validation, and networking
-> for an RC racing simulator built on Unity PhysX backend.
-
 Use this skill when implementing replay recording, ghost car playback, lap ghost storage/sharing, or replay camera systems. Covers the full pipeline from state capture through compressed storage to interpolated playback with Cinemachine cameras.
 
 ---

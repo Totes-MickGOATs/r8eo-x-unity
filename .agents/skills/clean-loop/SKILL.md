@@ -1,6 +1,6 @@
 # Clean Loop — End-of-Task Knowledge Capture
 
-A lightweight checklist agents run at the end of every task to capture lessons, update docs, sync memories, and verify clean state.
+Use this skill at the end of every task to run cleanup, capture lessons learned, update documentation, sync memories, and verify clean git state before declaring done.
 
 ## Design Principles
 

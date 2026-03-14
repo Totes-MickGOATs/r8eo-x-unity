@@ -1,6 +1,6 @@
 # User Test Monitoring Skill
 
-How to set up, run, and analyze user testing sessions. This covers recording player behavior, capturing performance and error data, and turning raw session data into actionable insights.
+Use this skill when setting up user testing sessions, recording player behavior, capturing performance telemetry, or analyzing session data for actionable insights.
 
 ## Purpose
 

@@ -1,7 +1,6 @@
 # Unity Networking
 
-Reference guide for multiplayer networking in Unity using Netcode for GameObjects (NGO).
-Covers setup, NetworkBehaviour, RPCs, state sync, spawning, and common patterns.
+Use this skill when implementing multiplayer networking with Netcode for GameObjects, including RPCs, state synchronization, network spawning, and lobby/relay setup.
 
 ## Package Setup
 

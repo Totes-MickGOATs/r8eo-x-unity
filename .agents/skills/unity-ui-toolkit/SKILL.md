@@ -1,6 +1,6 @@
 # Unity UI Toolkit
 
-UI Toolkit is Unity's modern UI system, replacing IMGUI for editor UI and increasingly used for runtime game UI. It uses a web-inspired model: UXML for structure, USS for styling, and C# for logic.
+Use this skill when building UI with Unity's UI Toolkit system, including UXML structure, USS styling, C# bindings, custom inspectors, or runtime game UI panels.
 
 ## When to Use UI Toolkit vs UGUI
 

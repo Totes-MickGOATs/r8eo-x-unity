@@ -1,6 +1,6 @@
 # Unity State Machines
 
-> State machine patterns for game logic, AI, animations, and UI flow -- from Unity's Animator to custom FSM implementations.
+Use this skill when implementing state machines for game logic, AI behavior, animation control, or UI flow, whether using Unity's Animator or custom FSM code.
 
 ## When to Use a State Machine
 

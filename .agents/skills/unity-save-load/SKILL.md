@@ -1,6 +1,6 @@
 # Unity Save/Load and Data Persistence
 
-Patterns for saving game state, loading assets, and managing persistent data.
+Use this skill when implementing save/load systems, persisting game state to disk, managing PlayerPrefs, or building serialization pipelines for game data.
 
 ## PlayerPrefs — Simple Key-Value Storage
 

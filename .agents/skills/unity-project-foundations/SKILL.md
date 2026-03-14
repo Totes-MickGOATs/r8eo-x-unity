@@ -1,6 +1,6 @@
 # Unity Project Foundations
 
-> Project structure, assembly definitions, version control setup, package management, and code style -- the foundation that every Unity project needs before writing game code.
+Use this skill when setting up project folder structure, configuring assembly definitions, managing packages, or establishing code style and version control conventions for a Unity project.
 
 ## Recommended Folder Structure
 

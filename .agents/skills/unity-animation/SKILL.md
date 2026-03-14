@@ -1,7 +1,6 @@
 # Unity Animation
 
-Reference guide for Unity's animation system. Covers Animator Controllers, Blend Trees,
-layers, IK, root motion, Timeline, procedural tweening, and performance.
+Use this skill when working with Animator Controllers, Blend Trees, animation layers, IK, root motion, Timeline, or procedural tweening in Unity.
 
 ## Animation Clips
 

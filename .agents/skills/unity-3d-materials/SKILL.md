@@ -1,6 +1,6 @@
 # Unity 3D Materials and Shaders
 
-Comprehensive guide to materials, textures, and shader configuration in Unity.
+Use this skill when creating or configuring materials, assigning textures, or setting up shader properties on 3D objects in Unity.
 
 ## Material Fundamentals
 

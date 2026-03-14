@@ -1,6 +1,6 @@
 # Unity Editor Scripting
 
-Custom tools, inspectors, windows, and build pipeline extensions using the UnityEditor API. All editor scripts must be in an `Editor` folder or an assembly definition targeting Editor platform only.
+Use this skill when building custom inspectors, editor windows, property drawers, build pipeline extensions, or other tools using the UnityEditor API.
 
 ## Custom Inspector
 

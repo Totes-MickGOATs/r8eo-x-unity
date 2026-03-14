@@ -1,6 +1,6 @@
 # Branch Workflow & Merge Queue Skill
 
-How to correctly develop, commit, push, and merge code in this project. **Read this before writing any code.**
+Use this skill when creating feature branches, managing worktrees, pushing code, opening PRs, or handling the merge queue. Covers the full branch lifecycle from worktree creation through auto-merge.
 
 ## The Golden Rule
 

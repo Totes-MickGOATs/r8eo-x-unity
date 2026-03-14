@@ -1,6 +1,6 @@
 # Unity Build & Distribution
 
-Build configuration, platform shipping, Steam integration, CI/CD pipelines, and distribution strategies.
+Use this skill when configuring build settings, setting up IL2CPP/Mono backends, integrating with Steam, or building CI/CD pipelines for Unity game distribution.
 
 ## IL2CPP vs Mono
 

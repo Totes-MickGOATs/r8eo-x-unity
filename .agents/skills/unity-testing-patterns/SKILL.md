@@ -1,6 +1,6 @@
 # Unity Testing Patterns
 
-Testing in Unity using the Unity Test Framework (based on NUnit). This project uses TDD: write tests first, run them, confirm red, implement, confirm green, commit.
+Use this skill when writing unit tests, integration tests, or PlayMode tests using the Unity Test Framework and NUnit, following the project's TDD red-green-commit cycle.
 
 ## Minimum Coverage Requirements (MANDATORY)
 
