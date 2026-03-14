@@ -4,7 +4,8 @@
     "references": [
         "R8EOX.Vehicle",
         "R8EOX.Input",
-        "R8EOX.GameFlow"
+        "R8EOX.GameFlow",
+        "R8EOX.UI"
     ],
     "includePlatforms": [
         "Editor"
