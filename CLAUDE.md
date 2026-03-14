@@ -20,6 +20,21 @@ This file provides guidance to Claude Code when working with this repository.
 
 ---
 
+## Session Start — Self-Reflect Before Acting
+
+> **MANDATORY:** At the beginning of every session or task, before writing any code, perform this reflection.
+
+1. **Read relevant memories.** Scan `MEMORY.md` for topic files and feedback memories related to the current task. If the user's request touches a system with known gotchas (e.g., physics, terrain, audio, CI), read that memory file.
+2. **Check for past failures.** Search memories for feedback entries about mistakes, missed patterns, or corrections the user gave. Ask yourself: "Has an agent been burned by this before? What went wrong and how was it fixed?"
+3. **Flag stale memories.** If any memory you read looks outdated, incorrect, or references deleted files/old patterns — note it for cleanup during Session End. Don't let bad information persist.
+4. **Review the relevant CLAUDE.md files.** Read the `CLAUDE.md` in the directory you're about to modify. It may contain warnings, conventions, or recent changes that affect your approach.
+5. **Identify risks.** Based on your reflection, list any gotchas or non-obvious constraints that apply.
+6. **State your plan briefly** before starting implementation, incorporating lessons from steps 1-5.
+
+> **Why this matters:** Agents that skip reflection repeat mistakes that previous agents already solved. The 2 minutes spent reflecting saves 20 minutes of rework.
+
+---
+
 ## First-Time Setup
 
 If this is a fresh clone or a new project created from the template, see **`SETUP.md`** for:
@@ -329,6 +344,44 @@ When deciding how to declare a value, use the appropriate tier:
 - When removing a file, remove it from the listing (do not leave "removed" comments)
 - When adding a new directory, create a `CLAUDE.md` for it with skill references
 - Skill files live in `.agents/skills/<name>/SKILL.md` — reference them, don't duplicate their content
+
+## Session End — Self-Reflect and Self-Improve
+
+> **MANDATORY:** At the end of every task or session, before reporting "done", perform this reflection.
+
+### 1. Reflect on What Happened
+
+- **What surprised me?** Unexpected behavior, undocumented constraints, gotchas discovered the hard way.
+- **What mistake did I make (or almost make)?** Wrong API usage, missed a project rule, off-by-one.
+- **What took longer than expected?** Usually means documentation or code comments are missing.
+- **What would I tell the next agent working on this system?** That's exactly what should be documented.
+
+### 2. Update Documentation
+
+- Update the local `CLAUDE.md` if it's stale or missing info about your change
+- Add new files to directory CLAUDE.md file listings, remove deleted files
+- Reference relevant skills from `.agents/skills/` — don't duplicate skill content
+
+### 3. Improve Code Comments Where You Struggled
+
+- Add comments for non-obvious constraints, workarounds, "why not the obvious approach"
+- Update stale/misleading comments based on what you now know
+- Comments explain **why**, not **what**
+
+### 4. Maintain Memories
+
+- **Add** feedback/project memories for gotchas discovered this session
+- **Update** memories your work affects (bug fixed that a memory warns about → update it)
+- **Prune** stale entries — remove links to deleted files, resolved items
+- **Verify** new memory files are indexed in MEMORY.md
+
+### 5. Evolve Strategies
+
+- Small improvement → update relevant CLAUDE.md
+- Reusable pattern → update or create a skill in `.agents/skills/`
+- Process friction → update workflow docs
+
+> **The goal:** Every agent session leaves the codebase smarter. A bug fix adds a test, updates docs, saves a memory. This compounds into self-improving documentation.
 
 ## Issue-Driven Workflow
 
