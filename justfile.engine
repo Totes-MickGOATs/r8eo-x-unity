@@ -37,9 +37,12 @@ compile-check:
 generate-project-files:
     {{unity_path}} -batchmode -nographics -projectPath . -executeMethod UnityEditor.SyncVS.SyncSolution -quit
 
-# Clean Library and Temp
+# Clean build artifacts, Unity caches, and Python bytecode
 clean:
-    rm -rf Library/ Temp/ Logs/ obj/
+    rm -rf builds/ Library/ Temp/ Logs/ obj/
+    find . -name "*.pyc" -delete
+    find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+    @echo "Cleaned."
 
 # Format C# code with dotnet format
 format:

@@ -364,9 +364,3 @@ check-template-sync:
         echo "Up to date with template."
     fi
 
-# Clean build artifacts
-clean:
-    rm -rf builds/
-    find . -name "*.pyc" -delete
-    find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-    @echo "Cleaned."
