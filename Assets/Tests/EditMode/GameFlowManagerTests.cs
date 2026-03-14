@@ -20,7 +20,7 @@ namespace R8EOX.Tests.EditMode
             // Ensure no leftover instance
             if (GameFlowManager.Instance != null)
             {
-                Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
+                UnityEngine.Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
             }
 
             _managerGo = new GameObject("TestManager");
@@ -32,13 +32,13 @@ namespace R8EOX.Tests.EditMode
         {
             if (_managerGo != null)
             {
-                Object.DestroyImmediate(_managerGo);
+                UnityEngine.Object.DestroyImmediate(_managerGo);
             }
 
             // Clean up any other instances
             if (GameFlowManager.Instance != null)
             {
-                Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
+                UnityEngine.Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
             }
         }
 
@@ -57,7 +57,7 @@ namespace R8EOX.Tests.EditMode
             // The duplicate should be marked for destruction
             Assert.That(GameFlowManager.Instance, Is.EqualTo(_manager));
 
-            Object.DestroyImmediate(duplicateGo);
+            UnityEngine.Object.DestroyImmediate(duplicateGo);
         }
 
         [Test]
