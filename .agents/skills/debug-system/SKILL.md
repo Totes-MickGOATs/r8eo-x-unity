@@ -2,6 +2,18 @@
 
 Use this skill when building debug overlays, structured logging, runtime inspection tools, or F-key diagnostic displays. Covers the debug autoload pattern, overlay management, and CI integration.
 
+## Physics Audit Database
+
+The audit system persists physics debug data to a local SQLite database at `Logs/physics_audit.db`. It consists of:
+
+- **`DebugLogSink`** — MonoBehaviour that hooks `Application.logMessageReceived` and persists tagged log messages. Use the format `[system] message` for any physics-related debug output, where system is one of: `physics`, `grip`, `suspension`, `drivetrain`, `air`, `esc`, `input`, `surface`, `conformance`.
+- **`ConformanceRecorder`** — Records conformance check results with tolerance tiers (Excellent/Good/Noticeable/Poor/Broken).
+- **`AuditDb`** — Manages SQLite connection lifecycle, schema creation, and automatic purge of old logs.
+
+Source: `Assets/Scripts/Debug/Audit/`
+
+---
+
 ## Architecture: Debug Autoload
 
 The debug system is a singleton (autoload) that manages all debug state, logging, and overlays. It is always available and safe to call from anywhere in the codebase.
