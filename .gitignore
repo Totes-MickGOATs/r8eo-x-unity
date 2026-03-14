@@ -105,3 +105,17 @@ Assets/Plugins/Roslyn/
 *.VC.db
 *.pidb.meta
 crashlytics-buildid.txt
+
+# Visual Studio
+.vs/
+.vsconfig
+UpgradeLog.htm
+
+# Unity test runner temp scenes
+Assets/InitTestScene*
+
+# Debug screenshots (captured via MCP)
+Assets/Screenshots/
+
+# Fathom server config
+.fathom-server.json

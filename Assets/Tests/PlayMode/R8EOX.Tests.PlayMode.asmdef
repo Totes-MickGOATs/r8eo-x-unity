@@ -1,0 +1,27 @@
+{
+    "name": "R8EOX.Tests.PlayMode",
+    "rootNamespace": "R8EOX.Tests.PlayMode",
+    "references": [
+        "R8EOX.Vehicle",
+        "R8EOX.Input",
+        "R8EOX.Camera",
+        "R8EOX.Debug",
+        "R8EOX.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

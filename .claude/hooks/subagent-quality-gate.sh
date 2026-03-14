@@ -52,5 +52,10 @@ if [ -n "$WARNINGS" ]; then
     echo "Definition of Done: PR open + CI green + ready-to-merge label applied."
 fi
 
+# Clean-loop reminder
+echo ""
+echo "REMINDER: Run /dev:clean-loop before declaring done."
+echo "  → Captures lessons learned, updates docs, checks memory, verifies clean state."
+
 # Never block — always exit 0
 exit 0
