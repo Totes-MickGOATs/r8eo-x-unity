@@ -301,15 +301,55 @@ ALLOW_MASTER_PUSH=1 git push origin main
 
 This is for repo admins only. The GitHub branch protection must allow admin bypass (enforce_admins off).
 
+## Tag-Based Worktree Lifecycle
+
+Every worktree has a lifecycle tracked by lightweight git tags pushed to origin:
+
+| Tag | Meaning | Created when |
+|-----|---------|-------------|
+| `wt/active/<task>` | In progress — DO NOT delete | `just worktree-create <task>` |
+| `wt/done/<task>` | Completed — safe to delete | `just worktree-mark-done <task>` or auto-transitioned by hooks |
+
+### How It Works
+
+1. **`just worktree-create foo`** creates `wt/active/foo` tag and pushes it to origin
+2. Agent develops, pushes, creates PR, CI passes, PR merges
+3. **`just worktree-mark-done foo`** verifies PR merged, transitions `wt/active/foo` to `wt/done/foo`
+4. **`just worktree-cleanup foo`** or **`just worktree-sync`** deletes the worktree, branches, and tags
+
+### Cleanup Safety
+
+- `worktree-cleanup` **refuses** to delete a worktree with a `wt/active/*` tag
+- Override with `FORCE=1 just worktree-cleanup <task>` for emergencies
+- `worktree-sync` auto-cleans `wt/done/*` worktrees, skips `wt/active/*`
+- GitHub CI workflows also check tags before deleting branches
+
+### Abandoning a Worktree
+
+If a PR was closed without merging (e.g., approach abandoned):
+
+```bash
+just worktree-mark-abandoned <task>   # Marks safe to delete without merged PR
+just worktree-cleanup <task>          # Now succeeds
+```
+
+### Automatic Tag Transitions
+
+- **Session start hook** cleans up `wt/done/*` worktrees automatically
+- **Subagent quality gate** auto-transitions tags when it detects a merged PR
+- **Session start hook** warns about `wt/active/*` tags older than 48 hours
+
 ## Worktree Recipes Reference
 
 | Recipe | Purpose |
 |--------|---------|
-| `just worktree-create <task>` | Create `feat/<task>` branch + worktree from `origin/main` |
-| `just worktree-cleanup <task>` | Remove worktree + delete local & remote branch |
+| `just worktree-create <task>` | Create `feat/<task>` branch + worktree from `origin/main` + tag as active |
+| `just worktree-mark-done <task>` | Transition `wt/active` to `wt/done` (requires merged PR) |
+| `just worktree-mark-abandoned <task>` | Mark worktree as safe to delete (no merged PR required) |
+| `just worktree-cleanup <task>` | Remove worktree + branches + tags (blocked if active, use FORCE=1 to override) |
 | `just worktree-cleanup-all` | Prune orphaned worktrees + delete branches with gone remotes |
-| `just worktree-list` | Show all worktrees with branch name, PR status, commits-behind-main |
-| `just worktree-sync` | Pull main, delete merged branches, prune worktrees |
+| `just worktree-list` | Show all worktrees with branch name, tag status, PR status, commits-behind-main |
+| `just worktree-sync` | Pull main, auto-clean done worktrees, report active ones |
 
 ## CI Command Reference
 
