@@ -61,6 +61,29 @@ namespace R8EOX.Input
         /// <param name="frameCount">Current Time.frameCount</param>
         public void ProcessFrame(float separateRT, float separateLT, float combined, int frameCount)
         {
+            // Allow re-detection from None when real input appears (Issue #50).
+            // Without this, gamepad input is permanently locked out once None is reached.
+            if (CurrentMode == Mode.None)
+            {
+                bool hasStrongInput = separateRT > k_StrongInputThreshold
+                                   || separateLT > k_StrongInputThreshold
+                                   || combined > k_StrongInputThreshold;
+                if (hasStrongInput)
+                {
+                    CurrentMode = Mode.Detecting;
+                    _detectFrames = 0;
+                    _separateConfirmCount = 0;
+                    _combinedConfirmCount = 0;
+                    _combinedMin = float.MaxValue;
+                    _combinedMax = float.MinValue;
+                    // Fall through to normal detection logic so this frame counts
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             if (CurrentMode != Mode.Detecting)
                 return;
 

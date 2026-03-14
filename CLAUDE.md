@@ -30,6 +30,7 @@ This file provides guidance to Claude Code when working with this repository.
 4. **Review the relevant CLAUDE.md files.** Read the `CLAUDE.md` in the directory you're about to modify. It may contain warnings, conventions, or recent changes that affect your approach.
 5. **Identify risks.** Based on your reflection, list any gotchas or non-obvious constraints that apply.
 6. **State your plan briefly** before starting implementation, incorporating lessons from steps 1-5.
+7. **Run the Ask-First workflow.** For any dev task (bug fix, feature, refactor), read and follow `.agents/skills/ask-first/SKILL.md`. This is the mandatory three-phase workflow: Interrogate -> Test-First -> Implement. Do NOT skip this — it prevents agents from charging ahead on misunderstood requirements and ensures tests are written by a separate agent with no implementation bias.
 
 > **Why this matters:** Agents that skip reflection repeat mistakes that previous agents already solved. The 2 minutes spent reflecting saves 20 minutes of rework.
 
@@ -154,6 +155,8 @@ If lint CI fails after you push, you are responsible for:
 ## Testing (TDD)
 
 > **MANDATORY:** Write tests FIRST, run them, then implement. Tests MUST be executed — never claim "fixed" or "verified" without running tests. No exceptions.
+>
+> **Pre-implementation workflow:** Before writing any tests or code, complete the Ask-First workflow (`.agents/skills/ask-first/SKILL.md`). Tests must be written by a separate black-box agent — see Phase 2 of the Ask-First skill.
 
 <!-- ENGINE-SPECIFIC: Test framework, test directory layout, and runner commands added by setup-engine.sh -->
 
@@ -170,20 +173,24 @@ Every bug fix or feature MUST follow this exact cycle. No steps may be skipped.
 
 > **CRITICAL:** Steps 3 and 5 are non-negotiable. A test that was never run proves nothing. An implementation that was never verified against a test is not done. Agents that skip test execution are violating this project's core development practice.
 
-### Test Tiers — Unit AND Integration
+### Test Tiers — Unit AND Integration AND E2E
 
-Most changes require BOTH unit tests and integration tests:
+Most changes require ALL THREE test tiers. This is non-negotiable.
 
-| Tier | What it tests | When required | Example |
-|------|--------------|---------------|---------|
-| **Unit** | Single function/class in isolation, mocked dependencies | Always | Tests math helpers with mock inputs |
-| **Integration** | Multiple systems working together at runtime | When the change involves wiring, signals, or cross-system interaction | Tests that scene correctly wires systems together |
-| **E2E** | Full game running, real scene tree | Complex gameplay flows (lower priority, not required for every change) | Boot-to-gameplay flow |
+| Tier | What it tests | When required | Minimum coverage |
+|------|--------------|---------------|-----------------|
+| **Unit** | Single function/class in isolation, mocked dependencies | Always — every public method | **1 positive + 1 negative test per method** |
+| **Integration** | Multiple systems working together at runtime | When the change involves wiring, signals, or cross-system interaction | **1 test per cross-class interaction path** |
+| **E2E** | Full game running, real scene tree | Every user-facing feature or behavior change | **1 test per feature/behavior** |
 
+- **Positive test:** Verifies correct behavior with valid input (happy path)
+- **Negative test:** Verifies correct handling of invalid/edge/boundary input (zero, null, out-of-range, NaN)
 - **Unit tests** verify the logic is correct in isolation
 - **Integration tests** verify the wiring is correct at runtime — signals connected, nodes found, systems interacting properly
+- **E2E tests** verify the complete user-facing behavior from input to visible outcome in PlayMode
 - A unit test passing does NOT mean the feature works in-game. If the change involves system wiring, write an integration test too
-- When in doubt, write both. It is better to over-test than to ship a "tested" feature that breaks at runtime
+- When in doubt, write more tests. It is better to over-test than to ship a "tested" feature that breaks at runtime
+- **Test naming:** `MethodName_Scenario_ExpectedOutcome` — must read like a sentence
 
 ### Autonomous Debugging — NEVER Defer to User
 
