@@ -1,6 +1,6 @@
 # Unity MCP Workflows
 
-Using MCP (Model Context Protocol) tools to interact with Unity Editor from Claude Code. Two MCP servers are available: **UnityMCP** and **coplay-mcp**.
+Use this skill when interacting with the Unity Editor from Claude Code via MCP tools, including scene manipulation, script management, test execution, and asset operations.
 
 ## Setup
 

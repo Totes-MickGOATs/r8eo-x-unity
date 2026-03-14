@@ -1,7 +1,6 @@
 # Unity Audio Systems
 
-Reference guide for audio in Unity. Covers AudioSource, AudioMixer, spatial audio,
-pooling, music systems, import settings, and common architecture patterns.
+Use this skill when implementing audio playback, configuring AudioMixers, setting up spatial audio, or building music and sound effect systems in Unity.
 
 ## Core Components
 
