@@ -19,6 +19,28 @@ Input processing pipeline: raw Unity input axes to vehicle commands (throttle, b
 - Pure logic classes (`InputMath`, `InputGuard`, `TriggerDetector`) have no Unity lifecycle dependency for testability
 - Namespace: `R8EOX.Input`
 
+### Phantom Input Defense
+
+Multiple defense layers prevent phantom gamepad values from producing unintended vehicle movement:
+
+1. **TriggerDetector variance rejection** — During the `Combined` confirmation window, the detector requires `(max - min) > k_VarianceThreshold` (0.02). A constant phantom axis (e.g., always 0.0039) has zero variance and is rejected.
+2. **Mode gating** — During `Detecting` and `None` modes, `RCInput` returns 0 for throttle/brake. Only after a mode is confirmed does input flow through.
+3. **FilterGamepadSteering** — `InputMath.FilterGamepadSteering` applies deadzone only when a gamepad is detected, preventing small phantom horizontal values from producing steering.
+
+**Principle:** Detection observes, never drives. The detection phase gathers data about axis behavior but never allows that data to reach the vehicle.
+
+### Key InputMath Methods
+
+| Method | Purpose |
+|--------|---------|
+| `CombinedTriggerThrottle` | Extracts throttle from a combined trigger axis (positive half) with deadzone |
+| `CombinedTriggerBrake` | Extracts brake from a combined trigger axis (negative half) with deadzone |
+| `FilterGamepadSteering` | Applies deadzone to horizontal input only when gamepad is detected |
+
+## Debug Tools
+
+- **`Assets/InputDiagnostics.cs`** — Runtime debug MonoBehaviour that logs raw input values, trigger mode, and processed outputs. Attach to any GameObject during debugging sessions.
+
 ## Relevant Skills
 
 - **`unity-input-system`** — Input handling patterns and best practices

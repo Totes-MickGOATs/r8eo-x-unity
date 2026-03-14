@@ -13,6 +13,12 @@ Unity project Assets folder. All game content, scripts, and test suites live her
 | `Prefabs/` | Reusable prefab assets (RCBuggy) |
 | `Plugins/` | Third-party plugin assemblies |
 
+## Root Files
+
+| File | Purpose |
+|------|---------|
+| `InputDiagnostics.cs` | Runtime debug tool — logs raw input values, trigger mode, and processed outputs for phantom input diagnosis |
+
 ## Assembly Definitions
 
 Each script subdirectory has its own `.asmdef` to enforce dependency boundaries:

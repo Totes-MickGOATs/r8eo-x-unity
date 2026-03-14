@@ -1,6 +1,6 @@
 # Assets/Tests/EditMode/
 
-Edit Mode unit tests for pure physics math. No MonoBehaviour instantiation needed.
+Edit Mode unit tests for physics math, input processing, and game systems. No MonoBehaviour instantiation needed — all tests exercise pure static/logic classes.
 
 ## Files
 
@@ -15,8 +15,18 @@ Edit Mode unit tests for pure physics math. No MonoBehaviour instantiation neede
 | `TuningApiTests.cs` | Setter API for runtime tuning: motor, suspension, traction, crash, CoM, mass | `RCCar` setters |
 | `InputMathTests.cs` | Deadzone remapping, steering curve, input merging | `InputMath` |
 | `InputDetectionTests.cs` | Trigger detection grace period, sustained input confirmation, symmetric deadzone | `TriggerDetector`, `InputGuard`, `InputMath` |
-| `PhantomTriggerTests.cs` | Phantom trigger bug: constant combined axis rejection, combined trigger throttle/brake helpers | `TriggerDetector`, `InputMath` |
+| `PhantomTriggerTests.cs` | 12 tests: phantom trigger bug — constant combined axis rejection, combined trigger throttle/brake helpers | `TriggerDetector`, `InputMath` |
+| `ZeroInputTests.cs` | 20 tests: zero-input pipeline — phantom values, detecting-phase contracts, all modes x all axes | `TriggerDetector`, `InputMath`, `RCInput` |
 | `GroundDriveTests.cs` | ESC ground drive logic: engine cutoff, braking, reverse, coast drag | `ESCMath` |
+| `BlackBoxPhysicsTests.cs` | Black-box tests for all public physics functions using realistic 1/10 RC values | `SuspensionMath`, `GripMath`, `DrivetrainMath`, `AirPhysicsMath` |
+| `ForceDirectionTests.cs` | Force direction verification — catches axis mapping bugs from Godot-to-Unity port | `SuspensionMath`, `GripMath` |
+| `InputProcessingTests.cs` | Input edge cases: complements InputMathTests with bug-catching scenarios | `InputMath` |
+| `ReverseESCTests.cs` | Reverse ESC state machine: engage/disengage transitions, coast drag | `ESCMath` |
+| `SteeringTests.cs` | Steering direction and speed-dependent angle reduction | `RCCar` steering math |
+| `GameFlowStateMachineTests.cs` | Game flow state machine transitions | `GameFlowStateMachine` |
+| `NavigationStackTests.cs` | Navigation stack push/pop behavior | `NavigationStack` |
+| `SceneRegistryTests.cs` | Scene registry validation | `SceneRegistry` |
+| `SessionConfigTests.cs` | Session configuration data | `SessionConfig` |
 
 ## Running Tests
 
