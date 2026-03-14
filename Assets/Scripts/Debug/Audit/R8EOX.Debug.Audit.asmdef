@@ -1,0 +1,16 @@
+{
+    "name": "R8EOX.Debug.Audit",
+    "rootNamespace": "R8EOX.Debug.Audit",
+    "references": [
+        "R8EOX.Debug"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
