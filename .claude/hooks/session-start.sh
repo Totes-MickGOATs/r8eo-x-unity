@@ -5,12 +5,6 @@
 
 cd "$CLAUDE_PROJECT_DIR" || { echo "session-start: skipped (no project dir)"; exit 0; }
 
-# Keep main branch fresh (only when on main)
-if [ "$(git branch --show-current 2>/dev/null)" = "main" ]; then
-    git fetch origin main --quiet 2>/dev/null || true
-    git pull --ff-only origin main 2>/dev/null || true
-fi
-
 # Verify git hooks are configured
 HOOKS_PATH=$(git config core.hooksPath 2>/dev/null)
 if [ "$HOOKS_PATH" != ".githooks" ]; then
@@ -18,8 +12,12 @@ if [ "$HOOKS_PATH" != ".githooks" ]; then
     git config core.hooksPath .githooks
 fi
 
-# Sync tag state and keep main fresh
+# Fetch ALL remote state (branches + tags) so worktree/branch creation
+# always starts from the latest remote main, regardless of current branch.
 git fetch origin --tags --prune-tags --quiet 2>/dev/null || true
+git update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
+
+# Fast-forward working tree if currently on main
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
 if [ "$CURRENT_BRANCH" = "main" ]; then
     git pull --ff-only origin main 2>/dev/null || true
