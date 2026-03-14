@@ -17,6 +17,8 @@ Before entering the full bulletproof pipeline, assess the task scope:
 | User explicitly requested thoroughness | No | Yes |
 
 **LIGHT path** (any trivial change — typo, config tweak, single-function fix):
+- Ask-First Phase 1 (Interrogate) still required — but keep it brief (1-2 minutes)
+- Ask-First Phase 2 (Test-First) still required — positive + negative tests minimum
 - Skip subagent dispatch — implement inline
 - Phase 0: Quick churn check (30 seconds, not a deep audit)
 - Phase 1: State AC briefly, ask user to confirm (no scope diagram needed)
@@ -33,7 +35,21 @@ If in doubt, start LIGHT — escalate to FULL if complexity reveals itself durin
 
 ## Phase 0: Churn Detection & Self-Reflection
 
-Before starting, check for signals that we've been here before or are working against stale context.
+### Ask-First Prerequisite Check
+
+> **MANDATORY:** Before proceeding, verify the Ask-First workflow (`.agents/skills/ask-first/SKILL.md`) has been completed for this task.
+
+| Check | How to Verify | If Missing |
+|-------|---------------|------------|
+| Phase 1 (Interrogate) completed | Agent can state the problem in one sentence, has a hypothesis, confidence >= 3 | STOP — complete Phase 1 before continuing |
+| Phase 2 (Test-First) completed | Black-box tests exist and have been confirmed RED | STOP — dispatch test-writing agent before continuing |
+| Full contract verified | Input chains, signal wiring, collisions, scene wiring, dependencies traced | STOP — complete contract verification checklist |
+
+If the agent arrived at `/dev:bulletproof` without completing Ask-First, it must go back and complete it. Bulletproof validates and polishes — it does not replace the pre-implementation planning and test-first workflow.
+
+### Churn Detection
+
+Check for signals that we've been here before or are working against stale context.
 
 ### Trigger Signals
 
@@ -318,9 +334,10 @@ Load these skills as needed during each phase:
 
 | Skill | Location | When to Use |
 |-------|----------|-------------|
+| `ask-first` | `.agents/skills/ask-first/` | **Phase 0 prerequisite** — must be completed before bulletproof begins |
 | `unity-testing-debugging-qa` | `.agents/skills/unity-testing-debugging-qa/` | Phase 2 (TDD), Phase 3 (test verification) |
 | `swarm-development` | `.agents/skills/swarm-development/` | Phase 2 (subagent dispatch), Phase 3 (review loop orchestration) |
-| `clean-room-qa` | `.agents/skills/clean-room-qa/` | Phase 3 (black-box testing perspective) |
+| `clean-room-qa` | `.agents/skills/clean-room-qa/` | Phase 0 (ask-first Phase 2), Phase 3 (black-box testing perspective) |
 | `reverse-engineering` | `.agents/skills/reverse-engineering/` | Phase 0 (churn diagnosis), Phase 2-3 (debugging failures) |
 | `unity-architecture-patterns` | `.agents/skills/unity-architecture-patterns/` | Phase 1 (scope analysis), Phase 2 (implementation patterns) |
 | `unity-csharp-mastery` | `.agents/skills/unity-csharp-mastery/` | Phase 2 (implementation), Phase 3 (code review) |
@@ -345,7 +362,10 @@ These are hard constraints, not suggestions:
 
 ## Integration with Project Rules
 
+- **Ask-First workflow** (`.agents/skills/ask-first/SKILL.md`) is a prerequisite — Phase 0 verifies it was completed before bulletproof begins
 - TDD cycle (CLAUDE.md) is enforced in Phase 2 — tests written first, run for RED, implement, run for GREEN
+- **Black-box test agent** writes tests with zero implementation knowledge (Ask-First Phase 2 + clean-room-qa skill)
+- **Minimum test coverage** enforced: 1 positive + 1 negative per method, 1 integration per cross-class call, 1 E2E per feature
 - Git commits happen per file/change as required by project rules
 - System manifests updated if files are added to a system
 - CLAUDE.md files updated if directory contents change
