@@ -2,7 +2,8 @@
     "name": "R8EOX.Tests.EditMode",
     "rootNamespace": "R8EOX.Tests.EditMode",
     "references": [
-        "R8EOX.Vehicle"
+        "R8EOX.Vehicle",
+        "R8EOX.Input"
     ],
     "includePlatforms": [
         "Editor"

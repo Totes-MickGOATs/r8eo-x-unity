@@ -3,6 +3,8 @@
   "description": "Input abstraction for RC buggy: keyboard + gamepad with auto-detection",
   "status": "ACTIVE",
   "files": [
+    "Assets/Scripts/Input/IVehicleInput.cs",
+    "Assets/Scripts/Input/InputMath.cs",
     "Assets/Scripts/Input/RCInput.cs",
     "Assets/Scripts/Input/R8EOX.Input.asmdef"
   ],
