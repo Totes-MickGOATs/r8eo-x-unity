@@ -12,6 +12,7 @@ Edit Mode unit tests for pure physics math. No MonoBehaviour instantiation neede
 | `AirPhysicsMathTests.cs` | Pitch/roll torque, gyro damping, RPM averaging | `AirPhysicsMath` |
 | `TumbleMathTests.cs` | Smoothstep, hysteresis, airborne zeroing, tilt angle | `TumbleMath` |
 | `GripTractionCriticalTests.cs` | C1-C4 regression tests: grip curve baseline, damped grip load, friction direction, ramp sliding | `SuspensionMath`, `GripMath`, `RaycastWheel` |
+| `TuningApiTests.cs` | Setter API for runtime tuning: motor, suspension, traction, crash, CoM, mass | `RCCar` setters |
 
 ## Running Tests
 
