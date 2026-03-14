@@ -389,7 +389,7 @@ namespace R8EOX.Debug
             if (_car == null || _rb == null) return;
 
             int frame = Time.frameCount;
-            float currentSpeed = _rb.linearVelocity.magnitude;
+            float currentSpeed = _rb.velocity.magnitude;
 
             // Track consecutive engine-force frames
             if (_car.CurrentEngineForce > k_Epsilon && !_car.IsAirborne)
