@@ -1,11 +1,13 @@
 {
   "name": "debug",
-  "description": "Telemetry HUD overlay for vehicle physics debugging",
+  "description": "Runtime debug overlays and contract assertions for vehicle physics",
   "status": "ACTIVE",
   "files": [
     "Assets/Scripts/Debug/TelemetryHUD.cs",
+    "Assets/Scripts/Debug/TuningPanel.cs",
+    "Assets/Scripts/Debug/ContractDebugger.cs",
     "Assets/Scripts/Debug/R8EOX.Debug.asmdef"
   ],
-  "dependencies": ["vehicle"],
+  "dependencies": ["vehicle", "input"],
   "replaced_by": ""
 }

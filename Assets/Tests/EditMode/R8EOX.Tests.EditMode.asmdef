@@ -4,6 +4,7 @@
     "references": [
         "R8EOX.Vehicle",
         "R8EOX.Input",
+        "R8EOX.Debug",
         "R8EOX.GameFlow",
         "R8EOX.UI"
     ],
