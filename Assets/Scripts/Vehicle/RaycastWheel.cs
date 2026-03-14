@@ -114,7 +114,7 @@ namespace R8EOX.Vehicle
 
         void Awake()
         {
-            _rayLen = _restDistance + _overExtend + _wheelRadius;
+            _rayLen = Physics.SuspensionMath.ComputeRayLength(_restDistance, _overExtend, _wheelRadius);
             _prevSpringLen = _restDistance;
 
             Transform wm = transform.Find("WheelVisual");
@@ -136,7 +136,8 @@ namespace R8EOX.Vehicle
             if (_cachedCar == null)
                 _cachedCar = carRb.GetComponent<RCCar>();
 
-            _rayLen = _restDistance + _overExtend + _wheelRadius;
+            _rayLen = Physics.SuspensionMath.ComputeRayLength(
+                _restDistance, _overExtend, _wheelRadius);
 
             Ray ray = new Ray(transform.position, -transform.up);
             RaycastHit hit;
@@ -168,7 +169,7 @@ namespace R8EOX.Vehicle
 
             UpdateVisuals(dt);
 
-            WheelRpm = (_fSpeed / _wheelRadius) * k_RpmConversion;
+            WheelRpm = Physics.GripMath.ComputeWheelRpm(_fSpeed, _wheelRadius);
 
             if (_showDebug)
                 DrawDebug();
@@ -195,14 +196,12 @@ namespace R8EOX.Vehicle
 
         private void ComputeSuspension(Rigidbody carRb, float dt)
         {
-            _springLen = Vector3.Distance(transform.position, _contactPoint) - _wheelRadius;
-            _springLen = Mathf.Max(_springLen, _minSpringLen);
+            float anchorToContact = Vector3.Distance(transform.position, _contactPoint);
+            _springLen = Physics.SuspensionMath.ComputeSpringLength(anchorToContact, _wheelRadius, _minSpringLen);
 
-            float offset = _restDistance - _springLen;
-            _springForce = SpringStrength * offset;
-            float dampingForce = SpringDamping * (_prevSpringLen - _springLen) / dt;
-            float rawForce = _springForce + dampingForce;
-            _suspensionForce = Mathf.Max(rawForce, 0f); // No tension
+            _springForce = SpringStrength * (_restDistance - _springLen);
+            _suspensionForce = Physics.SuspensionMath.ComputeSuspensionForceWithDamping(
+                SpringStrength, SpringDamping, _restDistance, _springLen, _prevSpringLen, dt);
             _prevSpringLen = _springLen;
 
             _yForce = _contactNormal * _suspensionForce;
@@ -211,7 +210,8 @@ namespace R8EOX.Vehicle
             _speed = _tireVelocity.magnitude;
             _fSpeed = Vector3.Dot(transform.forward, _tireVelocity);
 
-            _gripLoad = Mathf.Clamp(_springForce, 0f, _maxSpringForce);
+            _gripLoad = Physics.SuspensionMath.ComputeGripLoad(
+                SpringStrength, _restDistance, _springLen, _maxSpringForce);
 
             LastSpringLen = _springLen;
             LastGripLoad = _gripLoad;
@@ -230,24 +230,25 @@ namespace R8EOX.Vehicle
                 return;
             }
 
-            SlipRatio = Mathf.Clamp01(Mathf.Abs(lateralVel) / _speed);
+            SlipRatio = Physics.GripMath.ComputeSlipRatio(lateralVel, _speed);
             GripFactor = _gripCurve.Evaluate(SlipRatio);
 
-            _xForce = -steerSideDir * lateralVel * GripFactor * GripCoeff * _gripLoad;
+            float lateralForceMag = Physics.GripMath.ComputeLateralForceMagnitude(
+                lateralVel, GripFactor, GripCoeff, _gripLoad);
+            _xForce = steerSideDir * lateralForceMag;
         }
 
         private void ComputeLongitudinalForce(Rigidbody carRb)
         {
-            float effectiveZTraction = IsBraking ? _zBrakeTraction : _zTraction;
+            float engineForce = _cachedCar != null ? _cachedCar.CurrentEngineForce : 0f;
+            float effectiveZTraction = Physics.GripMath.ComputeEffectiveTraction(
+                IsBraking, _fSpeed, engineForce,
+                _zTraction, _zBrakeTraction,
+                k_StaticFrictionSpeed, k_StaticFrictionTraction);
 
-            // Static friction: hold on ramps when stopped
-            if (Mathf.Abs(_fSpeed) < k_StaticFrictionSpeed &&
-                _cachedCar != null && _cachedCar.CurrentEngineForce == 0f)
-            {
-                effectiveZTraction = k_StaticFrictionTraction;
-            }
-
-            _zForce = -carRb.transform.forward * _fSpeed * effectiveZTraction * GripCoeff * _gripLoad;
+            float longForceMag = Physics.GripMath.ComputeLongitudinalForceMagnitude(
+                _fSpeed, effectiveZTraction, GripCoeff, _gripLoad);
+            _zForce = carRb.transform.forward * longForceMag;
 
             // Ramp sliding fix: cancel the spring's horizontal component when stopped
             if (Mathf.Abs(_fSpeed) < k_StaticFrictionSpeed)
