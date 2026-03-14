@@ -18,6 +18,22 @@ while read local_ref local_sha remote_ref remote_sha; do
     fi
 done
 
+# ── Auto-rebase feature branches onto latest main ────────────────────────────
+# Prevents pushing branches behind main, which causes merge queue churn.
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
+    git fetch origin main --quiet 2>/dev/null || true
+    if ! git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
+        echo "Pre-push: rebasing onto origin/main..."
+        if ! git rebase origin/main --quiet 2>/dev/null; then
+            echo "ERROR: Rebase onto origin/main failed. Resolve conflicts first."
+            git rebase --abort 2>/dev/null
+            exit 1
+        fi
+        echo "Pre-push: rebase successful"
+    fi
+fi
+
 # ── Test runner for changed files (Layer 2: coverage enforcement) ────────────
 # Run Unity tests for changed C# scripts before allowing push.
 # Bypass: SKIP_TEST_CHECK=1 git push ...
@@ -106,6 +122,13 @@ else
                     echo "ERROR: Tests FAILED (exit code $TEST_EXIT). Push blocked."
                     echo ""
                     echo "  Failed test filter: $TEST_FILTERS"
+                    echo ""
+                    echo "  Possible causes:"
+                    echo "    - Test assertion failures"
+                    echo "    - C# compilation errors (check Unity console for red errors)"
+                    echo "    - Missing references or namespace conflicts"
+                    echo "    - Unity not responding or project not loaded"
+                    echo ""
                     echo "  Fix failing tests before pushing."
                     echo "  Bypass (emergency only): SKIP_TEST_CHECK=1 git push ..."
                     exit 1

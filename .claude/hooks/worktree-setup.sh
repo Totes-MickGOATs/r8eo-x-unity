@@ -10,4 +10,7 @@ if [ -f "$ENGINE_HOOK" ]; then
 else
     echo "worktree-setup: no engine-specific setup configured"
 fi
+
+# Always produce output — Claude Code treats no output as failure
+echo "worktree-setup: ready"
 exit 0
