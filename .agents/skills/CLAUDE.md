@@ -34,6 +34,7 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `unity-performance-optimization` | Quality | Batching, GC, pooling, LOD, shader optimization |
 | `unity-testing-debugging-qa` | Quality | Testing philosophy, Roslyn analyzers, IDE debugging, UTF, TDD, CI/CD, QA |
 | `unity-editor-scripting` | Quality | Custom inspectors, editor windows, build pipeline |
+| `clean-loop` | Process | End-of-task checklist: lessons learned, doc sweep, memory sync, clean git state |
 | `swarm-development` | Process | Multi-agent orchestration, parallel review, convergence protocol |
 | `unity-mcp-workflows` | Tools | UnityMCP + coplay-mcp, paging, editor automation |
 | `unity-save-load` | Data | JSON, Addressables, PlayerPrefs, cloud saves |

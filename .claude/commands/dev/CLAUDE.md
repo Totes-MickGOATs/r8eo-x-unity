@@ -9,6 +9,7 @@ Development slash commands for Claude Code.
 | `ask-first` | **MANDATORY** pre-implementation workflow: Interrogate -> Test-First -> Implement |
 | `add-system` | Create a new game system with manifest, scripts, tests |
 | `bulletproof` | 6-phase quality checklist for code changes |
+| `clean-loop` | End-of-task knowledge capture — lessons, docs, memories, clean state |
 | `check-performance` | Performance audit for game systems |
 | `e2e-test` | End-to-end test planning and execution |
 | `init-project` | Interactive first-time project setup walkthrough |

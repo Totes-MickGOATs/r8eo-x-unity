@@ -130,6 +130,7 @@ A task is **not done** until ALL of these are true:
 3. **Auto-merge is enabled** — `gh pr merge --auto --squash` or `ready-to-merge` label applied
 4. **Local tests pass** — run relevant test files for your changes before pushing
 5. **Bulletproof quality checklist passed** — see `/dev:bulletproof` for the full process (Phases 0-5)
+6. **Clean loop completed** — run `/dev:clean-loop` to capture lessons, update docs, and verify clean state
 
 **You do NOT need to wait for merge.** Once lint CI is green and auto-merge is enabled, your task is done. The merge queue handles the rest. Move on to the next task.
 
@@ -351,6 +352,7 @@ When deciding how to declare a value, use the appropriate tier:
 - When removing a file, remove it from the listing (do not leave "removed" comments)
 - When adding a new directory, create a `CLAUDE.md` for it with skill references
 - Skill files live in `.agents/skills/<name>/SKILL.md` — reference them, don't duplicate their content
+- **Automated:** `/dev:clean-loop` Step 2 performs this documentation sweep at end-of-task
 
 ## Session End — Self-Reflect and Self-Improve
 
