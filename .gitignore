@@ -82,6 +82,8 @@ build/
 # *.xcworkspace
 
 # --- Unity engine (added by setup-engine.sh) ---
+# Rider-generated Roslyn compiler DLLs (conflict with Unity's built-in Roslyn)
+Assets/Plugins/Roslyn/
 # Unity
 [Ll]ibrary/
 [Tt]emp/
