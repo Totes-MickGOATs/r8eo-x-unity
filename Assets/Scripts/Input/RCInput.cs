@@ -81,7 +81,8 @@ namespace R8EOX.Input
             PollSteering();
             PollButtons();
 
-            if (Detector.CurrentMode == TriggerDetector.Mode.Detecting)
+            if (Detector.CurrentMode == TriggerDetector.Mode.Detecting
+                || Detector.CurrentMode == TriggerDetector.Mode.None)
             {
                 DetectTriggerMode();
             }
