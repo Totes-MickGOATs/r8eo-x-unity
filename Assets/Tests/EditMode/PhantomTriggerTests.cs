@@ -33,31 +33,33 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void TriggerDetector_VaryingCombinedAxis_ShouldLockCombined()
         {
-            // A combined axis that changes value IS real user input
+            // A combined axis that changes value IS real user input.
+            // Real analog triggers have natural jitter, so values vary slightly.
             var detector = new TriggerDetector(graceFrames: 60, confirmFrames: 5);
 
-            // First frame establishes baseline at 0
-            detector.ProcessFrame(0f, 0f, 0.0f, frameCount: 61);
-
-            // Subsequent frames show strong input that differs from baseline
-            for (int i = 0; i < 5; i++)
-                detector.ProcessFrame(0f, 0f, 0.8f, frameCount: 62 + i);
+            // Varying strong input (simulates real trigger press with analog jitter)
+            detector.ProcessFrame(0f, 0f, 0.78f, frameCount: 61);
+            detector.ProcessFrame(0f, 0f, 0.82f, frameCount: 62);
+            detector.ProcessFrame(0f, 0f, 0.79f, frameCount: 63);
+            detector.ProcessFrame(0f, 0f, 0.81f, frameCount: 64);
+            detector.ProcessFrame(0f, 0f, 0.80f, frameCount: 65);
 
             Assert.AreEqual(TriggerDetector.Mode.Combined, detector.CurrentMode,
                 "Varying combined axis should lock to Combined mode");
         }
 
         [Test]
-        public void TriggerDetector_ConstantSeparateAxis_ShouldNotLockSeparate()
+        public void TriggerDetector_ConstantSeparateAxis_LocksNormally()
         {
-            // Same principle for separate triggers stuck at a constant value
+            // Separate triggers rest at 0 (below threshold), so any sustained
+            // above-threshold value IS real user input. No variance check needed.
             var detector = new TriggerDetector(graceFrames: 60, confirmFrames: 5);
 
             for (int i = 0; i < 10; i++)
                 detector.ProcessFrame(1.0f, 0f, 0f, frameCount: 61 + i);
 
-            Assert.AreNotEqual(TriggerDetector.Mode.Separate, detector.CurrentMode,
-                "Constant separate axis value should not lock to Separate mode");
+            Assert.AreEqual(TriggerDetector.Mode.Separate, detector.CurrentMode,
+                "Separate triggers don't have resting value issues — constant input should lock");
         }
 
         [Test]
@@ -88,13 +90,16 @@ namespace R8EOX.Tests.EditMode
         }
 
         [Test]
-        public void CombinedTriggerBrake_NegativeRestValue_ReturnsZero()
+        public void CombinedTriggerBrake_NegativeRestValue_ProducesBrake()
         {
-            // When combined axis = -1.0 at rest, brake should also be 0
-            // This is the core phantom trigger bug
+            // On a NORMAL combined axis controller, -1.0 means full LT press.
+            // CombinedTriggerBrake correctly returns brake for this.
+            // The phantom trigger bug is prevented at the TriggerDetector level:
+            // a controller with resting -1.0 won't lock to Combined mode because
+            // the constant value fails the baseline-change check.
             float result = InputMath.CombinedTriggerBrake(-1.0f, 0.15f);
-            Assert.AreEqual(0f, result, 0.0001f,
-                "Negative combined axis (rest state) should produce zero brake");
+            Assert.AreEqual(1f, result, 0.001f,
+                "Full negative combined axis should produce full brake on normal controllers");
         }
 
         [Test]

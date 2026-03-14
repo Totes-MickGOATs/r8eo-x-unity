@@ -16,11 +16,11 @@ namespace R8EOX.Input
         const float k_StrongInputThreshold = 0.3f;
 
         /// <summary>
-        /// Minimum change from baseline required to consider an axis as having real input.
-        /// Prevents constant resting values (e.g., -1.0 on Xbox combined axis) from
-        /// being detected as user input.
+        /// Minimum variance (max - min) across the confirmation window required
+        /// to consider an axis as having real user input. Prevents constant resting
+        /// values (e.g., abs(-1.0) on Xbox combined axis) from being detected as input.
         /// </summary>
-        const float k_BaselineChangeThreshold = 0.1f;
+        const float k_VarianceThreshold = 0.02f;
 
         // ---- Fields ----
 
@@ -30,10 +30,11 @@ namespace R8EOX.Input
         private int _separateConfirmCount;
         private int _combinedConfirmCount;
 
-        // Baselines: first observed values for each axis, used to detect actual change
-        private float _baselineSepRT = float.NaN;
-        private float _baselineSepLT = float.NaN;
-        private float _baselineCombined = float.NaN;
+        // Track min/max for combined axis during consecutive strong-input frames
+        // to detect constant (stuck) resting values vs. real varying input.
+        // Separate triggers don't need this — their resting value is 0 (below threshold).
+        private float _combinedMin;
+        private float _combinedMax;
 
         // ---- Properties ----
 
@@ -69,34 +70,28 @@ namespace R8EOX.Input
 
             _detectFrames++;
 
-            // Record baseline on first post-grace frame
-            if (float.IsNaN(_baselineSepRT))
-            {
-                _baselineSepRT = separateRT;
-                _baselineSepLT = separateLT;
-                _baselineCombined = combined;
-            }
+            bool hasSeparate = separateRT > k_StrongInputThreshold || separateLT > k_StrongInputThreshold;
+            bool hasCombined = combined > k_StrongInputThreshold;
 
-            // An axis has real input only if it exceeds the strong threshold
-            // AND has changed from its baseline value. This prevents constant
-            // resting values (e.g., combined axis stuck at 1.0 = abs(-1.0))
-            // from being mistaken for user input.
-            bool sepRTActive = separateRT > k_StrongInputThreshold
-                && System.Math.Abs(separateRT - _baselineSepRT) > k_BaselineChangeThreshold;
-            bool sepLTActive = separateLT > k_StrongInputThreshold
-                && System.Math.Abs(separateLT - _baselineSepLT) > k_BaselineChangeThreshold;
-            bool hasSeparate = sepRTActive || sepLTActive;
-            bool hasCombined = combined > k_StrongInputThreshold
-                && System.Math.Abs(combined - _baselineCombined) > k_BaselineChangeThreshold;
-
-            // Count consecutive frames of strong input for each mode
+            // Count consecutive frames of strong input for each mode,
+            // tracking min/max to detect constant (stuck) axis values.
             if (hasSeparate)
             {
                 _separateConfirmCount++;
-                _combinedConfirmCount = 0; // Reset other counter
+                _combinedConfirmCount = 0;
             }
             else if (hasCombined)
             {
+                if (_combinedConfirmCount == 0)
+                {
+                    _combinedMin = combined;
+                    _combinedMax = combined;
+                }
+                else
+                {
+                    _combinedMin = System.Math.Min(_combinedMin, combined);
+                    _combinedMax = System.Math.Max(_combinedMax, combined);
+                }
                 _combinedConfirmCount++;
                 _separateConfirmCount = 0;
             }
@@ -106,7 +101,8 @@ namespace R8EOX.Input
                 _combinedConfirmCount = 0;
             }
 
-            // Lock mode only after sustained input
+            // Lock separate mode after sustained input (no variance check needed —
+            // separate triggers rest at 0 which is below the strong threshold).
             if (_separateConfirmCount >= _confirmFrames)
             {
                 CurrentMode = Mode.Separate;
@@ -115,8 +111,13 @@ namespace R8EOX.Input
 
             if (_combinedConfirmCount >= _confirmFrames)
             {
-                CurrentMode = Mode.Combined;
-                return;
+                if ((_combinedMax - _combinedMin) > k_VarianceThreshold)
+                {
+                    CurrentMode = Mode.Combined;
+                    return;
+                }
+                // Constant value: don't lock, reset and keep looking
+                _combinedConfirmCount = 0;
             }
 
             // Timeout: no triggers detected
