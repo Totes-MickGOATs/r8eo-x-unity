@@ -1,0 +1,73 @@
+name: Gameplay/Physics Issue
+description: Report an issue with how the RC car feels or behaves physically
+title: "[Gameplay] "
+labels: ["gameplay", "physics"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Physics Feel
+        - Grip/Traction
+        - Steering
+        - Motor/ESC
+        - Suspension
+        - Collision
+        - Camera
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Undriveable
+        - Wrong Feel
+        - Minor Polish
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-feels-wrong
+    attributes:
+      label: What feels wrong
+      description: Describe the incorrect behavior or feel.
+      placeholder: "The car feels like it's on ice — rear end slides out on every turn..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-feel
+    attributes:
+      label: What it should feel like
+      description: Reference real RC behavior if possible.
+      placeholder: "A 1/10 buggy on packed dirt should have progressive rear breakaway, not snap oversteer..."
+
+  - type: dropdown
+    id: controller
+    attributes:
+      label: Controller used
+      options:
+        - Xbox
+        - PlayStation
+        - Keyboard
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostic-data
+    attributes:
+      label: Diagnostic data
+      description: Paste audit logs, parameter values, or tuning panel screenshots.
+      render: shell
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference
+      description: Links to real RC videos, spec sheets, or forum posts showing correct behavior.
+      placeholder: "https://youtube.com/watch?v=... — see 2:14 for proper cornering behavior"

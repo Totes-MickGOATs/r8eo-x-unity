@@ -196,6 +196,13 @@ Most changes require BOTH unit tests and integration tests:
 - Unit tests are faster, more reliable, and don't require MCP connectivity
 - Use play-mode debugging only for issues that require runtime wiring (scene tree, physics, rendering)
 
+### Postmortems — Learning from Significant Bugs
+
+When fixing a significant bug (Blocker/Major severity, or one that required novel diagnosis):
+1. Save a postmortem memory with: issue summary, diagnostic signal, fix approach, reusable pattern
+2. These memories help future sessions recognize similar problems faster
+3. Format: `postmortem_<short_name>.md` in the memory directory
+
 ### Testing Strategy: Local TDD, Post-Merge Safety Net
 
 > **IMPORTANT:** Run tests locally during TDD. The full suite runs automatically post-merge on main.
@@ -322,6 +329,30 @@ When deciding how to declare a value, use the appropriate tier:
 - When removing a file, remove it from the listing (do not leave "removed" comments)
 - When adding a new directory, create a `CLAUDE.md` for it with skill references
 - Skill files live in `.agents/skills/<name>/SKILL.md` — reference them, don't duplicate their content
+
+## Issue-Driven Workflow
+
+> **PREFERRED:** File issues for non-trivial work. This creates persistence, audit trails,
+> and allows agents to pick up work across sessions without losing context.
+
+### When to Create Issues
+- Bug reports with diagnostic data (console logs, audit output)
+- Feature requests with acceptance criteria
+- Gameplay/physics feel issues with controller info and references
+- CI failures (auto-created by CI Monitor)
+
+### Agent Workflow
+1. **Pick up work:** `/dev:next-task` reads open issues sorted by priority
+2. **Work in worktree:** Agent creates feature branch, implements fix/feature
+3. **Reference the issue:** Commit messages and PR descriptions reference `#issue-number`
+4. **Close with context:** PR merge auto-closes the issue. Resolution details in PR body.
+5. **Postmortem (significant bugs):** Save diagnostic pattern to memory for future reference
+
+### Persistence Across Sessions
+- **Memory files** store diagnostic patterns, user preferences, project context
+- **Issue history** provides queryable record of past fixes and their approaches
+- **CLAUDE.md docs** give every new session immediate project understanding
+- **MCP reconnection** is handled automatically — see recovery procedure in memory
 
 ## Key Reference Files
 
