@@ -76,6 +76,13 @@ namespace R8EOX.Vehicle
         public bool IsBraking { get; set; }
         public float MotorForceShare { get; set; }
 
+        /// <summary>Suspension rest distance in metres.</summary>
+        public float RestDistance { get => _restDistance; set => _restDistance = value; }
+        /// <summary>Longitudinal slip traction factor.</summary>
+        public float ZTraction { get => _zTraction; set => _zTraction = value; }
+        /// <summary>Braking friction boost factor.</summary>
+        public float ZBrakeTraction { get => _zBrakeTraction; set => _zBrakeTraction = value; }
+
 
         // ---- Public Properties (read by telemetry) ----
 
