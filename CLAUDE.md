@@ -66,12 +66,13 @@ Current state: _Update `.ai/knowledge/status/project-status.md` with phase track
 ### Quick Reference
 
 ```
-just worktree-create <task>          # 1. Create feature branch + worktree
+just worktree-create <task>          # 1. Create feature branch + worktree (tags wt/active/<task>)
 # ... develop, commit, test ...      # 2. Work on feat/<task> branch
 git push -u origin feat/<task>       # 3. Push
 gh pr create --base main             # 4. Open PR → CI runs automatically
 # CI auto-labels ready-to-merge      # 5. Auto-merge triggers on label → squash-merges
-just worktree-cleanup <task>         # 6. Clean up after merge
+just worktree-mark-done <task>       # 6. After PR merges, transition tag to wt/done/<task>
+just worktree-cleanup <task>         # 7. Clean up worktree, branches, and tags
 ```
 
 ### Branch Workflow
@@ -81,7 +82,8 @@ just worktree-cleanup <task>         # 6. Clean up after merge
 3. **Push + PR:** `git push -u origin feat/<task>` then `gh pr create --base main`
 4. **CI validates:** Lint & Preflight must pass (tests are advisory unless configured otherwise)
 5. **Merge:** CI auto-adds `ready-to-merge` label → auto-merge workflow squash-merges when up-to-date
-6. **Cleanup:** `just worktree-cleanup <task>` or `just worktree-sync` for batch cleanup
+6. **Mark done:** `just worktree-mark-done <task>` (transitions `wt/active` → `wt/done` tag, requires merged PR)
+7. **Cleanup:** `just worktree-cleanup <task>` or `just worktree-sync` for batch cleanup. Cleanup is blocked if `wt/active` tag exists (override with `FORCE=1`)
 
 ### Agent Protocol (Claude Code agents with `isolation: "worktree"`)
 
@@ -101,7 +103,8 @@ When you receive a task that requires code changes:
 2. **Dispatch a subagent** with `isolation: "worktree"` to handle implementation.
 3. **The subagent is responsible for the full lifecycle:** code → test → commit → push → PR → CI green → `ready-to-merge` label.
 4. **After the subagent completes**, verify the PR was created and CI is green.
-5. **Cleanup:** `just worktree-cleanup <task>` once the PR merges.
+5. **Mark done:** `just worktree-mark-done <task>` once the PR merges (auto-handled by hooks in most cases).
+6. **Cleanup:** `just worktree-cleanup <task>` once marked done. Session-start hook auto-cleans done worktrees.
 
 **Common mistake:** Starting to edit files directly, then discovering you can't commit because you're on main. Always dispatch first, edit never.
 

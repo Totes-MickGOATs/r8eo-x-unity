@@ -23,17 +23,34 @@ jobs:
         run: |
           echo "=== Stale Branch Cleanup ==="
           DELETED=0
+          SKIPPED=0
+
+          # Fetch tags to check worktree lifecycle state
+          git fetch origin --tags --prune-tags 2>/dev/null || true
 
           # Get all remote branches except main, release/*, and dependabot/*
           BRANCHES=$(git branch -r --merged origin/main | grep -vE 'origin/(main|release/|HEAD|dependabot/)' | sed 's|origin/||' | tr -d ' ')
 
           for BRANCH in $BRANCHES; do
             [ -z "$BRANCH" ] && continue
+
+            # Extract task name from branch (feat/<task> -> <task>)
+            TASK=$(echo "$BRANCH" | sed 's|^feat/||; s|^fix/||; s|^refactor/||; s|^test/||; s|^docs/||; s|^chore/||')
+
+            # Check if branch is protected by wt/active/* tag
+            if git tag -l "wt/active/$TASK" | grep -q .; then
+              echo "PROTECTED: $BRANCH (wt/active/$TASK tag exists — in progress)"
+              SKIPPED=$((SKIPPED + 1))
+              continue
+            fi
+
             # Only delete feat/* and worktree-agent-* branches
             case "$BRANCH" in
               feat/*|worktree-agent-*|fix/*|refactor/*|test/*|docs/*|chore/*)
                 echo "Deleting merged branch: $BRANCH"
                 git push origin --delete "$BRANCH" 2>/dev/null || true
+                # Clean up done tag if it exists
+                git push origin --delete "wt/done/$TASK" 2>/dev/null || true
                 DELETED=$((DELETED + 1))
                 ;;
               *)
@@ -42,4 +59,4 @@ jobs:
             esac
           done
 
-          echo "=== Deleted $DELETED merged branch(es) ==="
+          echo "=== Deleted $DELETED merged branch(es), skipped $SKIPPED protected ==="

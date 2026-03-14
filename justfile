@@ -139,7 +139,15 @@ worktree-create task:
     else
         git worktree add -b "$BRANCH" "$WORKTREE_DIR" origin/main
     fi
+    # Tag as active (signals "in progress, DO NOT delete")
+    TAG_COMMIT=$(git -C "$WORKTREE_DIR" rev-parse HEAD)
+    git tag -f "wt/active/{{ task }}" "$TAG_COMMIT" 2>/dev/null || true
+    git push origin "wt/active/{{ task }}" --force 2>/dev/null || true
+    # Clean up any stale done tag from a previous run of this task
+    git tag -d "wt/done/{{ task }}" 2>/dev/null || true
+    git push origin --delete "wt/done/{{ task }}" 2>/dev/null || true
     echo "--- Worktree created at $WORKTREE_DIR (branch: $BRANCH) ---"
+    echo "Tagged wt/active/{{ task }} (worktree protected from cleanup)"
     echo "cd $WORKTREE_DIR to start working"
 
 # Remove a task's worktree and delete its local + remote branch
@@ -149,6 +157,17 @@ worktree-cleanup task:
     BRANCH="feat/{{ task }}"
     PROJECT_NAME=$(basename "$(pwd)")
     WORKTREE_DIR="../${PROJECT_NAME}-{{ task }}"
+    # Safety check: abort if worktree is still marked active (unless FORCE is set)
+    if [ -z "${FORCE:-}" ]; then
+        ACTIVE_LOCAL=$(git tag -l "wt/active/{{ task }}")
+        ACTIVE_REMOTE=$(git ls-remote --tags origin "refs/tags/wt/active/{{ task }}" 2>/dev/null | head -1 || true)
+        if [ -n "$ACTIVE_LOCAL" ] || [ -n "$ACTIVE_REMOTE" ]; then
+            echo "ERROR: Branch $BRANCH is still marked active (wt/active/{{ task }} tag exists)."
+            echo "Run: just worktree-mark-done {{ task }}"
+            echo "Or override with: FORCE=1 just worktree-cleanup {{ task }}"
+            exit 1
+        fi
+    fi
     if [ -d "$WORKTREE_DIR" ]; then
         git worktree remove "$WORKTREE_DIR" --force 2>/dev/null || true
         echo "Removed worktree $WORKTREE_DIR"
@@ -161,6 +180,11 @@ worktree-cleanup task:
         git push origin --delete "$BRANCH" 2>/dev/null || true
         echo "Deleted remote branch $BRANCH"
     fi
+    # Clean up lifecycle tags
+    git tag -d "wt/active/{{ task }}" 2>/dev/null || true
+    git tag -d "wt/done/{{ task }}" 2>/dev/null || true
+    git push origin --delete "wt/active/{{ task }}" 2>/dev/null || true
+    git push origin --delete "wt/done/{{ task }}" 2>/dev/null || true
     git fetch origin main --quiet 2>/dev/null || true
     git update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
     echo "Local main -> $(git rev-parse --short origin/main 2>/dev/null || echo '?')"
@@ -186,35 +210,86 @@ worktree-cleanup-all:
     echo "Local main -> $(git rev-parse --short origin/main 2>/dev/null || echo '?')"
     echo "--- Cleanup-all complete ---"
 
-# Sync main, delete merged branches, prune worktrees
+# Sync main, delete merged branches, prune worktrees (tag-aware)
 worktree-sync:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Fetching latest main..."
-    git fetch origin main
+    echo "Fetching latest main and tags..."
+    git fetch origin main --tags --prune-tags
     git update-ref refs/heads/main refs/remotes/origin/main
     MAIN_SHA=$(git rev-parse --short origin/main)
     echo "Local main -> $MAIN_SHA"
-    echo "Deleting branches already merged into origin/main..."
+    # Auto-cleanup worktrees/branches marked as done
+    DONE_TASKS=$(git tag -l 'wt/done/*' | sed 's|wt/done/||' || true)
+    DONE_COUNT=0
+    if [ -n "$DONE_TASKS" ]; then
+        echo ""
+        echo "=== Auto-cleaning completed worktrees (wt/done/*) ==="
+        for TASK in $DONE_TASKS; do
+            BRANCH="feat/$TASK"
+            PROJECT_NAME=$(basename "$(pwd)")
+            WT_DIR="../${PROJECT_NAME}-${TASK}"
+            if [ -d "$WT_DIR" ]; then
+                git worktree remove "$WT_DIR" --force 2>/dev/null || true
+                echo "  Removed worktree: $WT_DIR"
+            fi
+            if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+                git branch -D "$BRANCH" 2>/dev/null || true
+                echo "  Deleted local branch: $BRANCH"
+            fi
+            # Clean up lifecycle tags
+            git tag -d "wt/active/$TASK" 2>/dev/null || true
+            git tag -d "wt/done/$TASK" 2>/dev/null || true
+            git push origin --delete "wt/active/$TASK" 2>/dev/null || true
+            git push origin --delete "wt/done/$TASK" 2>/dev/null || true
+            DONE_COUNT=$((DONE_COUNT + 1))
+        done
+    fi
+    # Report active worktrees (do not touch)
+    ACTIVE_TASKS=$(git tag -l 'wt/active/*' | sed 's|wt/active/||' || true)
+    if [ -n "$ACTIVE_TASKS" ]; then
+        echo ""
+        echo "=== In-progress worktrees (wt/active/*) — not touched ==="
+        for TASK in $ACTIVE_TASKS; do
+            echo "  feat/$TASK"
+        done
+    fi
+    # Find untagged branches (legacy)
     MERGED=$(git branch --merged origin/main | grep -vE '^\*|main' | sed 's/^[ \t]*//' || true)
+    UNTAGGED=""
     if [ -n "$MERGED" ]; then
-        echo "$MERGED" | xargs git branch -d 2>/dev/null || true
-        echo "Deleted: $MERGED"
-    else
-        echo "No merged branches to clean."
+        for BRANCH in $MERGED; do
+            TASK=$(echo "$BRANCH" | sed 's|^feat/||')
+            ACTIVE_TAG=$(git tag -l "wt/active/$TASK")
+            DONE_TAG=$(git tag -l "wt/done/$TASK")
+            if [ -z "$ACTIVE_TAG" ] && [ -z "$DONE_TAG" ]; then
+                UNTAGGED="${UNTAGGED}  $BRANCH\n"
+                git branch -d "$BRANCH" 2>/dev/null || true
+            fi
+        done
+    fi
+    if [ -n "$UNTAGGED" ]; then
+        echo ""
+        echo "=== Untagged merged branches (legacy) — deleted ==="
+        echo -e "$UNTAGGED"
     fi
     git worktree prune
+    echo ""
+    echo "=== Sync Summary ==="
+    echo "  Completed (cleaned): $DONE_COUNT"
+    echo "  Active (protected):  $(echo "$ACTIVE_TASKS" | grep -c . 2>/dev/null || echo 0)"
     echo "--- Sync complete ---"
 
-# List all worktrees with branch name and PR status
+# List all worktrees with branch name, tag status, and PR status
 worktree-list:
     #!/usr/bin/env bash
     set -euo pipefail
     git fetch origin main --quiet 2>/dev/null || true
+    git fetch origin --tags --prune-tags --quiet 2>/dev/null || true
     git update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
     MAIN_SHA=$(git rev-parse origin/main 2>/dev/null || git rev-parse main)
-    printf "%-45s %-30s %-6s %s\n" "WORKTREE" "BRANCH" "BEHIND" "PR STATUS"
-    printf "%-45s %-30s %-6s %s\n" "--------" "------" "------" "---------"
+    printf "%-45s %-30s %-10s %-6s %s\n" "WORKTREE" "BRANCH" "TAG" "BEHIND" "PR STATUS"
+    printf "%-45s %-30s %-10s %-6s %s\n" "--------" "------" "---" "------" "---------"
     git worktree list --porcelain | while IFS= read -r line; do
         case "$line" in
             "worktree "*)
@@ -223,6 +298,18 @@ worktree-list:
             "branch "*)
                 BRANCH="${line#branch refs/heads/}"
                 BEHIND=$(git rev-list --count "$BRANCH..${MAIN_SHA}" 2>/dev/null || echo "?")
+                # Determine tag status
+                TAG_STATUS=""
+                if [ "$BRANCH" != "main" ]; then
+                    TASK=$(echo "$BRANCH" | sed 's|^feat/||')
+                    if git tag -l "wt/active/$TASK" | grep -q .; then
+                        TAG_STATUS="ACTIVE"
+                    elif git tag -l "wt/done/$TASK" | grep -q .; then
+                        TAG_STATUS="DONE"
+                    else
+                        TAG_STATUS="UNTAGGED"
+                    fi
+                fi
                 PR_STATUS=""
                 if [ "$BRANCH" != "main" ] && command -v gh >/dev/null 2>&1; then
                     PR_JSON=$(gh pr list --head "$BRANCH" --state all --json number,state --limit 1 2>/dev/null || echo "[]")
@@ -234,10 +321,49 @@ worktree-list:
                         PR_STATUS="NO PR"
                     fi
                 fi
-                printf "%-45s %-30s %-6s %s\n" "$WT_PATH" "$BRANCH" "$BEHIND" "$PR_STATUS"
+                printf "%-45s %-30s %-10s %-6s %s\n" "$WT_PATH" "$BRANCH" "$TAG_STATUS" "$BEHIND" "$PR_STATUS"
                 ;;
         esac
     done
+
+# Mark a task as done (transition wt/active -> wt/done after PR merges)
+worktree-mark-done task:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BRANCH="feat/{{ task }}"
+    # Verify the PR is merged
+    MERGED_JSON=$(gh pr list --head "$BRANCH" --state merged --json number --limit 1 2>/dev/null || echo "[]")
+    MERGED_NUM=$(echo "$MERGED_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['number'] if d else '')" 2>/dev/null || echo "")
+    if [ -z "$MERGED_NUM" ]; then
+        echo "ERROR: No merged PR found for branch $BRANCH."
+        echo "The PR must be merged before marking as done."
+        echo "Check: gh pr list --head $BRANCH --state all"
+        exit 1
+    fi
+    echo "PR #$MERGED_NUM is merged. Transitioning tags..."
+    # Delete active tag (local + remote, ignore errors if already gone)
+    git tag -d "wt/active/{{ task }}" 2>/dev/null || true
+    git push origin --delete "wt/active/{{ task }}" 2>/dev/null || true
+    # Create done tag on current HEAD
+    git tag -f "wt/done/{{ task }}" HEAD 2>/dev/null || true
+    git push origin "wt/done/{{ task }}" --force 2>/dev/null || true
+    echo "--- Tagged wt/done/{{ task }} — safe to clean up ---"
+    echo "Run: just worktree-cleanup {{ task }}"
+
+# Mark a task as abandoned (safe to delete even without merged PR)
+worktree-mark-abandoned task:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "WARNING: Marking {{ task }} as abandoned. This allows cleanup to delete the branch"
+    echo "even though the PR was not merged. Any unmerged work will be lost."
+    # Delete active tag
+    git tag -d "wt/active/{{ task }}" 2>/dev/null || true
+    git push origin --delete "wt/active/{{ task }}" 2>/dev/null || true
+    # Create done tag
+    git tag -f "wt/done/{{ task }}" HEAD 2>/dev/null || true
+    git push origin "wt/done/{{ task }}" --force 2>/dev/null || true
+    echo "--- Tagged wt/done/{{ task }} — safe to clean up ---"
+    echo "Run: just worktree-cleanup {{ task }}"
 
 # --- Fast Iteration ---
 
