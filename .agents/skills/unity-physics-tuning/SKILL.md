@@ -496,6 +496,21 @@ Quick-reference for a 1/10-scale RC racing project:
 
 ---
 
+## Conformance Audit
+
+After any physics tuning change, run the conformance checks and record results via `ConformanceRecorder`:
+
+```csharp
+ConformanceRecorder.BeginRun();
+// ... run checks ...
+ConformanceRecorder.Record("B", "B6", "Normal force sum at rest", 14.715, measuredForceSum);
+ConformanceRecorder.EndRun();
+```
+
+Results are persisted to the local SQLite DB (`Logs/physics_audit.db`) for trend tracking and regression detection. See the `physics-conformance-audit` skill for the full catalogue of 93 checks across 12 categories.
+
+---
+
 ## Related Skills
 
 | Skill | When to Use |
