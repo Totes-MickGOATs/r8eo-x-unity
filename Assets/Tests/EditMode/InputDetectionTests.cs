@@ -44,11 +44,17 @@ namespace R8EOX.Tests.EditMode
         {
             var detector = new TriggerDetector(graceFrames: 60, confirmFrames: 5);
 
-            for (int i = 0; i < 5; i++)
-                detector.ProcessFrame(0f, 0f, 0.5f, frameCount: 61 + i);
+            // Combined input must show variance (not constant) to lock.
+            // Real analog triggers always have slight jitter.
+            // Use slightly varying values to simulate real input.
+            detector.ProcessFrame(0f, 0f, 0.50f, frameCount: 61);
+            detector.ProcessFrame(0f, 0f, 0.52f, frameCount: 62);
+            detector.ProcessFrame(0f, 0f, 0.48f, frameCount: 63);
+            detector.ProcessFrame(0f, 0f, 0.51f, frameCount: 64);
+            detector.ProcessFrame(0f, 0f, 0.49f, frameCount: 65);
 
             Assert.AreEqual(TriggerDetector.Mode.Combined, detector.CurrentMode,
-                "5 consecutive frames of combined input should lock to Combined");
+                "5 consecutive frames of varying combined input should lock to Combined");
         }
 
         [Test]

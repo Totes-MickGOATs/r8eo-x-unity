@@ -13,6 +13,9 @@ Edit Mode unit tests for pure physics math. No MonoBehaviour instantiation neede
 | `TumbleMathTests.cs` | Smoothstep, hysteresis, airborne zeroing, tilt angle | `TumbleMath` |
 | `GripTractionCriticalTests.cs` | C1-C4 regression tests: grip curve baseline, damped grip load, friction direction, ramp sliding | `SuspensionMath`, `GripMath`, `RaycastWheel` |
 | `TuningApiTests.cs` | Setter API for runtime tuning: motor, suspension, traction, crash, CoM, mass | `RCCar` setters |
+| `InputMathTests.cs` | Deadzone remapping, steering curve, input merging | `InputMath` |
+| `InputDetectionTests.cs` | Trigger detection grace period, sustained input confirmation, symmetric deadzone | `TriggerDetector`, `InputGuard`, `InputMath` |
+| `PhantomTriggerTests.cs` | Phantom trigger bug: constant combined axis rejection, combined trigger throttle/brake helpers | `TriggerDetector`, `InputMath` |
 
 ## Running Tests
 
