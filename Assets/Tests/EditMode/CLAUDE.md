@@ -32,7 +32,7 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 | `SceneBootstrapperTests.cs` | Standalone vs full-flow detection, manager creation | `SceneBootstrapper` |
 | `ScreenRegistryTests.cs` | Screen lookup by ID, missing entries, null prefab | `ScreenRegistry` (UI) |
 | `UIManagerTests.cs` | Initialization null checks, overlay count | `UIManager` |
-| `ContractDebuggerTests.cs` | Toggle defaults, counter reset, null-ref safety, SetTarget API | `ContractDebugger` |
+| `ContractDebuggerTests.cs` | Toggle defaults, counter reset, null-ref safety, SetTarget API, DetectorMode exposure and contract wiring | `ContractDebugger`, `RCInput`, `TriggerDetector` |
 
 ## Running Tests
 

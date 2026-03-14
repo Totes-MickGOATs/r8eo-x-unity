@@ -19,6 +19,7 @@ Runtime debug overlays for vehicle development and tuning.
 - Panels reference `RCCar` via `[SerializeField]`
 - Contract assertions wrapped in `#if UNITY_EDITOR || DEBUG` for release stripping
 - ContractDebugger observes only (Signal Up pattern) -- never modifies vehicle state
+- ContractDebugger validates detector mode contracts: throttle/brake must be zero during Detecting/None modes (uses `RCInput.DetectorMode`)
 
 ## Relevant Skills
 
