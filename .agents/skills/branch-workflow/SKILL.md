@@ -137,6 +137,7 @@ When Claude Code spawns a subagent with `isolation: "worktree"`, the subagent ge
 6. **Watch CI**: `gh run watch` — wait for CI to complete, fix if it fails
 7. **Confirm merge**: Poll `gh pr view --json state -q .state` until it returns `MERGED`
 8. **Update local main**: `git fetch origin main && git update-ref refs/heads/main origin/main`
+9. **Report back**: Return a summary of changes made, files affected, and any downstream implications for subsequent tasks
 
 **Subagents must NOT exit until step 8 is complete.** The main agent relies on local main being current for subsequent dispatches.
 
@@ -148,6 +149,7 @@ The main agent (on main) should:
 2. **Pull latest main** before AND after dispatching: `git fetch origin && git pull --ff-only origin main`
 3. **Verify subagent work** — check the PR diff, not just CI status
 4. **Cleanup after merge**: `just worktree-cleanup <task>` or `just worktree-sync`
+5. **Coordinate sequential tasks** — for multi-task plans, follow the Sequential Coordination protocol in `swarm-development` skill: dispatch one subagent at a time, update in-flight memories between dispatches, clean up memories after merge
 
 ### Hard Rules for All Agents
 
