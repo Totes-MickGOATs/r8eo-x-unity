@@ -108,10 +108,8 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _gripCoeff = 0.7f;
 
         [Header("Centre of Mass")]
-        [Tooltip("Centre of mass offset when grounded")]
+        [Tooltip("Centre of mass offset")]
         [SerializeField] private Vector3 _comGround = new Vector3(0f, -0.20f, 0f);
-        [Tooltip("Centre of mass offset when airborne (lower = anti-flip)")]
-        [SerializeField] private Vector3 _comAir = new Vector3(0f, -1.2f, 0f);
 
         [Header("Crash Physics")]
         [Tooltip("Tilt angle in degrees where tumble blending begins")]
@@ -171,8 +169,6 @@ namespace R8EOX.Vehicle
         public float GripCoeff => _gripCoeff;
         /// <summary>Centre of mass Y offset when grounded.</summary>
         public float ComGroundY => _comGround.y;
-        /// <summary>Centre of mass Y offset when airborne.</summary>
-        public float ComAirY => _comAir.y;
         /// <summary>Current tumble engage angle in degrees.</summary>
         public float TumbleEngageDeg => _tumbleEngageDeg;
         /// <summary>Current tumble full angle in degrees.</summary>
@@ -251,7 +247,7 @@ namespace R8EOX.Vehicle
 
             IsAirborne = CheckAirborne();
             ComputeTumbleFactor();
-            _rb.centerOfMass = IsAirborne ? _comAir : _comGround;
+            _rb.centerOfMass = _comGround;
             UpdatePhysicsMaterial();
 
             float throttleRaw = _input != null ? _input.Throttle : 0f;
@@ -268,7 +264,6 @@ namespace R8EOX.Vehicle
                 CurrentBrakeForce = 0f;
                 foreach (var w in _allWheels)
                     w.MotorForceShare = 0f;
-                CurrentSteering = Mathf.MoveTowards(CurrentSteering, 0f, _steeringSpeed * dt);
                 if (_airPhysics != null)
                     _airPhysics.Apply(dt, SmoothThrottle, brakeIn, steerIn);
             }
@@ -389,11 +384,10 @@ namespace R8EOX.Vehicle
             _tumbleFriction = friction;
         }
 
-        /// <summary>Sets centre of mass Y offsets for ground and air.</summary>
-        public void SetCentreOfMass(float groundY, float airY)
+        /// <summary>Sets centre of mass Y offset.</summary>
+        public void SetCentreOfMass(float groundY)
         {
             _comGround = new UnityEngine.Vector3(0f, groundY, 0f);
-            _comAir = new UnityEngine.Vector3(0f, airY, 0f);
         }
 
         /// <summary>Sets mass on the Rigidbody.</summary>
