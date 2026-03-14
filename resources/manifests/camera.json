@@ -1,8 +1,11 @@
 {
   "name": "camera",
-  "description": "Chase camera system for following the RC buggy",
+  "description": "Multi-mode camera system for following the RC buggy (Chase, Orbit, FPV, Trackside)",
   "status": "ACTIVE",
   "files": [
+    "Assets/Scripts/Camera/CameraController.cs",
+    "Assets/Scripts/Camera/CameraMode.cs",
+    "Assets/Scripts/Camera/TracksideAnchor.cs",
     "Assets/Scripts/Camera/ChaseCamera.cs",
     "Assets/Scripts/Camera/R8EOX.Camera.asmdef"
   ],
