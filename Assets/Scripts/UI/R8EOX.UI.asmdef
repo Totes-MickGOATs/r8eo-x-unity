@@ -1,0 +1,17 @@
+{
+    "name": "R8EOX.UI",
+    "rootNamespace": "R8EOX.UI",
+    "references": [
+        "R8EOX.Core",
+        "R8EOX.GameFlow"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
