@@ -14,7 +14,9 @@
         "Mono.Data.Sqlite.dll"
     ],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "R8EOX_AUDIT"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }
