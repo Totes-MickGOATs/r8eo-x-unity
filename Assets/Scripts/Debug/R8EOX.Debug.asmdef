@@ -2,7 +2,8 @@
     "name": "R8EOX.Debug",
     "rootNamespace": "R8EOX.Debug",
     "references": [
-        "R8EOX.Vehicle"
+        "R8EOX.Vehicle",
+        "R8EOX.Input"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
