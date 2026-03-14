@@ -1,6 +1,23 @@
 # Unity Terrain & Track Creation for RC Racing
 
-> Lazy-loaded reference for building RC racing tracks and terrain in Unity.
+Use this skill when building RC racing tracks and terrain in Unity. Covers terrain configuration, terrain layers, spline-based track layout, jump geometry, surface detection, physics materials, ProBuilder hard surfaces, track-side objects, lighting, and performance tuning.
+
+## When to Use
+
+- Setting up Unity Terrain for a 1/10-scale RC environment
+- Designing track layout with Unity Splines or EasyRoads3D
+- Building jumps, tabletops, rhythm sections, or banked corners
+- Configuring terrain layers and eliminating tiling artifacts
+- Implementing runtime surface detection via splatmap sampling
+- Placing track-side objects (barriers, fencing, signage) with LOD
+- Optimizing terrain rendering performance
+
+## When NOT to Use
+
+- General 3D environment construction beyond terrain and tracks -- use `unity-3d-world-building`
+- Material and shader authoring fundamentals -- use `unity-3d-materials`
+- Physics engine configuration (solver, timestep, collision matrix) -- use `unity-physics-tuning`
+- Vehicle physics or tire friction models -- use `unity-physics-tuning`
 
 ---
 
@@ -296,3 +313,13 @@ For larger or more realistic terrains:
 | Jump faces too steep (>45 deg) | Vehicles clip through or bounce erratically | Keep launch face under 40 degrees |
 | No LOD on track-side objects | Draw calls explode with 100+ barriers | LOD Group on every repeated object |
 | Lightmap UV overlap on terrain | Black splotches in baked lighting | Terrain auto-generates lightmap UVs; don't manually UV |
+
+---
+
+## Related Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **`unity-3d-world-building`** | General 3D environment construction and scene composition |
+| **`unity-3d-materials`** | Material setup, shaders, and texture workflows |
+| **`unity-physics-3d`** | Physics materials, colliders, and runtime friction systems |
