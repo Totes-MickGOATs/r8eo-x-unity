@@ -10,7 +10,8 @@ No Unity lifecycle dependency — these are static utility classes.
 | `SuspensionMath.cs` | `SuspensionMath` | Hooke's law spring force, damping, bump stop, grip load |
 | `GripMath.cs` | `GripMath` | Slip ratio, lateral/longitudinal force, traction modes, RPM |
 | `DrivetrainMath.cs` | `DrivetrainMath` | Differential force distribution (Open/BallDiff/Spool), AWD center diff |
-| `AirPhysicsMath.cs` | `AirPhysicsMath` | Pitch/roll torque, gyroscopic damping |
+| `AirPhysicsMath.cs` | `AirPhysicsMath` | **DEPRECATED** -- Pitch/roll torque, gyroscopic damping (use GyroscopicMath) |
+| `GyroscopicMath.cs` | `GyroscopicMath` | Gyroscopic precession torque, reaction torque, wheel angular velocity |
 | `TumbleMath.cs` | `TumbleMath` | Tumble detection with smoothstep and hysteresis |
 | `ESCMath.cs` | `ESCMath` | ESC ground drive logic: engine cutoff, braking, reverse, coast drag |
 
