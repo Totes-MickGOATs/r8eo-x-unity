@@ -21,7 +21,7 @@ namespace R8EOX.Tests.EditMode
             // Clean up any leftover GameFlowManager
             if (GameFlowManager.Instance != null)
             {
-                Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
+                UnityEngine.Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
             }
 
             _managerGo = new GameObject("UIManager");
@@ -33,12 +33,12 @@ namespace R8EOX.Tests.EditMode
         {
             if (_managerGo != null)
             {
-                Object.DestroyImmediate(_managerGo);
+                UnityEngine.Object.DestroyImmediate(_managerGo);
             }
 
             if (GameFlowManager.Instance != null)
             {
-                Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
+                UnityEngine.Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
             }
         }
 
@@ -51,7 +51,7 @@ namespace R8EOX.Tests.EditMode
             Assert.Throws<ArgumentNullException>(() =>
                 _uiManager.Init(null, flow));
 
-            Object.DestroyImmediate(flowGo);
+            UnityEngine.Object.DestroyImmediate(flowGo);
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace R8EOX.Tests.EditMode
             Assert.Throws<ArgumentNullException>(() =>
                 _uiManager.Init(flow, null));
 
-            Object.DestroyImmediate(flowGo);
+            UnityEngine.Object.DestroyImmediate(flowGo);
         }
 
         [Test]
