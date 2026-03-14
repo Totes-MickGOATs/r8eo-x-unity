@@ -109,20 +109,15 @@ namespace R8EOX.Editor
 
         static void ConfigureTerrainLayers(TerrainData terrainData)
         {
-            // Create two dirt terrain layers (repeating textures)
-            // Layer 0: Base dirt (bottom layer — visible everywhere by default)
-            // Layer 1: Top dirt (blended in via edge mask)
+            // Layer 0: Base soil (tarred_gravel — dark compacted surface, visible everywhere)
+            // Layer 1: Top soil (gravel_floor_04 — lighter gravel, blended in via edge mask)
             var layers = new TerrainLayer[2];
 
-            layers[0] = CreateDirtLayer(
-                "DirtBase",
-                new Color(0.45f, 0.35f, 0.25f), // Warm brown
-                k_DirtTileSize);
+            layers[0] = CreateTerrainLayerFromTextures(
+                "DirtBase", "DirtBase", k_DirtTileSize);
 
-            layers[1] = CreateDirtLayer(
-                "DirtTop",
-                new Color(0.55f, 0.42f, 0.30f), // Lighter sandy brown
-                k_DirtTileSize);
+            layers[1] = CreateTerrainLayerFromTextures(
+                "DirtTop", "DirtTop", k_DirtTileSize);
 
             // Save terrain layers as assets
             for (int i = 0; i < layers.Length; i++)
@@ -132,30 +127,65 @@ namespace R8EOX.Editor
             }
 
             terrainData.terrainLayers = layers;
-            UnityEngine.Debug.Log("[OutpostTrack] Terrain layers configured (2 dirt layers).");
+            UnityEngine.Debug.Log("[OutpostTrack] Terrain layers configured (Poly Haven PBR textures).");
         }
 
-        static TerrainLayer CreateDirtLayer(string name, Color baseColor, float tileSize)
+        static TerrainLayer CreateTerrainLayerFromTextures(
+            string layerName, string textureFolder, float tileSize)
         {
             var layer = new TerrainLayer();
-            layer.name = name;
+            layer.name = layerName;
             layer.tileSize = new Vector2(tileSize, tileSize);
             layer.tileOffset = Vector2.zero;
 
-            // Create a simple procedural dirt texture (will be replaced with real textures later)
-            Texture2D diffuse = CreateProceduralDirtTexture(name + "_Diffuse", baseColor, 512);
-            string texPath = $"{k_TexturePath}/{name}_Diffuse.asset";
-            AssetDatabase.CreateAsset(diffuse, texPath);
-            layer.diffuseTexture = diffuse;
+            string folderPath = $"{k_TexturePath}/{textureFolder}";
 
-            // Create a flat normal map for now (will be replaced with real textures later)
-            Texture2D normal = CreateFlatNormalTexture(name + "_Normal", 512);
-            string normalPath = $"{k_TexturePath}/{name}_Normal.asset";
-            AssetDatabase.CreateAsset(normal, normalPath);
-            layer.normalMapTexture = normal;
+            // Load diffuse texture
+            Texture2D diffuse = AssetDatabase.LoadAssetAtPath<Texture2D>($"{folderPath}/diffuse.jpg");
+            if (diffuse != null)
+                layer.diffuseTexture = diffuse;
+            else
+                UnityEngine.Debug.LogWarning($"[OutpostTrack] Missing diffuse: {folderPath}/diffuse.jpg");
 
+            // Load normal map
+            Texture2D normal = AssetDatabase.LoadAssetAtPath<Texture2D>($"{folderPath}/normal.png");
+            if (normal != null)
+            {
+                // Ensure import settings are correct for normal map
+                string normalAssetPath = $"{folderPath}/normal.png";
+                TextureImporter importer = AssetImporter.GetAtPath(normalAssetPath) as TextureImporter;
+                if (importer != null && importer.textureType != TextureImporterType.NormalMap)
+                {
+                    importer.textureType = TextureImporterType.NormalMap;
+                    importer.SaveAndReimport();
+                    normal = AssetDatabase.LoadAssetAtPath<Texture2D>(normalAssetPath);
+                }
+                layer.normalMapTexture = normal;
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"[OutpostTrack] Missing normal: {folderPath}/normal.png");
+            }
+
+            // Load ARM map (AO=R, Roughness=G, Metallic=B) to extract smoothness/metallic
+            Texture2D arm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{folderPath}/arm.jpg");
+            if (arm != null)
+            {
+                // Ensure ARM is imported as linear (not sRGB)
+                string armAssetPath = $"{folderPath}/arm.jpg";
+                TextureImporter armImporter = AssetImporter.GetAtPath(armAssetPath) as TextureImporter;
+                if (armImporter != null && armImporter.sRGBTexture)
+                {
+                    armImporter.sRGBTexture = false;
+                    armImporter.SaveAndReimport();
+                    arm = AssetDatabase.LoadAssetAtPath<Texture2D>(armAssetPath);
+                }
+                layer.maskMapTexture = arm;
+            }
+
+            // Gravel is non-metallic with moderate roughness
             layer.metallic = 0f;
-            layer.smoothness = 0.2f;
+            layer.smoothness = 0.3f;
 
             return layer;
         }
@@ -273,52 +303,6 @@ namespace R8EOX.Editor
         }
 
 
-        // ---- Texture Generation Helpers ----
-
-        static Texture2D CreateProceduralDirtTexture(string name, Color baseColor, int size)
-        {
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, true);
-            tex.name = name;
-            tex.wrapMode = TextureWrapMode.Repeat;
-            tex.filterMode = FilterMode.Bilinear;
-
-            // Simple noise-based dirt texture
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float noise = Mathf.PerlinNoise(x * 0.05f, y * 0.05f) * 0.15f;
-                    float detail = Mathf.PerlinNoise(x * 0.2f + 100f, y * 0.2f + 100f) * 0.08f;
-                    float variation = noise + detail - 0.1f;
-
-                    Color pixel = new Color(
-                        Mathf.Clamp01(baseColor.r + variation),
-                        Mathf.Clamp01(baseColor.g + variation),
-                        Mathf.Clamp01(baseColor.b + variation),
-                        1f);
-                    tex.SetPixel(x, y, pixel);
-                }
-            }
-
-            tex.Apply();
-            return tex;
-        }
-
-        static Texture2D CreateFlatNormalTexture(string name, int size)
-        {
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, true);
-            tex.name = name;
-            tex.wrapMode = TextureWrapMode.Repeat;
-            tex.filterMode = FilterMode.Bilinear;
-
-            Color flatNormal = new Color(0.5f, 0.5f, 1f, 1f); // Flat normal (0,0,1)
-            Color[] pixels = new Color[size * size];
-            for (int i = 0; i < pixels.Length; i++)
-                pixels[i] = flatNormal;
-            tex.SetPixels(pixels);
-            tex.Apply();
-            return tex;
-        }
     }
 }
 #endif
