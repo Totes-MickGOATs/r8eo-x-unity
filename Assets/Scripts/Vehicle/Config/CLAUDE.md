@@ -15,3 +15,7 @@ ScriptableObject configurations for vehicle tuning. Create assets via Assets →
 1. Create asset: Assets → Create → R8EOX → Motor Preset / Suspension Config / Traction Config
 2. Assign to RCCar component in inspector (optional — falls back to inline defaults)
 3. Multiple vehicles can share configs or have unique ones
+
+## Relevant Skills
+
+- **`unity-scriptable-objects`** — ScriptableObject patterns for data-driven configuration

@@ -16,6 +16,7 @@ Edit Mode unit tests for pure physics math. No MonoBehaviour instantiation neede
 | `InputMathTests.cs` | Deadzone remapping, steering curve, input merging | `InputMath` |
 | `InputDetectionTests.cs` | Trigger detection grace period, sustained input confirmation, symmetric deadzone | `TriggerDetector`, `InputGuard`, `InputMath` |
 | `PhantomTriggerTests.cs` | Phantom trigger bug: constant combined axis rejection, combined trigger throttle/brake helpers | `TriggerDetector`, `InputMath` |
+| `GroundDriveTests.cs` | ESC ground drive logic: engine cutoff, braking, reverse, coast drag | `ESCMath` |
 
 ## Running Tests
 
@@ -24,3 +25,9 @@ just test  # Runs EditMode tests
 ```
 
 Or in Unity: Window → General → Test Runner → EditMode → Run All
+
+## Relevant Skills
+
+- **`unity-testing-patterns`** — TDD with Unity Test Framework
+- **`unity-testing-debugging-qa`** — Testing, debugging, and quality assurance workflows
+- **`clean-room-qa`** — Independent QA validation process

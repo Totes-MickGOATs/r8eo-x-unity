@@ -17,4 +17,6 @@ Unity Test Framework test suites organized by test mode.
 
 ## Relevant Skills
 
-- `.agents/skills/unity-testing-patterns/SKILL.md` — TDD with Unity Test Framework
+- **`unity-testing-patterns`** — TDD with Unity Test Framework
+- **`unity-testing-debugging-qa`** — Testing, debugging, and quality assurance workflows
+- **`clean-room-qa`** — Independent QA validation process
