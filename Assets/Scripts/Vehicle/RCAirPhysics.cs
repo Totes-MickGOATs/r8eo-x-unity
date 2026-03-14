@@ -1,4 +1,5 @@
 using UnityEngine;
+using PhysicsMath = R8EOX.Vehicle.Physics;
 
 namespace R8EOX.Vehicle
 {
@@ -59,17 +60,17 @@ namespace R8EOX.Vehicle
         /// </summary>
         public void Apply(float dt, float throttle, float brake, float steer)
         {
-            float pitchForce = Physics.AirPhysicsMath.ComputePitchTorque(
+            float pitchForce = PhysicsMath.AirPhysicsMath.ComputePitchTorque(
                 throttle, brake, _pitchTorque, _pitchSensitivity);
             _rb.AddTorque(-_rb.transform.right * pitchForce);
 
-            float rollForce = Physics.AirPhysicsMath.ComputeRollTorque(
+            float rollForce = PhysicsMath.AirPhysicsMath.ComputeRollTorque(
                 steer, _rollTorque, _rollSensitivity);
             _rb.AddTorque(_rb.transform.forward * rollForce);
 
             float[] wheelRpms = GetWheelRpmArray();
-            float avgRpm = Physics.AirPhysicsMath.ComputeAverageAbsRpm(wheelRpms);
-            float gyroFactor = Physics.AirPhysicsMath.ComputeGyroDampingFactor(
+            float avgRpm = PhysicsMath.AirPhysicsMath.ComputeAverageAbsRpm(wheelRpms);
+            float gyroFactor = PhysicsMath.AirPhysicsMath.ComputeGyroDampingFactor(
                 avgRpm, _gyroStrength, _gyroFullRpm);
 
             if (gyroFactor > 0f)

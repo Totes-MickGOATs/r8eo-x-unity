@@ -1,4 +1,5 @@
 using UnityEngine;
+using PhysicsMath = R8EOX.Vehicle.Physics;
 
 namespace R8EOX.Vehicle
 {
@@ -408,8 +409,8 @@ namespace R8EOX.Vehicle
 
         private void ComputeTumbleFactor()
         {
-            TiltAngle = Physics.TumbleMath.ComputeTiltAngle(transform.up);
-            TumbleFactor = Physics.TumbleMath.ComputeTumbleFactor(
+            TiltAngle = PhysicsMath.TumbleMath.ComputeTiltAngle(transform.up);
+            TumbleFactor = PhysicsMath.TumbleMath.ComputeTumbleFactor(
                 TiltAngle, IsAirborne, _wasTumbling,
                 _tumbleEngageDeg, _tumbleFullDeg, _tumbleHysteresisDeg);
             _wasTumbling = TumbleFactor > 0f;
