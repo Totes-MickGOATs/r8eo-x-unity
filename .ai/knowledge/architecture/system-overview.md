@@ -1,199 +1,155 @@
 # System Overview
 
-<!-- TEMPLATE: Replace all placeholder content with your project's actual architecture.
-     Delete these instructional comments once you've filled in real data. -->
-
-Architecture map for the [YOUR_PROJECT_NAME] codebase.
+Architecture map for the R8EO-X RC Racing Simulator.
 
 ---
 
 ## Scene Graph
 
-<!-- Document your main scene tree structure. Include node types, scripts, and key properties.
-     This helps agents understand the runtime hierarchy without opening the editor. -->
-
 ```
-scenes/main  [Root scene — script: main.<ext>]
-├── [YourLevel]  [scenes/levels/your_level]
-│   └── ...  (terrain, environment nodes)
-├── [YourPlayer]  [scenes/player/player]
-│   ├── CollisionShape  (collision geometry)
-│   ├── Mesh / Sprite  (visual representation)
-│   └── Camera  (player camera)
-├── [UI Layer]  [scenes/ui/hud — UI overlay]
-└── [Effects]  (particles, audio, etc.)
-
-Singletons / Autoloads (globally accessible):
-├── GameManager   (scripts/autoloads/game_manager.<ext>)
-├── ...           (add your singletons here)
-└── ...
+TestTrack.unity [Root scene]
+├── RCBuggy (Rigidbody) [RCCar, RCInput]
+│   ├── Collision shapes (BoxColliders for chassis, bumpers, body shell)
+│   ├── Visual meshes (ChassisPlate, BodyShell, RearWing, ControlArms)
+│   ├── WheelFL (RaycastWheel) [isSteer=true]
+│   │   ├── WheelVisual (CylinderMesh r=0.166)
+│   │   └── HubVisual
+│   ├── WheelFR (RaycastWheel) [isSteer=true]
+│   │   ├── WheelVisual
+│   │   └── HubVisual
+│   ├── WheelRL (RaycastWheel) [isMotor=true]
+│   │   ├── WheelVisual
+│   │   └── HubVisual
+│   ├── WheelRR (RaycastWheel) [isMotor=true]
+│   │   ├── WheelVisual
+│   │   └── HubVisual
+│   ├── AirPhysics (RCAirPhysics)
+│   └── Drivetrain (Drivetrain) [driveLayout=RWD]
+├── Camera (ChaseCamera) [target=RCBuggy.transform]
+├── TelemetryHUD (TelemetryHUD) [car=RCBuggy]
+├── Terrain / Track geometry
+└── Lighting (Directional Light, Skybox)
 ```
-
-<!-- TIP: Keep this updated as scenes change. Include:
-     - Node/entity type in parentheses
-     - Script/component class name if applicable
-     - Key exported/serialized properties that affect gameplay
-     - [same children as X] shorthand for repeated subtrees -->
 
 ---
 
 ## Scripts Inventory
 
-<!-- List all scripts with their class, base type, and role.
-     This is the master reference for "what does this file do?" -->
+| File | Class | Namespace | Base | Role |
+|------|-------|-----------|------|------|
+| `Scripts/Vehicle/RCCar.cs` | `RCCar` | — | `MonoBehaviour` | Main vehicle controller: motor presets, throttle ramping, steering, tumble detection, reverse ESC, airborne management |
+| `Scripts/Vehicle/RaycastWheel.cs` | `RaycastWheel` | — | `MonoBehaviour` | Per-wheel physics: Hooke's law suspension, curve-sampled grip, longitudinal friction, motor force, visual update |
+| `Scripts/Vehicle/Drivetrain.cs` | `Drivetrain` | — | `MonoBehaviour` | Differential coupling and drive layout (Open/BallDiff/Spool, RWD/AWD) |
+| `Scripts/Vehicle/RCAirPhysics.cs` | `RCAirPhysics` | — | `MonoBehaviour` | Airborne pitch/roll torques from throttle/steer, gyroscopic stabilization from wheel spin |
+| `Scripts/Input/RCInput.cs` | `RCInput` | — | `MonoBehaviour` | Input abstraction: keyboard WASD + gamepad triggers with auto-detection, steering curve |
+| `Scripts/Camera/ChaseCamera.cs` | `ChaseCamera` | — | `MonoBehaviour` | Smooth chase camera with configurable distance, height, look offset |
+| `Scripts/Debug/TelemetryHUD.cs` | `TelemetryHUD` | — | `MonoBehaviour` | OnGUI telemetry overlay: speed, forces, per-wheel state, toggle with F2 |
+| `Scripts/Editor/SceneSetup.cs` | `SceneSetup` | — | — | Editor utilities for scene configuration |
 
-| File | Class | Base | Role |
-|------|-------|------|------|
-| `scripts/main.<ext>` | -- | Scene root type | Scene wiring: injects references into subsystems |
-<!-- | `scripts/player/player.<ext>` | `Player` | Player base type | Player controller |
-| `scripts/autoloads/game_manager.<ext>` | `GameManager` | Singleton base type | Game state, pause handling |
-| ... | ... | ... | ... | -->
-
----
-
-## Autoload Singletons
-
-<!-- Document each autoload's signals and responsibilities.
-     Agents use this to understand the global API surface. -->
-
-| Singleton | File | Signals | Responsibilities |
-|-----------|------|---------|-----------------|
-<!-- | `GameManager` | `game_manager.<ext>` | `game_paused(paused: bool)` | Game state, pause tree, quit |
-| `SceneManager` | `scene_manager.<ext>` | `scene_loaded(scene_name)` | Scene transitions, loading screen |
-| ... | ... | ... | ... | -->
-
----
-
-## Signal Map
-
-<!-- Document ALL signals in the project. This is the key reference for understanding
-     how systems communicate. Keep it complete and up-to-date.
-
-     Convention: "Signal Up, Call Down" — autoloads emit signals; children call
-     methods on parents. -->
-
-| Signal | Emitter | Connected By | Consumer | Purpose |
-|--------|---------|-------------|---------|---------|
-<!-- | `game_paused(paused)` | `GameManager` | `hud.on_ready()` | `HUD` | Toggle pause overlay |
-| `score_changed(new_score)` | `ScoreManager` | `main.on_ready()` | `HUD` | Update score display |
-| ... | ... | ... | ... | ... | -->
-
-<!-- TIP: Include who connects the signal (usually the consumer's initialization
-     method or a parent's wiring code). This helps agents trace the full connection chain. -->
+> **Note:** No namespaces are currently declared. This is a Phase 1 task: add `R8EOX.*` namespaces + assembly definitions.
 
 ---
 
 ## Data Flow
 
-<!-- Document how data moves through your systems each frame.
-     Separate by update type: physics frame, render frame, events. -->
-
-### Physics Frame Pipeline (fixed timestep)
-
-<!-- Show the call chain for physics-critical code. Use indentation to show nesting. -->
+### Physics Frame Pipeline (FixedUpdate)
 
 ```
-InputManager.get_input()
-  |
-Player.physics_update(delta)
-  |-- Read input
-  |-- Apply movement
-  |-- Check collisions
-  |-- Update state
-  |
-PhysicsSubsystem.physics_update(delta)
-  |-- Process interactions
-  |-- Apply forces
+RCInput.Update()                    ← Polls keyboard/gamepad each frame
+  │
+RCCar.FixedUpdate(dt)              ← Main physics orchestrator
+  ├── CheckAirborne()               ← All wheels off ground for 5+ frames?
+  ├── ComputeTumbleFactor()          ← Tilt angle → smoothstep → physics material blend
+  ├── Read input (throttle, brake, steer) from RCInput
+  ├── Ramp throttle (smoothThrottle) ← Prevents instant full power
+  ├── if AIRBORNE:
+  │   ├── Zero engine/brake forces
+  │   └── RCAirPhysics.Apply(dt, throttle, brake, steer)
+  │       ├── Pitch torque (throttle → nose up, brake → nose down)
+  │       ├── Roll torque (steer → lateral roll)
+  │       └── Gyro damping (wheel RPM → angular velocity damping)
+  ├── if GROUNDED:
+  │   ├── ApplyGroundDrive(dt, throttle, brake, speed)
+  │   │   ├── Reverse ESC state machine
+  │   │   ├── Engine force = throttle × engineForceMax
+  │   │   ├── Brake force or coast drag
+  │   │   └── Sets currentEngineForce, currentBrakeForce
+  │   ├── Drivetrain.Distribute(engineForce, frontWheels, rearWheels)
+  │   │   ├── Split force by drive layout (RWD/AWD)
+  │   │   ├── Apply axle differentials (Open/BallDiff/Spool)
+  │   │   └── Sets motorForceShare on each wheel
+  │   └── ApplySteering(dt, steer, speed)
+  │       └── Speed-dependent steering reduction + reverse flip
+  └── For each RaycastWheel:
+      └── wheel.ApplyWheelPhysics(rb, dt)
+          ├── Raycast downward for ground contact
+          ├── ComputeSuspension()     ← Hooke's law: F = k*x + c*v
+          ├── ComputeLateralForce()   ← Grip curve × slip ratio × load
+          ├── ComputeLongitudinalForce() ← Forward friction + ramp hold
+          ├── ComputeMotorForce()     ← motorForceShare along wheel forward
+          ├── AddForceAtPosition(total, contactPoint)  ← TO RIGIDBODY
+          └── Update visual (position, spin rotation, RPM)
 ```
 
-### UI Update Pipeline (per frame)
-
-<!-- Show how UI elements read and display game state each frame. -->
+### Camera Pipeline (LateUpdate)
 
 ```
-HUD.update()
-  |-- Read player state (pull model)
-  |-- Update labels / bars / indicators
+ChaseCamera.LateUpdate()
+  ├── Compute target position (behind + above car)
+  ├── Lerp camera position toward target
+  └── LookAt car position + height offset
 ```
 
-### Scene Wiring (initialization)
-
-<!-- Show how your entry point script wires systems together on load. -->
+### Telemetry Pipeline (OnGUI)
 
 ```
-main.on_ready():
-  find references to scene nodes
-  inject dependencies (set_player, set_terrain, etc.)
-  connect signals / events
-  start gameplay
-```
-
-### Event Flow (signals / one-time events)
-
-<!-- Document important event chains that don't happen every frame. -->
-
-```
-Player dies
-  -> GameManager.on_player_died()
-  -> emit player_died signal
-  -> HUD shows death screen
-  -> RespawnManager starts timer
+TelemetryHUD.OnGUI()
+  ├── Read car state (speed, forces, airborne, tumble, steering)
+  ├── Read per-wheel state (ground, spring, slip, grip, RPM)
+  └── Render text overlay
 ```
 
 ---
 
 ## Dependency Graph
 
-<!-- Show which systems depend on which. This helps agents understand what breaks
-     when they change something. Use arrows to show dependency direction. -->
-
 ```
-main (entry point)
-  |-- depends on --> Player, Level, HUD, Effects
-  |-- wires --> all subsystems together
+RCCar (orchestrator)
+  ├── requires → Rigidbody (physics body)
+  ├── requires → RCInput (input source)
+  ├── requires → RaycastWheel[] (discovered in children)
+  ├── optional → Drivetrain (force distribution)
+  └── optional → RCAirPhysics (air control)
 
-Player
-  |-- depends on --> InputManager (autoload)
-  |-- read by --> HUD (pull model)
-  |-- read by --> Effects (particle triggers)
+RaycastWheel (per-wheel physics)
+  ├── receives → Rigidbody reference from RCCar
+  ├── receives → springStrength, gripCoeff from RCCar
+  └── reads → RCCar.currentEngineForce for static friction
 
-HUD
-  |-- depends on --> Player (reference injected by entry point)
-  |-- depends on --> GameManager (signal: game_paused)
+Drivetrain (differential logic)
+  ├── receives → RaycastWheel[] from RCCar
+  └── writes → motorForceShare on each wheel
 
-Effects
-  |-- depends on --> Player (reference injected by entry point)
-  |-- depends on --> Level (terrain queries)
+RCAirPhysics (air torques)
+  ├── requires → Rigidbody (parent)
+  └── reads → RaycastWheel[].wheelRpm for gyro
+
+ChaseCamera (camera)
+  └── requires → Transform target (set in inspector)
+
+TelemetryHUD (debug UI)
+  └── requires → RCCar reference (set in inspector)
+
+RCInput (input)
+  └── standalone — no dependencies (reads Unity Input Manager)
 ```
-
-<!-- TIP: If you use a system registry (SystemManifest), reference it here.
-     The manifests formally declare these dependencies. -->
 
 ---
 
 ## Architecture Decision Records
 
-<!-- Record significant architectural decisions here. Each ADR explains WHAT was
-     decided, WHY, and what the consequences are. Number them sequentially.
-     For a standalone ADR template, see: knowledge/architecture/adr-TEMPLATE.md -->
-
-### ADR-1: [Title of First Decision]
+### ADR-001: Raycast-Based Wheel Physics
 
 **Status:** Accepted
-**Decision:** [What you decided to do]
-**Rationale:** [Why this approach was chosen over alternatives]
-**Consequences:** [What this means for the codebase going forward]
-
-<!-- ### ADR-2: [Title]
-**Status:** Accepted / Proposed / Deprecated / Superseded by ADR-N
-**Decision:** ...
-**Rationale:** ...
-**Consequences:** ... -->
-
-<!-- TIP: Good ADR candidates:
-     - Physics engine choice
-     - Input abstraction strategy
-     - Camera system approach
-     - Networking architecture
-     - Scene management pattern
-     - Data persistence approach -->
+**Decision:** Use raycast-based wheel physics with Hooke's law suspension and curve-sampled grip model
+**Details:** See `adr-001-physics-model.md`
