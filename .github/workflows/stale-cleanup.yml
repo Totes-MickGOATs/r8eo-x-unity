@@ -18,10 +18,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch tags for lifecycle checks
+        run: git fetch origin --tags --prune-tags 2>/dev/null || true
+
       - name: Close stale PRs (idle >14 days, no ready-to-merge label)
         uses: actions/github-script@v8
         with:
           script: |
+            const { execSync } = require('child_process');
+
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -38,6 +43,15 @@ jobs:
             for (const pr of prs) {
               const hasRtm = pr.labels.some(l => l.name === 'ready-to-merge');
               if (hasRtm) continue;  // Don't close PRs in the merge queue
+
+              // Check if branch is protected by wt/active/* tag
+              const branch = pr.head.ref;
+              const task = branch.replace(/^(feat|fix|refactor|test|docs|chore)\//, '');
+              const activeTag = execSync(`git tag -l "wt/active/${task}"`, { encoding: 'utf-8' }).trim();
+              if (activeTag) {
+                core.info(`PROTECTED: PR #${pr.number} on ${branch} (wt/active/${task} tag exists)`);
+                continue;
+              }
 
               const updatedAt = new Date(pr.updated_at).getTime();
               const ageDays = Math.floor((now - updatedAt) / (24 * 60 * 60 * 1000));
@@ -66,6 +80,7 @@ jobs:
           git fetch origin --prune
           CUTOFF=$(date -d '7 days ago' +%s 2>/dev/null || date -v-7d +%s)
           DELETED=0
+          SKIPPED=0
 
           for BRANCH in $(git branch -r --merged origin/main | grep -v 'origin/main' | grep -v 'HEAD' | sed 's|origin/||'); do
             # Skip protected branches
@@ -73,13 +88,23 @@ jobs:
               master|main|release/*) continue ;;
             esac
 
+            # Extract task name and check for active tag
+            TASK=$(echo "$BRANCH" | sed 's|^feat/||; s|^fix/||; s|^refactor/||; s|^test/||; s|^docs/||; s|^chore/||')
+            if git tag -l "wt/active/$TASK" | grep -q .; then
+              echo "PROTECTED: $BRANCH (wt/active/$TASK tag exists — in progress)"
+              SKIPPED=$((SKIPPED + 1))
+              continue
+            fi
+
             # Check last commit date
             LAST_COMMIT=$(git log -1 --format='%ct' "origin/$BRANCH" 2>/dev/null || echo "0")
             if [ "$LAST_COMMIT" -lt "$CUTOFF" ]; then
               echo "Deleting merged branch: $BRANCH (last commit: $(date -d @$LAST_COMMIT 2>/dev/null || date -r $LAST_COMMIT))"
               git push origin --delete "$BRANCH" 2>/dev/null || true
+              # Clean up done tag if it exists
+              git push origin --delete "wt/done/$TASK" 2>/dev/null || true
               DELETED=$((DELETED + 1))
             fi
           done
 
-          echo "Deleted $DELETED merged branches older than 7 days."
+          echo "Deleted $DELETED merged branches older than 7 days, skipped $SKIPPED protected."
