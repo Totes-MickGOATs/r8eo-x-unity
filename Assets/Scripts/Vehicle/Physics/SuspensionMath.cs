@@ -90,6 +90,20 @@ namespace R8EOX.Vehicle.Physics
         }
 
         /// <summary>
+        /// Compute grip load from the actual (damped) suspension force.
+        /// Clamps to [0, maxSpringForce]. Use this instead of ComputeGripLoad
+        /// to ensure damping is included in the normal force for tire grip.
+        /// </summary>
+        /// <param name="suspensionForce">Total suspension force including damping (N)</param>
+        /// <param name="maxSpringForce">Maximum force clamp (N)</param>
+        /// <returns>Grip load in Newtons</returns>
+        public static float ComputeGripLoadFromSuspensionForce(
+            float suspensionForce, float maxSpringForce)
+        {
+            return Mathf.Clamp(suspensionForce, 0f, maxSpringForce);
+        }
+
+        /// <summary>
         /// Compute total raycast length needed for ground detection.
         /// </summary>
         public static float ComputeRayLength(float restDistance, float overExtend, float wheelRadius)
