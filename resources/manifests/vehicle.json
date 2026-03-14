@@ -12,8 +12,11 @@
     "Assets/Scripts/Vehicle/Physics/GripMath.cs",
     "Assets/Scripts/Vehicle/Physics/DrivetrainMath.cs",
     "Assets/Scripts/Vehicle/Physics/AirPhysicsMath.cs",
-    "Assets/Scripts/Vehicle/Physics/TumbleMath.cs"
+    "Assets/Scripts/Vehicle/Physics/TumbleMath.cs",
+    "Assets/Scripts/Vehicle/Config/MotorPresetConfig.cs",
+    "Assets/Scripts/Vehicle/Config/SuspensionConfig.cs",
+    "Assets/Scripts/Vehicle/Config/TractionConfig.cs"
   ],
-  "dependencies": ["input"],
+  "dependencies": ["input", "core"],
   "replaced_by": ""
 }

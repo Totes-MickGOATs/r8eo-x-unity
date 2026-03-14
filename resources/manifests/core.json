@@ -1,0 +1,12 @@
+{
+  "name": "core",
+  "description": "Shared types, enums, and configuration ScriptableObjects used across all systems",
+  "status": "ACTIVE",
+  "files": [
+    "Assets/Scripts/Core/SurfaceType.cs",
+    "Assets/Scripts/Core/SurfaceConfig.cs",
+    "Assets/Scripts/Core/R8EOX.Core.asmdef"
+  ],
+  "dependencies": [],
+  "replaced_by": ""
+}

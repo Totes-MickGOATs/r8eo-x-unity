@@ -1,10 +1,7 @@
 {
-    "name": "R8EOX.Vehicle",
-    "rootNamespace": "R8EOX.Vehicle",
-    "references": [
-        "R8EOX.Input",
-        "R8EOX.Core"
-    ],
+    "name": "R8EOX.Core",
+    "rootNamespace": "R8EOX.Core",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
