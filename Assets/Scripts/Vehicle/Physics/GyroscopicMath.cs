@@ -4,59 +4,68 @@ namespace R8EOX.Vehicle.Physics
 {
     /// <summary>
     /// Pure math functions for gyroscopic precession and reaction torque.
-    /// Computes effects of spinning wheels on chassis stability.
+    /// Two equations produce emergent aerial behavior:
+    ///   1. Gyroscopic torque: tau = omega_body x (I * omega_spin * axis)
+    ///   2. Reaction torque: tau = -axis * I * d(omega)/dt
     /// </summary>
-    /// <remarks>
-    /// STUB: Methods return zero. Implement with real physics to make tests GREEN.
-    /// </remarks>
     public static class GyroscopicMath
     {
         /// <summary>
         /// Compute gyroscopic precession torque from body rotation and wheel spin.
-        /// τ = ω_body × (I_wheel * ω_spin * spinAxis)
+        /// tau_gyro = omega_body x (I_wheel * omega_spin * spin_axis)
+        /// This couples yaw to pitch and pitch to yaw — NOT damping.
         /// </summary>
-        /// <param name="bodyAngularVelocity">Body angular velocity (rad/s)</param>
-        /// <param name="wheelSpinAxis">Normalized wheel spin axis (typically right)</param>
-        /// <param name="wheelMoI">Wheel moment of inertia (kg*m²)</param>
-        /// <param name="wheelSpinRate">Wheel spin rate (rad/s)</param>
-        /// <returns>Gyroscopic precession torque (N*m)</returns>
+        /// <param name="bodyAngularVelocity">Body angular velocity in world space (rad/s)</param>
+        /// <param name="wheelSpinAxis">Wheel spin axis in world space (unit vector)</param>
+        /// <param name="wheelMoI">Wheel moment of inertia (kg*m^2)</param>
+        /// <param name="wheelAngularVelocity">Wheel spin rate (rad/s)</param>
+        /// <returns>Gyroscopic torque vector in world space (N*m)</returns>
         public static Vector3 ComputeGyroscopicTorque(
             Vector3 bodyAngularVelocity, Vector3 wheelSpinAxis,
-            float wheelMoI, float wheelSpinRate)
+            float wheelMoI, float wheelAngularVelocity)
         {
-            // TODO: implement — τ = ω_body × (I * ω_spin * axis)
-            return Vector3.zero;
+            Debug.Assert(wheelMoI >= 0f, "Wheel MoI must be non-negative");
+
+            Vector3 angularMomentum = wheelSpinAxis * (wheelMoI * wheelAngularVelocity);
+            return Vector3.Cross(bodyAngularVelocity, angularMomentum);
         }
 
         /// <summary>
-        /// Compute reaction torque from change in wheel spin rate.
-        /// τ = -spinAxis * I * (currentSpin - previousSpin) / dt
+        /// Compute reaction torque from wheel spin rate change (Newton's 3rd law).
+        /// tau_reaction = -spin_axis * I_wheel * delta_omega / delta_time
+        /// Throttle accelerates wheels -> nose pitches up.
+        /// Brake decelerates wheels -> nose pitches down.
         /// </summary>
-        /// <param name="wheelSpinAxis">Normalized wheel spin axis</param>
-        /// <param name="wheelMoI">Wheel moment of inertia (kg*m²)</param>
+        /// <param name="wheelSpinAxis">Wheel spin axis in world space (unit vector)</param>
+        /// <param name="wheelMoI">Wheel moment of inertia (kg*m^2)</param>
         /// <param name="currentSpinRate">Current wheel spin rate (rad/s)</param>
-        /// <param name="previousSpinRate">Previous frame spin rate (rad/s)</param>
-        /// <param name="deltaTime">Time step (s)</param>
-        /// <returns>Reaction torque opposing spin change (N*m)</returns>
+        /// <param name="previousSpinRate">Previous frame wheel spin rate (rad/s)</param>
+        /// <param name="deltaTime">Time step (seconds)</param>
+        /// <returns>Reaction torque vector in world space (N*m)</returns>
         public static Vector3 ComputeReactionTorque(
             Vector3 wheelSpinAxis, float wheelMoI,
             float currentSpinRate, float previousSpinRate, float deltaTime)
         {
-            // TODO: implement — τ = -axis * I * Δω/Δt
-            return Vector3.zero;
+            Debug.Assert(wheelMoI >= 0f, "Wheel MoI must be non-negative");
+            Debug.Assert(deltaTime > 0f, "Delta time must be positive");
+
+            float deltaOmega = currentSpinRate - previousSpinRate;
+            float angularAcceleration = deltaOmega / deltaTime;
+            return -wheelSpinAxis * (wheelMoI * angularAcceleration);
         }
 
         /// <summary>
-        /// Compute wheel angular velocity from linear speed and radius.
-        /// ω = v / r
+        /// Convert forward speed to wheel angular velocity.
+        /// omega = v / r (no-slip condition)
         /// </summary>
-        /// <param name="linearSpeed">Linear speed at tire contact (m/s)</param>
-        /// <param name="wheelRadius">Wheel radius (m)</param>
-        /// <returns>Angular velocity (rad/s)</returns>
-        public static float ComputeWheelAngularVelocity(float linearSpeed, float wheelRadius)
+        /// <param name="forwardSpeed">Forward speed in m/s</param>
+        /// <param name="wheelRadius">Wheel radius in metres</param>
+        /// <returns>Angular velocity in rad/s</returns>
+        public static float ComputeWheelAngularVelocity(float forwardSpeed, float wheelRadius)
         {
-            // TODO: implement — ω = v / r
-            return 0f;
+            Debug.Assert(wheelRadius > 0f, "Wheel radius must be positive");
+
+            return forwardSpeed / wheelRadius;
         }
     }
 }

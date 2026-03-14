@@ -308,6 +308,71 @@ This skill integrates with the project's existing workflow:
 
 ---
 
+## Sequential Coordination Mode
+
+### When to Use
+
+- **Multi-task plans where tasks must be serialized** — shared files, architectural dependencies, or sequential features that build on each other
+- Tasks that touch overlapping systems where parallel dispatch would cause merge conflicts or semantic drift
+- Plans where later tasks depend on the architectural decisions made in earlier tasks
+
+**Contrast with Swarm Mode:** Swarm mode dispatches parallel builder+reviewer agents for ONE complex task. Sequential Coordination dispatches ONE subagent at a time across MULTIPLE atomic tasks, with memory-mediated awareness between each dispatch.
+
+### The Protocol
+
+1. **Plan:** Decompose the work into atomic, independently-mergeable tasks. Each task should produce a shippable PR on its own.
+2. **Dispatch:** Send one subagent at a time with `isolation: "worktree"`. Provide it with any in-flight context from previous tasks.
+3. **Report:** The subagent completes the task, watches CI through merge, updates local main, and reports back with a summary of changes made, files affected, and downstream implications.
+4. **Memory Bridge:** The main agent creates or updates `project_inflight_<task>.md` in memory with: branch name, affected files/systems, and what downstream agents should watch for.
+5. **Next Task:** Dispatch the next subagent, providing it with in-flight awareness context so it can peek at relevant branches or anticipate changes landing in main.
+6. **Post-Merge Cleanup:** After each PR merges — delete the in-flight memory entry, update permanent memories to reflect the now-live architecture.
+
+### In-Flight Memory Template
+
+Create `project_inflight_<task>.md` in the memory directory with this format:
+
+```markdown
+# In-Flight: <task-name>
+
+## Branch
+`feat/<task-name>` — PR #<number>
+
+## Status
+OPEN | MERGING | MERGED
+
+## Affected Systems
+- <system1> — <what changed>
+- <system2> — <what changed>
+
+## Files Modified
+- `path/to/file1` — <summary>
+- `path/to/file2` — <summary>
+
+## Downstream Watch Items
+- <thing the next agent should know about>
+- <API change, new file, renamed constant, etc.>
+
+## Cleanup
+Delete this file after PR merges and permanent memories are updated.
+```
+
+### Anti-Patterns
+
+| Anti-Pattern | Why It's Bad | Instead |
+|-------------|-------------|---------|
+| **Dispatching all tasks in parallel without coordination** | Merge conflicts, semantic drift, duplicated work | Serialize tasks with memory bridges between each |
+| **Skipping memory updates between tasks** | Downstream agents lack context, make conflicting decisions | Always update in-flight memories after each subagent reports |
+| **Leaving stale in-flight memories after merge** | Future agents see phantom "in-flight" work that already landed | Delete in-flight entries and update permanent memories after merge |
+| **Overloading a single subagent with multiple tasks** | Defeats atomicity — large PRs are harder to review and more likely to conflict | One atomic task per subagent |
+
+### When NOT to Use
+
+- **Simple single-task work** — just dispatch one subagent directly
+- **Tasks with zero overlap** — if tasks touch completely different files and systems, parallel dispatch is faster and safe
+- **Swarm-appropriate tasks** — if one complex task needs parallel build+review, use Swarm Mode instead
+
+---
+
 ## Example: Skill Creation Swarm
 
 Here's how the swarm was used to create the `unity-architecture-patterns` skill:
@@ -346,7 +411,7 @@ Phase 5: Ship
 
 | Skill | How It Integrates |
 |-------|-------------------|
-| **`branch-workflow`** | Worktree creation and PR lifecycle |
+| **`branch-workflow`** | Worktree creation, PR lifecycle, and sequential task coordination |
 | **`clean-room-qa`** | Black-box test methodology for verifier agents |
 | **`reverse-engineering`** | Root cause analysis for bug fix swarms |
 | **`unity-testing-patterns`** | Test execution patterns for verification phase |

@@ -90,6 +90,15 @@ just worktree-cleanup <task>         # 7. Clean up worktree, branches, and tags
 
 Agents follow the same workflow: develop in worktree → push → PR → label `ready-to-merge` → auto-merge serializes. The worktree is created automatically by Claude Code — start at step 2.
 
+### Sequential Task Coordination
+
+When the main agent decomposes work into multiple tasks:
+1. Dispatch ONE subagent at a time — each performs one atomic, non-breaking task
+2. After each subagent reports back, update in-flight memories (`project_inflight_<task>.md`) with affected systems/files
+3. Provide downstream subagents with in-flight context so they can peek at relevant branches
+4. After each PR merges: remove in-flight memories, update permanent memories
+5. Full protocol: `.agents/skills/swarm-development/SKILL.md` → Sequential Coordination Mode
+
 ### Keeping Branches Fresh
 
 Freshness is enforced automatically by hooks — manual steps are belt-and-suspenders:
