@@ -1,4 +1,5 @@
 using UnityEngine;
+using PhysicsMath = R8EOX.Vehicle.Physics;
 
 namespace R8EOX.Vehicle
 {
@@ -114,7 +115,7 @@ namespace R8EOX.Vehicle
 
         void Awake()
         {
-            _rayLen = Physics.SuspensionMath.ComputeRayLength(_restDistance, _overExtend, _wheelRadius);
+            _rayLen = PhysicsMath.SuspensionMath.ComputeRayLength(_restDistance, _overExtend, _wheelRadius);
             _prevSpringLen = _restDistance;
 
             Transform wm = transform.Find("WheelVisual");
@@ -136,7 +137,7 @@ namespace R8EOX.Vehicle
             if (_cachedCar == null)
                 _cachedCar = carRb.GetComponent<RCCar>();
 
-            _rayLen = Physics.SuspensionMath.ComputeRayLength(
+            _rayLen = PhysicsMath.SuspensionMath.ComputeRayLength(
                 _restDistance, _overExtend, _wheelRadius);
 
             Ray ray = new Ray(transform.position, -transform.up);
@@ -169,7 +170,7 @@ namespace R8EOX.Vehicle
 
             UpdateVisuals(dt);
 
-            WheelRpm = Physics.GripMath.ComputeWheelRpm(_fSpeed, _wheelRadius);
+            WheelRpm = PhysicsMath.GripMath.ComputeWheelRpm(_fSpeed, _wheelRadius);
 
             if (_showDebug)
                 DrawDebug();
@@ -197,10 +198,10 @@ namespace R8EOX.Vehicle
         private void ComputeSuspension(Rigidbody carRb, float dt)
         {
             float anchorToContact = Vector3.Distance(transform.position, _contactPoint);
-            _springLen = Physics.SuspensionMath.ComputeSpringLength(anchorToContact, _wheelRadius, _minSpringLen);
+            _springLen = PhysicsMath.SuspensionMath.ComputeSpringLength(anchorToContact, _wheelRadius, _minSpringLen);
 
             _springForce = SpringStrength * (_restDistance - _springLen);
-            _suspensionForce = Physics.SuspensionMath.ComputeSuspensionForceWithDamping(
+            _suspensionForce = PhysicsMath.SuspensionMath.ComputeSuspensionForceWithDamping(
                 SpringStrength, SpringDamping, _restDistance, _springLen, _prevSpringLen, dt);
             _prevSpringLen = _springLen;
 
@@ -210,7 +211,7 @@ namespace R8EOX.Vehicle
             _speed = _tireVelocity.magnitude;
             _fSpeed = Vector3.Dot(transform.forward, _tireVelocity);
 
-            _gripLoad = Physics.SuspensionMath.ComputeGripLoad(
+            _gripLoad = PhysicsMath.SuspensionMath.ComputeGripLoad(
                 SpringStrength, _restDistance, _springLen, _maxSpringForce);
 
             LastSpringLen = _springLen;
@@ -230,10 +231,10 @@ namespace R8EOX.Vehicle
                 return;
             }
 
-            SlipRatio = Physics.GripMath.ComputeSlipRatio(lateralVel, _speed);
+            SlipRatio = PhysicsMath.GripMath.ComputeSlipRatio(lateralVel, _speed);
             GripFactor = _gripCurve.Evaluate(SlipRatio);
 
-            float lateralForceMag = Physics.GripMath.ComputeLateralForceMagnitude(
+            float lateralForceMag = PhysicsMath.GripMath.ComputeLateralForceMagnitude(
                 lateralVel, GripFactor, GripCoeff, _gripLoad);
             _xForce = steerSideDir * lateralForceMag;
         }
@@ -241,12 +242,12 @@ namespace R8EOX.Vehicle
         private void ComputeLongitudinalForce(Rigidbody carRb)
         {
             float engineForce = _cachedCar != null ? _cachedCar.CurrentEngineForce : 0f;
-            float effectiveZTraction = Physics.GripMath.ComputeEffectiveTraction(
+            float effectiveZTraction = PhysicsMath.GripMath.ComputeEffectiveTraction(
                 IsBraking, _fSpeed, engineForce,
                 _zTraction, _zBrakeTraction,
                 k_StaticFrictionSpeed, k_StaticFrictionTraction);
 
-            float longForceMag = Physics.GripMath.ComputeLongitudinalForceMagnitude(
+            float longForceMag = PhysicsMath.GripMath.ComputeLongitudinalForceMagnitude(
                 _fSpeed, effectiveZTraction, GripCoeff, _gripLoad);
             _zForce = carRb.transform.forward * longForceMag;
 
