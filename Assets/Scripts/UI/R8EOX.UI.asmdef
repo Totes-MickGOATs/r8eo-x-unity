@@ -1,18 +1,11 @@
 {
-    "name": "R8EOX.Editor",
-    "rootNamespace": "R8EOX.Editor",
+    "name": "R8EOX.UI",
+    "rootNamespace": "R8EOX.UI",
     "references": [
-        "R8EOX.Vehicle",
-        "R8EOX.Input",
-        "R8EOX.Camera",
-        "R8EOX.Debug",
         "R8EOX.Core",
-        "R8EOX.Track",
         "R8EOX.GameFlow"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

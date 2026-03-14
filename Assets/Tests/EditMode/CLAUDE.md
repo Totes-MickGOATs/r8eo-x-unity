@@ -28,6 +28,10 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 | `NavigationStackTests.cs` | Navigation stack push/pop behavior | `NavigationStack` |
 | `SceneRegistryTests.cs` | Scene registry validation | `SceneRegistry` |
 | `SessionConfigTests.cs` | Session configuration data | `SessionConfig` |
+| `GameFlowManagerTests.cs` | Singleton guard, transitions, session, navigation, BootDirectToPlaying | `GameFlowManager` |
+| `SceneBootstrapperTests.cs` | Standalone vs full-flow detection, manager creation | `SceneBootstrapper` |
+| `ScreenRegistryTests.cs` | Screen lookup by ID, missing entries, null prefab | `ScreenRegistry` (UI) |
+| `UIManagerTests.cs` | Initialization null checks, overlay count | `UIManager` |
 
 ## Running Tests
 
