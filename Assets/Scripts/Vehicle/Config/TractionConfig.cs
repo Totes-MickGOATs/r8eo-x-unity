@@ -14,7 +14,7 @@ namespace R8EOX.Vehicle.Config
         [SerializeField] private float _gripCoeff = 0.7f;
         [Tooltip("Grip curve mapping slip ratio to grip factor")]
         [SerializeField] private AnimationCurve _gripCurve = new AnimationCurve(
-            new Keyframe(0f, 0f),
+            new Keyframe(0f, 0.3f),
             new Keyframe(0.15f, 0.8f),
             new Keyframe(0.4f, 1.0f),
             new Keyframe(1.0f, 0.7f)

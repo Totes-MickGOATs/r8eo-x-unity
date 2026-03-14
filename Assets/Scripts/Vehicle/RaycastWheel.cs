@@ -49,7 +49,7 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _zBrakeTraction = 0.5f;
         [Tooltip("Grip curve mapping slip ratio to grip factor")]
         [SerializeField] private AnimationCurve _gripCurve = new AnimationCurve(
-            new Keyframe(0f, 0f),
+            new Keyframe(0f, 0.3f),
             new Keyframe(0.15f, 0.8f),
             new Keyframe(0.4f, 1.0f),
             new Keyframe(1.0f, 0.7f)
@@ -211,8 +211,8 @@ namespace R8EOX.Vehicle
             _speed = _tireVelocity.magnitude;
             _fSpeed = Vector3.Dot(transform.forward, _tireVelocity);
 
-            _gripLoad = PhysicsMath.SuspensionMath.ComputeGripLoad(
-                SpringStrength, _restDistance, _springLen, _maxSpringForce);
+            _gripLoad = PhysicsMath.SuspensionMath.ComputeGripLoadFromSuspensionForce(
+                _suspensionForce, _maxSpringForce);
 
             LastSpringLen = _springLen;
             LastGripLoad = _gripLoad;
@@ -249,13 +249,15 @@ namespace R8EOX.Vehicle
 
             float longForceMag = PhysicsMath.GripMath.ComputeLongitudinalForceMagnitude(
                 _fSpeed, effectiveZTraction, GripCoeff, _gripLoad);
-            _zForce = carRb.transform.forward * longForceMag;
+            _zForce = transform.forward * longForceMag;
 
-            // Ramp sliding fix: cancel the spring's horizontal component when stopped
+            // Ramp sliding fix: cancel the spring's horizontal component when stopped.
+            // Use proper vector subtraction so this works regardless of car rotation.
             if (Mathf.Abs(_fSpeed) < k_StaticFrictionSpeed)
             {
-                _xForce.x -= _contactNormal.x * _suspensionForce;
-                _zForce.z -= _contactNormal.z * _suspensionForce;
+                Vector3 springForce = _contactNormal * _suspensionForce;
+                Vector3 springHorizontal = new Vector3(springForce.x, 0f, springForce.z);
+                _xForce -= springHorizontal;
             }
         }
 
