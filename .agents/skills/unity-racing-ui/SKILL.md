@@ -1,6 +1,6 @@
 # Unity Racing UI — HUD, Menus, and Race Management
 
-> Lazy-loaded reference for building racing game UI: in-race HUD, menu flow, minimap, split-screen, leaderboards, ghost data, race sequences, and accessibility.
+Use this skill when building racing game UI systems including in-race HUD, menu flow, minimap, split-screen viewports, leaderboards, ghost data display, race start sequences, and accessibility features.
 
 ---
 
@@ -310,3 +310,13 @@ var rebind = action.PerformInteractiveRebinding()
 - [ ] `TextMeshProUGUI` with cached format strings (no `string.Format` per frame)
 - [ ] Minimap camera renders every 2-3 frames, not every frame
 - [ ] Split-screen uses `Screen Space - Camera`, not `Screen Space - Overlay`
+
+---
+
+## Related Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **`unity-ui-toolkit`** | UI Toolkit fundamentals, USS styling, UXML layout, data binding |
+| **`unity-ui-design`** | General UI/UX design patterns and principles |
+| **`unity-input-system`** | Input System setup, rebinding, action maps |

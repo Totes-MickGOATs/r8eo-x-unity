@@ -1,6 +1,6 @@
 # Unity PhysX Tuning for RC Racing
 
-Complete reference for configuring Unity's PhysX engine for realistic 1/10-scale RC car simulation.
+Use this skill when configuring Unity's PhysX engine for realistic 1/10-scale RC car simulation. Covers project settings, timestep, collision layers, Rigidbody configuration, raycast vs WheelCollider, scale fixes, determinism, and common physics bugs.
 
 ## When to Use
 
@@ -489,3 +489,12 @@ Quick-reference for a 1/10-scale RC racing project:
 | Damping ratio | 0.6-0.8 of critical |
 | Cast radius (SphereCast) | 0.01 m |
 | Surface layer mask | Track_Surface only |
+
+---
+
+## Related Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **`unity-physics-3d`** | General Unity physics (colliders, joints, raycasting basics) -- this skill builds on top of it |
+| **`clean-room-qa`** | Testing methodology for verifying physics tuning changes |

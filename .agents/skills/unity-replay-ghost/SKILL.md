@@ -1,6 +1,6 @@
 # Unity Replay & Ghost System for Racing
 
-> Lazy-loaded reference for recording, storing, and playing back vehicle state for ghost cars and replay systems.
+Use this skill when implementing replay or ghost car systems for racing. Covers state recording architecture, quantized storage with compression, Hermite interpolation playback, Cinemachine replay cameras, time scrubbing, async I/O, file versioning, anti-cheat validation, and ghost sharing via Steam UGC or CDN.
 
 ---
 
@@ -449,3 +449,13 @@ GhostCar
 - Front wheels rotate around Y-axis by `steerAngle` from ghost data.
 - All wheels spin around X-axis proportional to velocity magnitude: `spinRate = velocity.magnitude / wheelRadius * Time.deltaTime`.
 - Wheel transforms are updated by `GhostCarPlayback`, not by a physics system.
+
+---
+
+## Related Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **`unity-camera-systems`** | Cinemachine setup, virtual camera configuration, camera blending |
+| **`unity-save-load`** | Serialization patterns, persistent data, file I/O |
+| **`unity-performance-optimization`** | Async patterns, memory management, compression |
