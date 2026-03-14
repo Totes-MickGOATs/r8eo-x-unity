@@ -1,6 +1,6 @@
 # engine/unity/skills/
 
-46 game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
+47 game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
 
 These are lazy-loaded reference guides — Claude Code agents read them on-demand when working on related topics.
 
@@ -8,6 +8,7 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 
 | Skill | Category | Key Topics |
 |-------|----------|------------|
+| `ask-first` | Process | **MANDATORY** pre-implementation workflow: Interrogate -> Test-First -> Implement, confidence gate, black-box test dispatch |
 | `unity-architecture-patterns` | Core | Design patterns (Observer, State, Factory, Command, MVP, MVVM, Strategy, Flyweight, Dirty Flag, Object Pooling) |
 | `unity-csharp-mastery` | Core | C# patterns, naming, lifecycle, attributes, anti-patterns |
 | `unity-scriptable-objects` | Core | Data containers, event channels, runtime sets |
