@@ -1,0 +1,11 @@
+{
+  "name": "track",
+  "description": "Track and environment systems: surface zones, course layout",
+  "status": "ACTIVE",
+  "files": [
+    "Assets/Scripts/Track/SurfaceZone.cs",
+    "Assets/Scripts/Track/R8EOX.Track.asmdef"
+  ],
+  "dependencies": ["core"],
+  "replaced_by": ""
+}

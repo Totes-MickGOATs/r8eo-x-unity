@@ -10,6 +10,8 @@ Game scripts organized by system. Each subdirectory is a separate assembly with 
 | `Input/` | `R8EOX.Input` | `R8EOX.Input` | Input abstraction: keyboard + gamepad |
 | `Camera/` | `R8EOX.Camera` | `R8EOX.Camera` | Chase camera system |
 | `Debug/` | `R8EOX.Debug` | `R8EOX.Debug` | Telemetry HUD overlay |
+| `Core/` | `R8EOX.Core` | `R8EOX.Core` | Shared types: SurfaceType enum, SurfaceConfig |
+| `Track/` | `R8EOX.Track` | `R8EOX.Track` | Track systems: surface zones |
 | `Editor/` | `R8EOX.Editor` | `R8EOX.Editor` | Editor-only scene/prefab builders |
 
 ## Conventions
