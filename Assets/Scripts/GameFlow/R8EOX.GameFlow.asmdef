@@ -1,0 +1,14 @@
+{
+    "name": "R8EOX.GameFlow",
+    "rootNamespace": "R8EOX.GameFlow",
+    "references": ["R8EOX.Core"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
