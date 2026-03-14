@@ -11,6 +11,12 @@ Runtime debug overlays for vehicle development and tuning.
 | `ContractDebugger.cs` | Runtime chain-of-custody assertions: validates input/vehicle/wheel/observable contracts every frame. Stripped in release builds. |
 | `R8EOX.Debug.asmdef` | Assembly definition referencing R8EOX.Vehicle and R8EOX.Input |
 
+## Subdirectories
+
+| Dir | Contents |
+|-----|----------|
+| `Audit/` | Physics conformance tracking and debug log persistence via local SQLite database |
+
 ## Conventions
 
 - Namespace: `R8EOX.Debug`

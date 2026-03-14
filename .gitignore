@@ -91,6 +91,7 @@ Assets/Plugins/Roslyn/
 [Bb]uild/
 [Bb]uilds/
 [Ll]ogs/
+!Logs/.gitkeep
 [Uu]ser[Ss]ettings/
 *.csproj
 *.sln

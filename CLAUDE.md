@@ -155,6 +155,13 @@ If lint CI fails after you push, you are responsible for:
 
 **Local TDD only:** Run your test locally for red-green. Don't run full suite locally. CI runs post-merge. If post-merge tests fail, `/ci:next-fix` picks it up.
 
+### Physics Conformance Audit
+
+- Every physics change must be validated against the conformance check catalogue
+- Use `ConformanceRecorder` to record results to the local SQLite DB
+- Tagged debug logs (`[physics]`, `[grip]`, etc.) are auto-persisted by `DebugLogSink`
+- See `.agents/skills/physics-conformance-audit/SKILL.md` for methodology
+
 ## Python Tooling (scripts/tools only, not game code)
 
 - **Python 3.14** with **uv** as the package manager
