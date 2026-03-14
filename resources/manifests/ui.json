@@ -1,0 +1,14 @@
+{
+  "name": "ui",
+  "description": "UI screen management, theming, and screen registry",
+  "status": "ACTIVE",
+  "files": [
+    "Assets/Scripts/UI/R8EOX.UI.asmdef",
+    "Assets/Scripts/UI/IScreen.cs",
+    "Assets/Scripts/UI/ScreenRegistry.cs",
+    "Assets/Scripts/UI/UIManager.cs",
+    "Assets/Scripts/UI/ThemeConstants.cs"
+  ],
+  "dependencies": ["core", "gameflow"],
+  "replaced_by": ""
+}

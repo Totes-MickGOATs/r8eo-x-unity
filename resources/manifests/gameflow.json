@@ -9,6 +9,11 @@
     "Assets/Scripts/GameFlow/GameFlowStateMachine.cs",
     "Assets/Scripts/GameFlow/SceneEntry.cs",
     "Assets/Scripts/GameFlow/SceneRegistry.cs",
+    "Assets/Scripts/GameFlow/IGameFlowService.cs",
+    "Assets/Scripts/GameFlow/IScreenNavigator.cs",
+    "Assets/Scripts/GameFlow/ScreenId.cs",
+    "Assets/Scripts/GameFlow/GameFlowManager.cs",
+    "Assets/Scripts/GameFlow/SceneBootstrapper.cs",
     "Assets/Scripts/GameFlow/R8EOX.GameFlow.asmdef"
   ],
   "dependencies": ["core"],

@@ -18,6 +18,18 @@ Game flow state management, navigation, and scene orchestration.
 | `GameFlowStateMachine.cs` | State machine with validated transitions between game states |
 | `SceneEntry.cs` | Data class for scene registry entries (id, display name, path) |
 | `SceneRegistry.cs` | ScriptableObject lookup table for registered scenes |
+| `IGameFlowService.cs` | Contract interface for game flow coordination (state, session, transitions) |
+| `IScreenNavigator.cs` | Contract interface for screen navigation (push, pop, breadcrumbs) |
+| `ScreenId.cs` | String constants for well-known screen identifiers |
+| `GameFlowManager.cs` | MonoBehaviour singleton implementing IGameFlowService + IScreenNavigator |
+| `SceneBootstrapper.cs` | Standalone scene launcher — creates GameFlowManager if missing |
+
+## Contracts
+
+- **`IGameFlowService`** — consumed by UI and scene systems for state queries and transitions
+- **`IScreenNavigator`** — consumed by UI screens for navigation (push/pop stack)
+- **`GameFlowManager`** implements both interfaces and owns the state machine + navigation stack
+- **`SceneBootstrapper`** — place in any gameplay scene; if launched standalone, creates a minimal manager and fast-forwards to Playing
 
 ## Design
 
