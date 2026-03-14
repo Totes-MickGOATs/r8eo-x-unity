@@ -230,8 +230,8 @@ namespace R8EOX.Editor
             }
 
             mainCam.transform.position = new Vector3(0f, 2f, -5f);
-            var chase = mainCam.gameObject.AddComponent<ChaseCamera>();
-            chase.Target = car.transform;
+            var cameraController = mainCam.gameObject.AddComponent<CameraController>();
+            cameraController.Target = car.transform;
         }
 
         static void SetupLighting()

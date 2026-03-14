@@ -25,7 +25,7 @@ TestTrack.unity [Root scene]
 │   │   └── HubVisual
 │   ├── AirPhysics (RCAirPhysics)
 │   └── Drivetrain (Drivetrain) [driveLayout=RWD]
-├── Camera (ChaseCamera) [target=RCBuggy.transform]
+├── Camera (CameraController) [target=RCBuggy.transform, modes=Chase/Orbit/FPV/Trackside]
 ├── TelemetryHUD (TelemetryHUD) [car=RCBuggy]
 ├── Terrain / Track geometry
 └── Lighting (Directional Light, Skybox)
@@ -42,7 +42,10 @@ TestTrack.unity [Root scene]
 | `Scripts/Vehicle/Drivetrain.cs` | `Drivetrain` | — | `MonoBehaviour` | Differential coupling and drive layout (Open/BallDiff/Spool, RWD/AWD) |
 | `Scripts/Vehicle/RCAirPhysics.cs` | `RCAirPhysics` | — | `MonoBehaviour` | Airborne pitch/roll torques from throttle/steer, gyroscopic stabilization from wheel spin |
 | `Scripts/Input/RCInput.cs` | `RCInput` | — | `MonoBehaviour` | Input abstraction: keyboard WASD + gamepad triggers with auto-detection, steering curve |
-| `Scripts/Camera/ChaseCamera.cs` | `ChaseCamera` | — | `MonoBehaviour` | Smooth chase camera with configurable distance, height, look offset |
+| `Scripts/Camera/CameraController.cs` | `CameraController` | — | `MonoBehaviour` | Multi-mode camera: Chase, Orbit, FPV, Trackside with smooth transitions |
+| `Scripts/Camera/CameraMode.cs` | `CameraMode` | — | `enum` | Camera mode enumeration (Chase, Orbit, Fpv, Trackside) |
+| `Scripts/Camera/TracksideAnchor.cs` | `TracksideAnchor` | — | `MonoBehaviour` | Scene marker for trackside camera positions |
+| `Scripts/Camera/ChaseCamera.cs` | `ChaseCamera` | — | `MonoBehaviour` | Legacy chase camera (deprecated, kept for migration) |
 | `Scripts/Debug/TelemetryHUD.cs` | `TelemetryHUD` | — | `MonoBehaviour` | OnGUI telemetry overlay: speed, forces, per-wheel state, toggle with F2 |
 | `Scripts/Editor/SceneSetup.cs` | `SceneSetup` | — | — | Editor utilities for scene configuration |
 
@@ -94,10 +97,17 @@ RCCar.FixedUpdate(dt)              ← Main physics orchestrator
 ### Camera Pipeline (LateUpdate)
 
 ```
-ChaseCamera.LateUpdate()
-  ├── Compute target position (behind + above car)
-  ├── Lerp camera position toward target
-  └── LookAt car position + height offset
+CameraController.Update()
+  ├── Check mode cycle key (C) → CycleMode()
+  └── If Orbit: read mouse/stick input → update yaw/pitch
+
+CameraController.LateUpdate()
+  ├── If transitioning: smooth interpolate position/rotation between modes
+  └── Apply current mode:
+      ├── Chase: Lerp behind car, LookAt car
+      ├── Orbit: Spherical offset from yaw/pitch, LookAt car
+      ├── FPV: Lock to car body with local offset
+      └── Trackside: Static position (nearest anchor), LookAt car
 ```
 
 ### Telemetry Pipeline (OnGUI)
@@ -134,8 +144,9 @@ RCAirPhysics (air torques)
   ├── requires → Rigidbody (parent)
   └── reads → RaycastWheel[].wheelRpm for gyro
 
-ChaseCamera (camera)
-  └── requires → Transform target (set in inspector)
+CameraController (camera)
+  ├── requires → Transform target (set in inspector)
+  └── optional → TracksideAnchor[] (discovered at runtime for Trackside mode)
 
 TelemetryHUD (debug UI)
   └── requires → RCCar reference (set in inspector)
