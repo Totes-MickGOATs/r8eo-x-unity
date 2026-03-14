@@ -470,12 +470,23 @@ namespace R8EOX.Debug
 
         private void ValidateDetectorModeContracts(int frame)
         {
-            // We cannot directly access TriggerDetector from RCInput (it's private).
-            // The contract is enforced inside RCInput.Update() — during Detecting/None,
-            // GetGamepadThrottle/GetGamepadBrake return 0. We validate the observable
-            // effect: if InputGuard is suppressing, throttle and brake must be 0.
-            // Additional detector-mode validation would require exposing TriggerDetector
-            // state, which is a design choice left to the input system owner.
+            var mode = _rcInput.DetectorMode;
+
+            if (mode == TriggerDetector.Mode.Detecting || mode == TriggerDetector.Mode.None)
+            {
+                if (Mathf.Abs(_input.Throttle) > k_Epsilon)
+                {
+                    LogInputViolation(
+                        $"Throttle non-zero during detector mode {mode}",
+                        _input.Throttle, 0f, 0f, frame);
+                }
+                if (Mathf.Abs(_input.Brake) > k_Epsilon)
+                {
+                    LogInputViolation(
+                        $"Brake non-zero during detector mode {mode}",
+                        _input.Brake, 0f, 0f, frame);
+                }
+            }
         }
 
         private void LogInputViolation(string contract, float actual, float expectedMin, float expectedMax, int frame)

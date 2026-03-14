@@ -45,6 +45,9 @@ namespace R8EOX.Input
         /// <inheritdoc/>
         public bool CameraCyclePressed { get; private set; }
 
+        /// <summary>Current trigger detection mode. Read-only for diagnostics and contract validation.</summary>
+        public TriggerDetector.Mode DetectorMode => Detector.CurrentMode;
+
 
         // ---- Private Fields ----
 
