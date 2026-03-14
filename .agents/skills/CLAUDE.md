@@ -8,7 +8,7 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 
 | Skill | Category | Key Topics |
 |-------|----------|------------|
-| `unity-architecture-patterns` | Core | Design patterns, C# style, ScriptableObject architecture, YAML, AI Navigation, workflows |
+| `unity-architecture-patterns` | Core | Design patterns (Observer, State, Factory, Command, MVP, MVVM, Strategy, Flyweight, Dirty Flag, Object Pooling) |
 | `unity-csharp-mastery` | Core | C# patterns, naming, lifecycle, attributes, anti-patterns |
 | `unity-scriptable-objects` | Core | Data containers, event channels, runtime sets |
 | `unity-scene-management` | Core | Scene loading, additive scenes, bootstrapper pattern |
