@@ -203,7 +203,7 @@ For hard-surface sections (bridges, ramps built with ProBuilder), use trigger co
 | Wet packed dirt | 0.5 | 0.35 | Average |
 | Concrete/tarmac | 1.0 | 0.8 | Average |
 
-> **WARNING:** Unity WheelCollider ignores the PhysicMaterial on its own collider. Surface friction must be applied via `WheelCollider.sidewaysFriction` and `forwardFriction` stiffness multipliers at runtime based on detected surface type.
+> **WARNING:** Unity WheelCollider ignores the PhysicsMaterial on its own collider. Surface friction must be applied via `WheelCollider.sidewaysFriction` and `forwardFriction` stiffness multipliers at runtime based on detected surface type.
 
 ---
 
@@ -216,7 +216,7 @@ Use **ProBuilder** (built into Unity) for non-terrain track elements:
 - Pit lane surfaces
 - Retaining walls and barriers
 
-ProBuilder meshes get their own colliders and PhysicMaterials, bypassing terrain surface detection. Tag them with a `SurfaceZone` trigger for the runtime surface system.
+ProBuilder meshes get their own colliders and PhysicsMaterials, bypassing terrain surface detection. Tag them with a `SurfaceZone` trigger for the runtime surface system.
 
 ---
 
@@ -307,7 +307,7 @@ For larger or more realistic terrains:
 |---------|-------------|-----|
 | Heightmap not `2^n + 1` | Import fails or silent data corruption | Always use 257, 513, 1025, 2049 |
 | More than 4 terrain layers | Second GPU pass, performance halved | Limit to 4 layers; blend wisely |
-| WheelCollider + PhysicMaterial | PhysicMaterial silently ignored | Set friction via WheelCollider API at runtime |
+| WheelCollider + PhysicsMaterial | PhysicsMaterial silently ignored | Set friction via WheelCollider API at runtime |
 | Splatmap sampled every frame | 2-5ms CPU spike per vehicle | Cache and sample at 0.1-0.2s intervals |
 | Terrain Draw Instanced OFF | Massive draw call count | Always enable in Terrain Settings |
 | Jump faces too steep (>45 deg) | Vehicles clip through or bounce erratically | Keep launch face under 40 degrees |

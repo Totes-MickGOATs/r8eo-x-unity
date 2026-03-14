@@ -119,13 +119,15 @@ Physics.IgnoreLayerCollision(LayerMask.NameToLayer("Vehicle"), LayerMask.NameToL
 
 ## Rigidbody Configuration for RC Cars
 
+> **Unity 6:** `Rigidbody.drag` was renamed to `Rigidbody.linearDamping` and `Rigidbody.angularDrag` was renamed to `Rigidbody.angularDamping`. The old names are removed and will cause compile errors.
+
 ### Recommended Settings
 
 ```csharp
 // Vehicle chassis Rigidbody setup
 rb.mass = 1.2f;                    // 1.0-1.5 kg (real 1/10 RC buggy)
-rb.drag = 0.1f;                    // Low linear drag -- aero drag modeled separately
-rb.angularDrag = 0.5f;             // Moderate -- prevents infinite spinning after impacts
+rb.linearDamping = 0.1f;           // Low linear damping -- aero drag modeled separately
+rb.angularDamping = 0.5f;          // Moderate -- prevents infinite spinning after impacts
 rb.maxAngularVelocity = 50f;       // Default 7 is way too low for RC
 rb.interpolation = RigidbodyInterpolation.Interpolate;
 rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
@@ -235,7 +237,9 @@ if (Physics.SphereCast(wheel.origin, radius, -transform.up, out RaycastHit hit,
 
 ## Physics Materials per Surface
 
-Create `PhysicMaterial` assets for each surface type.
+> **Unity 6:** \ was renamed to \ (with an 's') and \ was renamed to \. The old names are removed and will cause compile errors.
+
+Create `PhysicsMaterial` assets for each surface type.
 
 | Surface | Dynamic Friction | Static Friction | Bounciness | Combine Mode |
 |---------|-----------------|----------------|------------|-------------|
@@ -246,11 +250,11 @@ Create `PhysicMaterial` assets for each surface type.
 | Grass | 0.5 | 0.6 | 0.01 | Average |
 | Mud | 0.25 | 0.3 | 0.0 | Average |
 
-**Note:** If using raycast suspension (recommended), these PhysicMaterials are only for chassis-barrier collisions. Tire friction is calculated in your custom tire model using the surface type from the raycast hit.
+**Note:** If using raycast suspension (recommended), these PhysicsMaterials are only for chassis-barrier collisions. Tire friction is calculated in your custom tire model using the surface type from the raycast hit.
 
 ```csharp
 // Surface lookup from raycast hit
-PhysicMaterial surfaceMat = hit.collider.sharedMaterial;
+PhysicsMaterial surfaceMat = hit.collider.sharedMaterial;
 float gripMultiplier = surfaceConfig.GetGrip(surfaceMat); // Your lookup table
 ```
 
@@ -473,8 +477,8 @@ Quick-reference for a 1/10-scale RC racing project:
 | Property | Value |
 |----------|-------|
 | Mass | 1.2 kg |
-| Drag | 0.1 |
-| Angular Drag | 0.5 |
+| Linear Damping | 0.1 |
+| Angular Damping | 0.5 |
 | Max Angular Velocity | 50 |
 | Interpolation | Interpolate |
 | Collision Detection | ContinuousSpeculative |

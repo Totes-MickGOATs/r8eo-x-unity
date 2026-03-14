@@ -58,6 +58,10 @@ props.SetColor("_Color", Random.ColorHSV());
 renderer.SetPropertyBlock(props);
 ```
 
+### GPU Resident Drawer (Unity 6)
+
+> **Unity 6:** The GPU Resident Drawer automatically uses `BatchRendererGroup` to instance meshes on the GPU. Enable it in the URP Asset under **Rendering > GPU Resident Drawer**. When active, it supersedes manual Static Batching and GPU Instancing for most meshes -- the rendering pipeline handles instancing automatically. Objects must use compatible shaders (standard URP Lit/Unlit). For RC racing, this is a significant draw call reduction for repetitive track elements (barriers, cones, fences) with zero setup cost.
+
 ### SRP Batcher (URP/HDRP)
 
 The SRP Batcher reduces CPU overhead of draw calls by caching shader variant states.

@@ -162,9 +162,11 @@ Supported shapes: Rectangle, Disc, Tube
 
 ## Light Probes
 
+> **Unity 6: Adaptive Probe Volumes (APV)** replace manual Light Probe Groups. APV automatically places probes with adaptive density -- denser near geometry boundaries and lighting transitions, sparser in open areas. Enable in **Lighting Settings > Light Probe System > Adaptive Probe Volumes**. APV supports sky occlusion (directional ambient shadowing) and lighting scenarios (multiple baked states for time-of-day switching). For new projects on Unity 6, use APV instead of manual Light Probe Groups. Manual probe placement is still supported as a fallback.
+
 Light Probes capture baked lighting at points in space for dynamic objects.
 
-### Placement Strategy
+### Placement Strategy (Manual Light Probe Groups -- Legacy)
 
 ```
 - Place probes in a 3D grid throughout the playable area

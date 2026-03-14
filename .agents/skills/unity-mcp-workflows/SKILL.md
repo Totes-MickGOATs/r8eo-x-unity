@@ -84,7 +84,7 @@ action: "modify"
   component_type: "Rigidbody"
   properties: {
     "mass": 2.0,
-    "drag": 0.5,
+    "linearDamping": 0.5,
     "useGravity": true,
     "isKinematic": false
   }
@@ -434,6 +434,19 @@ install_git_package:
 remove_unity_package:
   package_name: "com.unity.cinemachine"
 ```
+
+## Additional UnityMCP Tools
+
+The following UnityMCP tools are available but not covered in detail above:
+
+| Tool | Purpose |
+|------|--------|
+| `run_tests` | Run Unity Test Runner tests (EditMode/PlayMode) and retrieve results |
+| `validate_script` | Check a C# script for compilation errors without modifying it |
+| `batch_execute` | Execute multiple MCP tool calls in a single request for efficiency |
+| `manage_probuilder` | Create and modify ProBuilder meshes (track elements, ramps, barriers) |
+
+Use `run_tests` after script changes to verify nothing broke. Use `batch_execute` when you need to create multiple GameObjects or modify multiple components in sequence -- it reduces round-trips.
 
 ## Workflow Best Practices
 

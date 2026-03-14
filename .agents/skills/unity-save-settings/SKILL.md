@@ -175,10 +175,18 @@ public class PlayerProfile
     public int totalRaces;
     public float totalPlayTime;
     public Dictionary<string, TrackCareerData> trackProgress; // keyed by track ID
+    // WARNING: Requires Newtonsoft.Json or ISerializationCallbackReceiver (see Career Save section)
 }
 ```
 
 ## Career Save Structure
+
+> **CRITICAL: `JsonUtility` cannot serialize `Dictionary<K,V>`.** The examples below use dictionaries for the correct data model, but you MUST use one of these serialization approaches:
+>
+> 1. **Newtonsoft.Json** (recommended) -- install `com.unity.nuget.newtonsoft-json` from Unity Package Manager. Use `JsonConvert.SerializeObject()` / `DeserializeObject<T>()` instead of `JsonUtility`.
+> 2. **`ISerializationCallbackReceiver`** -- wrap the dictionary with parallel `List<string>` keys and `List<T>` values, synced in `OnBeforeSerialize`/`OnAfterDeserialize`. More boilerplate but avoids the external dependency.
+>
+> `JsonUtility` will silently produce empty `{}` for dictionary fields, causing data loss.
 
 Use dictionaries keyed by track/vehicle ID — not arrays:
 
@@ -192,6 +200,7 @@ public class CareerData
     public List<string> unlockedVehicles;
     public List<string> unlockedTracks;
     public Dictionary<string, TrackProgress> tracks; // key = track ID
+    // WARNING: Requires Newtonsoft.Json or ISerializationCallbackReceiver -- see note above
 }
 
 [Serializable]

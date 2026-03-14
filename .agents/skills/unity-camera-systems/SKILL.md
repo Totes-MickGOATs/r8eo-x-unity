@@ -13,6 +13,7 @@ body/aim algorithms, state-driven cameras, blending, and advanced techniques.
 **Version Note:**
 - Cinemachine 3.x: Unity 2023.1+ -- renamed components (CinemachineCamera, CinemachineFollow, etc.)
 - Cinemachine 2.x: Unity 2019-2022 -- original names (CinemachineVirtualCamera, CinemachineTransposer, etc.)
+- **Unity 6.1+:** Cinemachine 2.x reaches end of support. Use `using Unity.Cinemachine` (not `using Cinemachine`). Key renames: `CinemachineVirtualCamera` -> `CinemachineCamera`, `CinemachineThirdPersonFollow` -> `ThirdPersonFollow`, `CinemachineBlendListCamera` -> `CinemachineSequencerCamera`.
 
 This guide uses Cinemachine 3.x naming. The 2.x equivalents are noted where they differ significantly.
 

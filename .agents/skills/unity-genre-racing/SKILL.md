@@ -318,7 +318,9 @@ Playback: interpolate between the two nearest frames based on current lap time. 
 
 ### Chase Camera (Cinemachine)
 
-Use `CinemachineThirdPersonFollow` as the body component:
+Use `ThirdPersonFollow` as the body component:
+
+> **Unity 6 / Cinemachine 3.x:** `CinemachineVirtualCamera` is now `CinemachineCamera`, `CinemachineThirdPersonFollow` is now `ThirdPersonFollow`, `CinemachineBlendListCamera` is now `CinemachineSequencerCamera`, and the namespace changed from `using Cinemachine` to `using Unity.Cinemachine`. Cinemachine 2.x reaches end of support in Unity 6.1.
 
 ```
 CinemachineCamera:
@@ -382,7 +384,7 @@ Pre-place `CinemachineCamera` components around the track at strategic positions
 2. Set that camera's `Priority` highest
 3. Cinemachine handles blending between cameras automatically
 
-Use `CinemachineBlendListCamera` for scripted sequences (start, finish, podium).
+Use `CinemachineSequencerCamera` for scripted sequences (start, finish, podium).
 
 ---
 
