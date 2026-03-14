@@ -1,6 +1,6 @@
 # Clean Room QA Skill
 
-An independent testing agent that writes black-box tests with ZERO knowledge of implementation code. Tests are derived purely from:
+Use this skill when writing black-box tests with zero implementation knowledge, deriving test cases purely from function signatures and domain expectations. Enforces strict separation between test-writing and implementation.
 - Function signatures (name, parameters, return type)
 - Physical/domain knowledge of what the function represents
 - Expected behavior from first principles

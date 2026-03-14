@@ -1,6 +1,6 @@
 # Reverse Engineering & Debug Methodology Skill
 
-Systematic approach to diagnosing bugs and understanding unfamiliar code. Use this when something is broken and you don't know why, or when you need to understand how an existing system works before modifying it.
+Use this skill when diagnosing bugs through systematic chain-of-custody debugging, or when you need to understand how an unfamiliar system works before modifying it.
 
 ## Core Principle: Chain of Custody
 

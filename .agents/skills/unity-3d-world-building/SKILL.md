@@ -1,6 +1,6 @@
 # Unity 3D World Building
 
-Tools, workflows, and patterns for building 3D game environments in Unity.
+Use this skill when building 3D environments, sculpting terrain, placing props, or setting up scene geometry in Unity.
 
 ## Unity Terrain
 
