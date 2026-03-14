@@ -419,6 +419,27 @@ When deciding how to declare a value, use the appropriate tier:
 - **CLAUDE.md docs** give every new session immediate project understanding
 - **MCP reconnection** is handled automatically — see recovery procedure in memory
 
+## Troubleshooting — Common Agent Issues
+
+### MCP Disconnects After Script Changes
+
+Unity domain reload temporarily disconnects MCP. This is normal.
+
+**Recovery:**
+1. Wait 10-15 seconds for domain reload to complete
+2. Retry your MCP tool call
+3. If still disconnected after 30s, use `/mcp` command in Claude Code to refresh
+4. If still failing, check `read_console` for compilation errors blocking reload
+
+**Do NOT** hand off to the user, assume MCP is broken, or skip verification steps.
+
+### Compilation Errors After Script Changes
+
+Always check compilation after creating or modifying C# scripts:
+1. Call `read_console` and filter for errors
+2. Common traps: `Physics` vs `UnityEngine.Physics` namespace collision, `Camera` ambiguity
+3. Fix ALL errors before proceeding — Unity won't reload until compilation succeeds
+
 ## Key Reference Files
 
 - `.agents/skills/branch-workflow/SKILL.md` — **Branch workflow, merge queue, worktree recipes, gotchas (READ FIRST)**

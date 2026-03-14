@@ -42,7 +42,7 @@ jobs:
         run: uv run python scripts/tools/validate_registry.py
 
       - name: Check CLAUDE.md freshness
-        continue-on-error: true
+        continue-on-error: false
         run: uv run python scripts/tools/validate_claude_md.py --threshold 30
 
       - name: Check test coverage (regression guard)
