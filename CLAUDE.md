@@ -109,8 +109,15 @@ A task is **not done** until ALL of these are true:
 4. **Local tests pass** — run relevant test files for your changes before pushing
 5. **Bulletproof quality checklist passed** — see `/dev:bulletproof` for the full process (Phases 0-5)
 6. **Clean loop completed** — run `/dev:clean-loop` to capture lessons, update docs, and verify clean state
+7. **PR merged and main updated** — watch CI, confirm merge, then update local main
 
-**You do NOT need to wait for merge.** Once lint CI is green and auto-merge is enabled, your task is done. The merge queue handles the rest. Move on to the next task.
+**Subagents MUST watch CI through merge completion:**
+```bash
+gh run watch                                    # Watch CI until done
+gh pr view --json state -q .state               # Confirm "MERGED"
+git fetch origin main                           # Pull merged main
+git update-ref refs/heads/main origin/main      # Update local ref
+```
 
 If lint CI fails after you push, you are responsible for:
 - Checking the CI output: `gh run view --log-failed` or `gh run view <run-id> --log`
