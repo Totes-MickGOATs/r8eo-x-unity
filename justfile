@@ -388,6 +388,70 @@ ff-main:
         echo "ERROR: main is not an ancestor of HEAD. Rebase onto main first." >&2
         exit 1
     fi
+    # ── Module-based test gate before fast-forwarding ──────────────────────────
+    # Run tests for all modules touched in this branch before allowing ff-main.
+    # Bypass: SKIP_FF_TESTS=1 just ff-main
+    if [[ -z "${SKIP_FF_TESTS:-}" ]]; then
+        # Get changed .cs files between main and HEAD
+        CHANGED_CS=$(git diff --name-only main...HEAD -- 'Assets/Scripts/**/*.cs' 2>/dev/null | \
+            grep -v '/Editor/' | grep -v '/Tests/' | grep -v '\.asmdef$' || true)
+
+        if [[ -n "$CHANGED_CS" ]]; then
+            # Resolve module tests via resolver
+            RESOLVER_OUTPUT=$(echo "$CHANGED_CS" | uv run python scripts/tools/resolve_module_tests.py --format shell 2>/dev/null)
+            RESOLVER_EXIT=$?
+
+            if [[ "$RESOLVER_EXIT" -eq 1 ]]; then
+                echo "WARNING: Test resolver error — skipping ff-main test gate."
+            elif [[ "$RESOLVER_EXIT" -eq 0 ]]; then
+                EDITMODE_FILTER=$(echo "$RESOLVER_OUTPUT" | grep '^EDITMODE_FILTER=' | cut -d= -f2-)
+                MODULES=$(echo "$RESOLVER_OUTPUT" | grep '^MODULES=' | cut -d= -f2-)
+                PLAYMODE_FILTER=$(echo "$RESOLVER_OUTPUT" | grep '^PLAYMODE_FILTER=' | cut -d= -f2-)
+
+                if [[ -n "$EDITMODE_FILTER" ]]; then
+                    UNITY_CMD=""
+                    if command -v Unity &>/dev/null; then UNITY_CMD="Unity"
+                    elif command -v unity &>/dev/null; then UNITY_CMD="unity"
+                    fi
+
+                    if [[ -z "$UNITY_CMD" ]]; then
+                        echo "WARNING: Unity not found in PATH — skipping ff-main test gate."
+                        echo "  Run tests manually before fast-forwarding."
+                    else
+                        echo "ff-main: running EditMode tests for modules: $MODULES"
+                        echo "  Filter: $EDITMODE_FILTER"
+
+                        timeout 120 "$UNITY_CMD" -batchmode -nographics -runTests \
+                            -testPlatform EditMode \
+                            -testFilter "$EDITMODE_FILTER" \
+                            -projectPath . \
+                            -testResults /dev/null \
+                            -logFile /dev/null 2>&1
+                        TEST_EXIT=$?
+
+                        if [[ "$TEST_EXIT" -eq 124 ]]; then
+                            echo "WARNING: Tests timed out. Fast-forward allowed."
+                        elif [[ "$TEST_EXIT" -ne 0 ]]; then
+                            echo "ERROR: Tests FAILED. Fast-forward blocked." >&2
+                            echo "  Modules: $MODULES" >&2
+                            echo "  Filter: $EDITMODE_FILTER" >&2
+                            echo "  Bypass: SKIP_FF_TESTS=1 just ff-main" >&2
+                            exit 1
+                        else
+                            echo "ff-main: module tests passed."
+                        fi
+
+                        if [[ -n "$PLAYMODE_FILTER" ]]; then
+                            echo "Advisory: PlayMode tests should also pass (run manually):"
+                            echo "  $PLAYMODE_FILTER"
+                        fi
+                    fi
+                fi
+            fi
+        fi
+    else
+        echo "SKIP_FF_TESTS set — skipping ff-main test gate."
+    fi
     # Fast-forward local main ref to current HEAD
     OLD_SHA=$(git rev-parse --short main)
     git update-ref refs/heads/main HEAD
