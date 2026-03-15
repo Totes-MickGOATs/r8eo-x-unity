@@ -471,6 +471,10 @@ validate-docs:
 validate-docs-ci:
     uv run python scripts/tools/validate_claude_md.py --ci --threshold 30
 
+# Audit skill usage over recent git history
+audit-skills days="30":
+    bash tools/audit-skill-usage.sh {{days}}
+
 # Check for template upstream drift
 check-template-sync:
     #!/usr/bin/env bash
