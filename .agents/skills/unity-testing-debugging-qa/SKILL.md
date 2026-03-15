@@ -252,6 +252,22 @@ Use `[Test]` (NUnit) in Edit mode unless you need to yield special instructions.
 | `[Category("E2E")]` | Tag for filtering in Test Runner or CI |
 | `[Timeout(30000)]` | Fail if test exceeds N milliseconds |
 
+### Additional UTF Attributes
+
+Beyond the core attributes above, UTF provides specialized attributes for advanced scenarios:
+
+| Attribute | Purpose |
+|-----------|---------|
+| `[ConditionalIgnore]` | Conditionally skip tests based on runtime conditions |
+| `[PrebuildSetup]` | Execute setup logic before player builds (used with performance tests) |
+| `[PostBuildCleanup]` | Execute cleanup logic after player builds |
+| `[TestMustExpectAllLogs]` | Enforces that all `Debug.Log` calls are expected via `LogAssert.Expect()` |
+| `[TestPlayerBuildModifier]` | Modifies player build configuration for test runs |
+| `[TestRunCallback]` | Hooks into test execution lifecycle for custom reporting |
+| `[UnityPlatform]` | Restricts test execution to specific platforms |
+
+**Key recommendation:** Use NUnit's `[Test]` over `[UnityTest]` unless you specifically need custom yield instructions, frame-skipping, or time-waiting. `[Test]` runs faster and has simpler control flow.
+
 ### The AAA Pattern
 
 Every test follows **Arrange, Act, Assert**:
@@ -348,15 +364,68 @@ For gameplay prototyping, manual playtesting is often more appropriate. Once mec
 
 ### Code Coverage
 
-The Unity Code Coverage package (`com.unity.testtools.codecoverage`) shows which lines of code are exercised by tests:
+Package: `com.unity.testtools.codecoverage`
 
-1. Install via Package Manager
-2. Enable via **Window > Analysis > Code Coverage**
-3. Select assemblies to include (e.g., `Game.Runtime`)
-4. Run tests — generates HTML report showing covered/uncovered lines
-5. Also generates reports during Play mode (shows code paths exercised during gameplay)
+#### Setup
+
+1. Install via Package Manager (Window > Package Manager > search "Code Coverage")
+2. Open **Window > Analysis > Code Coverage**
+3. Enable the Code Coverage checkbox (adds editor overhead while active)
+
+#### Configuration
+
+- **Included Assemblies** — select which assemblies to monitor (e.g., `Game.Runtime`)
+- **HTML Report** — generate detailed HTML coverage reports
+- **Report History** — track coverage trends over time
+- **Auto Generate Report** — create reports automatically after test runs
+
+#### Coverage Recording (Manual Testing)
+
+Beyond test-driven coverage, you can record coverage during manual Play mode:
+
+1. Open the Code Coverage window
+2. Click "Start Recording"
+3. Play through your game
+4. Click "Stop Recording"
+5. Reports auto-generate showing code paths exercised during gameplay
+
+#### Key Metrics
+
+| Metric | What It Measures |
+|--------|-----------------|
+| **Line Coverage** | Percentage of coverable lines executed |
+| **Cyclomatic Complexity** | Number of code paths. Methods scoring above 15 warrant review and refactoring |
+| **CRAP Score** (Change Risk Anti-Patterns) | Identifies risky code combining complexity and coverage. High scores indicate refactoring priority |
 
 **Limitation:** Code Coverage shows which lines were reached, not which logic paths were taken. A line can be "covered" without all its branches being tested.
+
+#### Report Formats
+
+HTML, SonarQube, Cobertura, LCOV, SVG/PNG badges.
+
+#### CI/CD Integration
+
+```bash
+Unity.exe -batchmode -enableCodeCoverage \
+  -coverageResultsPath ./results \
+  -coverageOptions "generateHtmlReport;generateAdditionalMetrics;assemblyFilters:+R8EOX.*,-*Tests*"
+```
+
+Key coverage options:
+
+| Option | Purpose |
+|--------|---------|
+| `generateHtmlReport` | Creates HTML coverage report |
+| `generateHtmlReportHistory` | Includes historical data in reports |
+| `generateAdditionalReports` | Exports SonarQube, Cobertura, LCOV formats |
+| `generateBadgeReport` | SVG/PNG coverage badges |
+| `generateAdditionalMetrics` | Cyclomatic Complexity + CRAP Score |
+| `dontClear` | Accumulates results across multiple runs |
+| `verbosity` | Logging levels: verbose, info, warning, error, off |
+| `assemblyFilters` | Include/exclude assemblies with `+`/`-` prefixes, supports wildcards |
+| `pathFilters` | Include/exclude source files with glob patterns |
+
+**Important:** Unity 2020.1+ requires **Debug mode** for accurate coverage data. Release/IL2CPP builds strip information needed for coverage instrumentation.
 
 ---
 
@@ -418,7 +487,7 @@ This statement serves as both an instruction to the developer and an acceptance 
 - **Black-box testing:** Test the system without knowledge of internal workings (inputs and expected outputs only)
 - **White-box testing:** Test with knowledge of internal structure (verify code paths, edge cases)
 
-Functional tests are most powerful when requirements are clearly defined and scoped.
+Both types should be run for comprehensive coverage. Functional tests are most powerful when requirements are clearly defined and scoped.
 
 ### Performance Testing
 
@@ -445,7 +514,7 @@ Open via **Window > Analysis > Profiler** (Ctrl+7). Key modules:
 
 #### Performance Testing Extension
 
-Package: `com.unity.test-framework.performance`
+Package: `com.unity.test-framework.performance` (v3.0.3)
 
 ```csharp
 using Unity.PerformanceTesting;
@@ -462,6 +531,63 @@ public void PhysicsStep_Under2ms()
     .Run();
 }
 ```
+
+##### Measurement APIs
+
+| API | Use Case |
+|-----|----------|
+| `Measure.Method(() => { code }).Run()` | Samples a method's execution time |
+| `Measure.Frames()` | Records time per frame (Play Mode only, good for physics) |
+| `Measure.Scope()` | Measurement context for custom metrics and profiler markers |
+| `Measure.Custom(sampleGroup, value)` | Custom measurements with defined units |
+
+##### Configuration Chaining
+
+| Method | Purpose | Default |
+|--------|---------|---------|
+| `.MeasurementCount(n)` | Number of measurement iterations | 7 (recommended: 20) |
+| `.WarmupCount(n)` | Pre-recording executions to eliminate init overhead | 0 |
+| `.IterationsPerMeasurement(n)` | Repetitions within each measurement | 1 |
+| `.DontRecordFrametime()` | Disables frame time recording | Enabled |
+| `.ProfilerMarkers(string)` | Targets specific profiler markers | None |
+
+##### Custom SampleGroups
+
+Define custom metrics with specific units for domain-relevant measurements:
+
+```csharp
+var allocated = new SampleGroup("TotalAllocatedMemory", SampleUnit.Megabyte);
+Measure.Custom(allocated, value);
+```
+
+##### Performance Test Best Practices
+
+1. Ensure standard deviation remains below 5% across measurements
+2. Avoid sub-millisecond measurements (sensitive to background processes and OS scheduling)
+3. Isolate operations into separate tests — one concern per test method
+4. Use `[SetUp]`/`[TearDown]` to clean up GameObjects between runs
+5. Disable background applications for local testing
+6. Maintain a single Quality level for consistent configuration
+7. Disable VSync in Quality settings to remove frame-rate capping
+8. Remove cameras when not measuring rendering; use `-batchmode` for headless runs
+
+Tests use the `[Performance]` attribute (often combined with `[PrebuildSetup()]` for build-specific setup).
+
+#### Frame Budget Reference
+
+| Target | Budget | Notes |
+|--------|--------|-------|
+| 30 fps | 33.33 ms/frame | Desktop/console baseline |
+| 60 fps | 16.66 ms/frame | Smooth gameplay target |
+| Mobile 30 fps | ~22 ms/frame | Reserve 35% for thermal management |
+| Mobile 60 fps | ~10.83 ms/frame | Reserve 35% for thermal management |
+
+A single frame that exceeds the target budget will cause visible hitches.
+
+**Three-phase profiling workflow:**
+1. **Establish baseline** — profile before making major changes
+2. **Track during development** — monitor against frame budgets continuously
+3. **Validate improvements** — profile after changes, prove they had the desired effect
 
 > **Deep dive:** See `unity-debugging-profiling` for Profiler details, custom markers, Frame Debugger, and Memory Profiler. See `unity-performance-optimization` for optimization techniques.
 
@@ -496,6 +622,23 @@ Unity -batchmode -runTests \
 ```
 
 Exit code 0 = all passed, non-zero = failures.
+
+#### Command-Line Arguments Reference
+
+| Argument | Purpose |
+|----------|---------|
+| `-runTests` | Triggers the test runner |
+| `-batchmode` | No manual input required (essential for CI/CD) |
+| `-projectPath` | Path to the Unity project |
+| `-testResults` | Output path for NUnit XML results file |
+| `-testFilter` | Semicolon-separated test names or regex patterns; `!` prefix for negation |
+| `-testCategory` | Semicolon-separated category names (maps to `[Category]` attribute) |
+| `-assemblyNames` | Filters to specific test assemblies |
+| `-testPlatform` | `EditMode`, `PlayMode`, or a `BuildTarget` enum value |
+| `-testSettingsFile` | Path to a `TestSettings.json` for custom configuration |
+| `-playerHeartbeatTimeout` | Max wait for player heartbeat in seconds (default: 10 min) |
+
+Output format is NUnit XML, compatible with most CI reporting tools.
 
 ### GameCI (GitHub Actions)
 

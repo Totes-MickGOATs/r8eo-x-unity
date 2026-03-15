@@ -1,6 +1,36 @@
 # Unity Design Patterns
 
-Use this skill when choosing, implementing, or combining design patterns in Unity. Covers 10 patterns with RC racing examples, Unity-specific implementation details, and guidance on when each pattern helps vs. when it is overkill.
+Use this skill when choosing, implementing, or combining design patterns in Unity. Covers SOLID principles and 11 patterns with RC racing examples, Unity-specific implementation details, advanced combination techniques, and guidance on when each pattern helps vs. when it is overkill.
+
+---
+
+## SOLID Principles
+
+Design patterns are most effective when grounded in SOLID. These five principles guide when and how to apply patterns in Unity.
+
+> "Don't force principles into your scripts for the sake of it. Let them organically work into place through necessity." Also keep KISS and DRY in mind -- apply SOLID where it reduces complexity, not where it adds ceremony.
+
+### Single Responsibility
+
+Each class/MonoBehaviour is responsible for one thing. A `RaceManager` manages race state -- it does not also handle UI updates or audio. If a class has multiple reasons to change, split it.
+
+### Open-Closed
+
+Classes open for extension, closed for modification. Use ScriptableObjects and interfaces to add new behavior without modifying existing code. Example: new surface types via `SurfaceData` SO assets, not by adding cases to a switch statement in the physics system.
+
+### Liskov Substitution
+
+Derived classes must be substitutable for their base. If `Vehicle` has a `Drive()` method, every subclass must honor that contract. Do not throw `NotImplementedException` in overrides -- that violates the contract callers depend on.
+
+### Interface Segregation
+
+Do not force classes to implement methods they do not use. Split large interfaces: `IDamageable`, `IRepairable`, `IResettable` -- not one `IVehicle` with 20 methods. Each interface should represent a single capability.
+
+### Dependency Inversion
+
+High-level modules depend on abstractions, not concrete implementations. Inject dependencies via constructor, `[SerializeField]`, or interfaces -- never `FindObjectOfType`. This is why our project forbids singletons and `Find()` calls (see coding standards).
+
+---
 
 ## Pattern Catalog
 
@@ -16,6 +46,7 @@ Use this skill when choosing, implementing, or combining design patterns in Unit
 | Flyweight | Share data across many similar instances | Track segments: same geometry, different positions |
 | Dirty Flag | Skip expensive recalculations | Recalculate race standings only when positions change |
 | Object Pooling | Reuse objects to avoid GC spikes | Tire smoke particles, dust effects, sound effects |
+| Singleton | **ANTI-PATTERN** -- globally accessible single instance | Shown for reference; use alternatives below |
 
 ---
 
@@ -400,6 +431,18 @@ public class CommandHistory
 }
 ```
 
+### Use Cases by Genre
+
+| Genre | Command Pattern Application |
+|-------|----------------------------|
+| RTS | Queue unit/building actions, execute as resources become available |
+| Turn-based | Store moves in queue, execute all at end-of-turn |
+| Puzzle | Player undo/redo for move sequences |
+| Fighting | Detect button sequences in command lists for combo moves |
+| Racing (our project) | Track editor undo/redo, replay recording, ghost playback |
+
+**Performance note:** Stack operations are O(1). Limit stack sizes to prevent unbounded memory growth in long editing sessions.
+
 ### When to Use
 
 - Undo/redo is required (level editor, vehicle setup, track editor)
@@ -581,6 +624,30 @@ public class VehicleTuningViewModel : MonoBehaviour
 - **C# scripting:** Register property change callbacks with `INotifyPropertyChanged` or custom events
 - **Data converters and ConverterGroups:** Transform model data to UI-compatible formats (e.g., `float` to formatted `string`). `ConverterGroups` chain multiple converters together.
 - **BindingMode:** `TwoWay` (default for input controls), `ToTarget` (read-only display), `ToSource` (write-only from UI)
+
+### Unity 6 Data Binding (UI Toolkit)
+
+Two implementation approaches for automatic binding:
+
+**1. No-code via UI Builder:** Right-click UI elements in the UI Builder, select "Add binding", set DataSource to a ScriptableObject or ViewModel, set DataSourcePath to the property name, choose BindingMode, and apply converter groups as needed.
+
+**2. C# scripting:**
+
+```csharp
+var healthBar = root.Q<ProgressBar>("health-bar");
+healthBar.dataSource = playerData; // ScriptableObject
+var binding = new DataBinding
+{
+    dataSourcePath = new PropertyPath("CurrentHealth"),
+    bindingMode = BindingMode.ToTarget
+};
+binding.sourceToUiConverters.AddConverter((ref int value) => (float)value / maxHealth);
+healthBar.SetBinding("value", binding);
+```
+
+**Converters:** Transform data types between Model and View. Examples: `int` health to `float` progress bar value, `int` to `StyleColor` for health bar color coding, `float` speed to formatted `string` with units. Chain multiple converters with `ConverterGroups`.
+
+**When to use MVVM:** Large complex UIs with Unity 6 and UI Toolkit. The data binding eliminates repetitive update code that would otherwise require manual wiring in a Presenter.
 
 ### When to Use
 
@@ -913,6 +980,48 @@ public class DustEffectPool : MonoBehaviour
 
 ---
 
+## Singleton Pattern (ANTI-PATTERN)
+
+> **This project FORBIDS singletons** (see `.ai/knowledge/architecture/coding-standards.md`). This section exists for completeness and to explain WHY we avoid it and WHAT alternatives to use.
+
+### Concept
+
+Globally accessible class that exists only once with a static self-reference. Any script can access it from anywhere without an explicit reference.
+
+### Basic Unity Implementation (Reference Only)
+
+```csharp
+// ANTI-PATTERN in this project -- shown for reference only
+public class Singleton : MonoBehaviour
+{
+    public static Singleton Instance { get; private set; }
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(this); }
+        else { Instance = this; }
+    }
+}
+```
+
+### Why We Avoid Singletons
+
+- **Hidden dependencies** -- "any script can do anything" makes data flow invisible
+- **Testing difficulty** -- cannot mock or substitute; tests become order-dependent
+- **Multiplayer breakage** -- assumes one instance globally, which fails with multiple players/sessions
+- **Dangerous refactoring** -- changing the singleton interface breaks all callers across the codebase
+- **Violates Dependency Inversion** -- callers depend on a concrete class, not an abstraction
+
+### Our Alternatives
+
+| Instead of Singleton | Use |
+|---------------------|-----|
+| Global manager access | `[SerializeField]` references in Inspector |
+| Cross-system communication | C# events / `event Action` (Observer pattern) |
+| Shared data | ScriptableObject assets |
+| Service location | Explicit dependency injection via constructor or `[SerializeField]` |
+
+---
+
 ## Pattern Compatibility Matrix
 
 Patterns frequently combine. Each row shows a proven combination with an RC racing context.
@@ -929,6 +1038,35 @@ Patterns frequently combine. Each row shows a proven combination with an RC raci
 | State + Observer | State machine fires `OnStateChanged` for UI/audio reactions | Vehicle state change notifies HUD (show "AIRBORNE" label) and audio (switch engine sound) |
 | Factory + Strategy | Factory selects creation strategy based on config | Vehicle factory uses different assembly strategies for buggy vs. truck vs. truggy |
 | Observer + SO Event Channel | SO-based events decouple across scenes | `OnRaceFinished` SO channel notifies both in-race HUD and post-race results scene |
+| Observer + Command (buffering) | Buffer high-frequency events into a throttled command queue | 1000 particles hitting surfaces queue sound commands; audio system processes N per frame to prevent spikes |
+
+### Advanced Tip: Observer + Command Buffering
+
+When many objects fire events simultaneously (e.g., 1000 particles triggering sound effects, or dozens of collisions in a single physics step), naive Observer handling creates performance spikes. Combine Observer with Command pattern: buffer incoming events into a command queue and process them throttled per frame. This prevents audio channel exhaustion, rendering spikes, or physics overload from burst events.
+
+```csharp
+public class ThrottledEventProcessor : MonoBehaviour
+{
+    private readonly Queue<ICommand> _pendingCommands = new();
+    private const int MaxCommandsPerFrame = 8;
+
+    // Called by Observer subscription -- buffers instead of executing immediately
+    public void EnqueueCommand(ICommand command)
+    {
+        _pendingCommands.Enqueue(command);
+    }
+
+    private void Update()
+    {
+        int processed = 0;
+        while (_pendingCommands.Count > 0 && processed < MaxCommandsPerFrame)
+        {
+            _pendingCommands.Dequeue().Execute();
+            processed++;
+        }
+    }
+}
+```
 
 ---
 
@@ -994,6 +1132,17 @@ public abstract class RuntimeSetSO<T> : ScriptableObject
 ```
 
 This applies to any SO that accumulates runtime state. Without this cleanup, re-entering Play Mode starts with stale data from the previous run.
+
+---
+
+## Source References
+
+| Resource | URL |
+|----------|-----|
+| Free e-book (100 pages) | `https://unity.com/resources/games/level-up-your-code-with-game-programming-patterns` |
+| GitHub sample project | `https://github.com/Unity-Technologies/game-programming-patterns-demo` |
+| Unity Learn course (Unity 6) | `https://learn.unity.com/course/design-patterns-unity-6` |
+| SOLID talk (Unite Austin 2017) | `https://www.youtube.com/watch?v=eIf3-aDTOOA` |
 
 ---
 
