@@ -21,6 +21,59 @@ Editor-only scripts: menu items, debug tools, and scene setup automation. These 
 - Assembly definition targets Editor platform only — excluded from player builds
 - `RCCarEditor` depends on `R8EOX.Shared` (`Assets/Scripts/Shared/`) for unit conversion helpers — no UnityEditor code lives in Shared
 
+## Editor Script Rules (Mandatory)
+
+These rules exist to prevent two recurring bug classes discovered in OutpostTrackSetup.
+
+### 1. Never hand-author `.meta` files — use `TextureImporter` in code
+
+Any texture whose import settings matter (normal maps, linear textures, HDRIs) must be
+configured programmatically via `TextureImporter`. Hand-authored `.meta` files bypass
+Unity's validation and cannot be tested.
+
+Pattern already used for normal maps — extend it to all textures:
+
+```csharp
+TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+importer.textureType   = TextureImporterType.Default;
+importer.sRGBTexture   = false;                            // for linear/HDR textures
+importer.textureShape  = TextureImporterShape.Texture2D;   // not Cube for equirectangular
+importer.SaveAndReimport();
+```
+
+### 2. Wrap every `AssetDatabase.CreateAsset` in a delete-before-create helper
+
+`AssetDatabase.CreateAsset` silently fails if the asset already exists, leaving the object
+non-persisted. This causes "works first run, invisible on re-run" bugs.
+
+Every setup script must use a helper like `SaveOrReplaceAsset` (see `OutpostTrackSetup.cs`):
+
+```csharp
+static void SaveOrReplaceAsset(UnityEngine.Object obj, string assetPath)
+{
+    if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath) != null)
+        AssetDatabase.DeleteAsset(assetPath);
+    AssetDatabase.CreateAsset(obj, assetPath);
+}
+```
+
+Bare `AssetDatabase.CreateAsset(...)` calls are not permitted in this directory.
+
+### 3. Require an EditMode idempotency test for every setup method
+
+Any method that writes to `AssetDatabase` must have a test that calls it twice and asserts
+no errors and consistent output. This catches "works first time, invisible on re-run" bugs.
+
+```csharp
+[Test]
+public void BuildMethod_CalledTwice_ProducesNoErrors()
+{
+    LogAssert.NoUnexpectedReceived();
+    MyEditorSetup.BuildMethod();
+    MyEditorSetup.BuildMethod(); // second call must not throw or log errors
+}
+```
+
 ## Relevant Skills
 
 - **`unity-editor-scripting`** — Custom editor tools, menu items, and inspector extensions
