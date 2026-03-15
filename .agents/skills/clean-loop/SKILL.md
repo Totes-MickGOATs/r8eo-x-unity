@@ -45,6 +45,8 @@ For every directory where files were added, removed, or modified during this tas
 
 ### Step 3: Memory Check
 
+- **In-flight cleanup:** Check for any `project_inflight_*.md` memory files. If this task's PR has merged, delete the corresponding in-flight memory. If other in-flight memories reference systems you just changed, update their "Downstream Watch Items" to reflect the now-live state.
+
 Capture any knowledge gained during the task:
 
 - **User feedback** — corrections, preferences, "don't do X" instructions → `feedback_<topic>.md`

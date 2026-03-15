@@ -122,11 +122,15 @@ Before ANY code is written:
 ## Phase 2: Implementation (Subagent)
 
 Once requirements are confirmed, dispatch an implementation subagent with:
+
+> **Multi-task plans:** If this bulletproof session covers multiple sequential tasks, follow the Sequential Coordination protocol in `.agents/skills/swarm-development/SKILL.md` — dispatch one subagent per task with in-flight memory bridges between each. Do not dispatch all tasks to a single subagent.
+
 - The confirmed acceptance criteria (copy them verbatim — no paraphrasing that could drift)
 - Instructions to follow TDD (Red-Green-Commit cycle per CLAUDE.md)
 - Instructions to invoke relevant skills for the domain (e.g., `unity-csharp-mastery`, `unity-physics-3d`, `unity-architecture-patterns`)
 - Instructions to commit each change per project git rules
 - Any context corrections from Phase 0 (so the subagent doesn't repeat old mistakes)
+- **In-flight awareness:** Check for `project_inflight_*.md` memory files. If any exist for systems affected by this task, include their content so the subagent knows what's changing on other branches and can avoid conflicts or stale patterns
 - **Context budget:** Only include CLAUDE.md sections and memory entries relevant to the affected systems. Do NOT dump the entire project context.
 - Instructions to update all affected contracts as part of implementation (manifests, CLAUDE.md files, declarations) — not deferred to Phase 4
 - The Phase 1 contract impact list (so the subagent knows exactly which contracts to update)

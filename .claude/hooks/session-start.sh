@@ -57,6 +57,18 @@ if [ -n "$ACTIVE_TASKS" ]; then
     done
 fi
 
+# Report in-flight work from previous sessions
+MEMORY_DIR="$HOME/.claude/projects/C--Users-prelu-IdeaProjects-r8eo-x-unity/memory"
+INFLIGHT_FILES=$(ls "$MEMORY_DIR"/project_inflight_*.md 2>/dev/null || true)
+if [ -n "$INFLIGHT_FILES" ]; then
+    echo "session-start: IN-FLIGHT WORK detected from previous sessions:"
+    for F in $INFLIGHT_FILES; do
+        NAME=$(basename "$F" .md | sed 's/project_inflight_//')
+        echo "  - $NAME (read $F for details)"
+    done
+    echo "session-start: Check these before starting new work on related systems."
+fi
+
 # Source engine-specific session start if it exists
 ENGINE_HOOK="$CLAUDE_PROJECT_DIR/.claude/hooks/session-start-engine.sh"
 if [ -f "$ENGINE_HOOK" ]; then

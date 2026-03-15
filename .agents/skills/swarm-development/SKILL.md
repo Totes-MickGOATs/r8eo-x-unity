@@ -327,6 +327,23 @@ This skill integrates with the project's existing workflow:
 5. **Next Task:** Dispatch the next subagent, providing it with in-flight awareness context so it can peek at relevant branches or anticipate changes landing in main.
 6. **Post-Merge Cleanup:** After each PR merges — delete the in-flight memory entry, update permanent memories to reflect the now-live architecture.
 
+### Interface-First Strategy
+
+For coupled work where Task B depends on Task A's output, land the interface/contract first in a small PR. This eliminates the "I built against what I assumed the API would be" failure mode.
+
+**The pattern:**
+
+1. **Task A (small PR):** Create the interface, abstract class, or API contract that defines the boundary between the two tasks. Merge it.
+2. **Task B (full PR):** Implement against the real, merged interface — not a guess or assumption about what Task A will produce.
+
+**Why this costs less than it seems:** The extra small PR takes 5-10 minutes and one CI cycle. The alternative — Task B guessing the API and needing rework when Task A's actual output differs — costs 30-60 minutes of rework and a second review cycle.
+
+**Example:**
+- Task A lands `ISurfaceDetector` interface with method signatures and documentation. Merges.
+- Task B implements `TerrainSurfaceDetector : ISurfaceDetector`, coding against the real interface with full IDE support and type checking.
+
+**When to skip:** If the interface between tasks is trivial (e.g., a single file path or constant value), a note in the in-flight memory is sufficient. Use Interface-First when the contract involves method signatures, data structures, or event protocols.
+
 ### In-Flight Memory Template
 
 Create `project_inflight_<task>.md` in the memory directory with this format:
@@ -352,17 +369,42 @@ OPEN | MERGING | MERGED
 - <thing the next agent should know about>
 - <API change, new file, renamed constant, etc.>
 
+## Migration Fence (optional — include when replacing an existing system/pattern)
+- **Old system:** <name and path of the system being replaced>
+- **New system:** <name and path of the replacement>
+- **Toggle:** <feature toggle gating the new system, if any>
+- **Directive:** Do NOT add new code using <old system>. Use the new interface at <path>.
+- **Migration complete when:** <criteria for removing the fence and old system>
+
 ## Cleanup
 Delete this file after PR merges and permanent memories are updated.
 ```
 
+### Migration Fence Protocol
+
+When a task is **replacing** an existing system or pattern (not just adding new functionality), the in-flight memory MUST include a Migration Fence section. This prevents downstream agents from adding new code that uses the old system while the migration is in progress.
+
+**When to use:** Any time a task introduces a new implementation that supersedes an existing one — new input system replacing old, new physics model replacing legacy, new UI framework replacing ad-hoc scripts, etc.
+
+**How it works:**
+
+1. The in-flight memory includes the “Migration Fence” section (see template above) with explicit directives
+2. Downstream agents check in-flight memories before starting work (see SessionStart hook and `/dev:next-task`)
+3. If a downstream agent needs to touch the system being migrated, it codes against the **new** interface, not the old one
+4. The new system should be behind a feature toggle until migration completes (see `feature-toggles` skill for the toggle pattern and decision matrix)
+5. Once the migration PR merges and the toggle is flipped, remove the fence from in-flight memory during post-merge cleanup
+
+**Example fence directive:**
+
+> System `LegacyInputManager` is being replaced by `R8EOX.Input` (New Input System). Do NOT add new code using `Input.GetAxis()` or `Input.GetButton()`. Use the new `InputActions` asset and `PlayerInput` component at `Assets/Scripts/Input/`. The new system is gated by `USE_NEW_INPUT_SYSTEM` define until migration completes.
+
 ### Anti-Patterns
 
-| Anti-Pattern | Why It's Bad | Instead |
+| Anti-Pattern | Why It’s Bad | Instead |
 |-------------|-------------|---------|
 | **Dispatching all tasks in parallel without coordination** | Merge conflicts, semantic drift, duplicated work | Serialize tasks with memory bridges between each |
 | **Skipping memory updates between tasks** | Downstream agents lack context, make conflicting decisions | Always update in-flight memories after each subagent reports |
-| **Leaving stale in-flight memories after merge** | Future agents see phantom "in-flight" work that already landed | Delete in-flight entries and update permanent memories after merge |
+| **Leaving stale in-flight memories after merge** | Future agents see phantom “in-flight” work that already landed | Delete in-flight entries and update permanent memories after merge |
 | **Overloading a single subagent with multiple tasks** | Defeats atomicity — large PRs are harder to review and more likely to conflict | One atomic task per subagent |
 
 > **See also:** `.ai/knowledge/architecture/subagent-patterns.md` for real-world failure cases — singleton file bottlenecks, rebase cascade costs, and why “CI green” doesn’t mean “correct.”
@@ -400,6 +442,7 @@ Before dispatching parallel subagents, the main agent MUST perform this analysis
 3. **Verify zero intersection** between all task pairs — no shared files across any two tasks
 4. **Verify no shared infrastructure files** — project settings, shared assembly definitions, root configuration files
 5. **Document the independence analysis** explicitly in the conversation before dispatching
+6. **Check in-flight memories** — read any `project_inflight_*.md` files. If another agent/session has in-flight work on a system that overlaps with any planned task, that task CANNOT be parallelized with the in-flight work. Either wait for the in-flight PR to merge, or sequence your task after it.
 
 If ANY step fails verification, fall back to Sequential Coordination Mode.
 
