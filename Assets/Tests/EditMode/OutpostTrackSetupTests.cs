@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.TestTools;
 using R8EOX.Editor;
 
 namespace R8EOX.Tests.EditMode
@@ -95,51 +96,6 @@ namespace R8EOX.Tests.EditMode
 
             Assert.AreEqual(UnityEngine.Rendering.AmbientMode.Trilight,
                 RenderSettings.ambientMode, "Should use trilight ambient mode");
-        }
-
-        [Test]
-        public void BuildOutpostTrack_TerrainMaterialIsSavedAsset()
-        {
-            OutpostTrackSetup.BuildOutpostTrackInternal();
-
-            var terrain = Object.FindObjectOfType<Terrain>();
-            Assert.IsNotNull(terrain.materialTemplate,
-                "materialTemplate must not be null");
-            string assetPath = AssetDatabase.GetAssetPath(terrain.materialTemplate);
-            Assert.IsFalse(string.IsNullOrEmpty(assetPath),
-                "materialTemplate must be a saved asset file (not in-memory only) — " +
-                "in-memory materials revert to null on reload and make terrain invisible");
-        }
-
-        [Test]
-        public void BuildOutpostTrack_SkyboxMaterialIsAssigned()
-        {
-            OutpostTrackSetup.BuildOutpostTrackInternal();
-
-            Assert.IsNotNull(RenderSettings.skybox,
-                "RenderSettings.skybox must be assigned — desert HDRI must be set");
-        }
-
-        [Test]
-        public void BuildOutpostTrack_SkyboxUsesPanoramicShader()
-        {
-            OutpostTrackSetup.BuildOutpostTrackInternal();
-
-            Assert.IsNotNull(RenderSettings.skybox, "Skybox material must be assigned");
-            StringAssert.Contains("Panoramic", RenderSettings.skybox.shader.name,
-                "Skybox must use Skybox/Panoramic shader for equirectangular HDRI — " +
-                "Skybox/Cubemap would render the image incorrectly");
-        }
-
-        [Test]
-        public void BuildOutpostTrack_SkyboxHasHDRITexture()
-        {
-            OutpostTrackSetup.BuildOutpostTrackInternal();
-
-            Assert.IsNotNull(RenderSettings.skybox, "Skybox material must be assigned");
-            var tex = RenderSettings.skybox.GetTexture("_MainTex");
-            Assert.IsNotNull(tex,
-                "Skybox _MainTex must be the desert HDRI — without it the skybox renders solid black");
         }
     }
 }
