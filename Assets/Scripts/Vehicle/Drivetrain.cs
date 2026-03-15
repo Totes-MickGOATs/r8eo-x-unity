@@ -46,6 +46,13 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _centerFrontBias = 0.35f;
 
 
+        // ---- Private Fields ----
+
+#if UNITY_EDITOR || DEBUG
+        float _debugLogTimer;
+#endif
+
+
         // ---- Public Properties ----
 
         /// <summary>Current drive layout (RWD or AWD).</summary>
@@ -109,6 +116,15 @@ namespace R8EOX.Vehicle
                 ApplyAxleDiff(frontWheels[0], frontWheels[1], frontForce, _frontDiffType, _frontPreload);
                 ApplyAxleDiff(rearWheels[0], rearWheels[1], rearForce, _rearDiffType, _rearPreload);
             }
+
+#if UNITY_EDITOR || DEBUG
+            _debugLogTimer += Time.fixedDeltaTime;
+            if (_debugLogTimer >= 0.5f)
+            {
+                Debug.Log($"[drivetrain] totalForce={engineForce:F2}N fl={frontWheels[0].MotorForceShare:F2}N fr={frontWheels[1].MotorForceShare:F2}N rl={rearWheels[0].MotorForceShare:F2}N rr={rearWheels[1].MotorForceShare:F2}N");
+                _debugLogTimer = 0f;
+            }
+#endif
         }
 
 
