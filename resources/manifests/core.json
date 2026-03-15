@@ -8,5 +8,9 @@
     "Assets/Scripts/Core/R8EOX.Core.asmdef"
   ],
   "dependencies": [],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [],
+    "playmode": []
+  }
 }

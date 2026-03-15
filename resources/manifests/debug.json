@@ -11,5 +11,12 @@
     "Assets/Scripts/Debug/R8EOX.Debug.asmdef"
   ],
   "dependencies": ["vehicle", "input"],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [
+      "ContractDebuggerTests",
+      "WheelTerrainDiagnosticsTests"
+    ],
+    "playmode": []
+  }
 }

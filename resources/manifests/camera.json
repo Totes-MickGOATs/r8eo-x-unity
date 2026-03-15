@@ -10,5 +10,9 @@
     "Assets/Scripts/Camera/R8EOX.Camera.asmdef"
   ],
   "dependencies": [],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [],
+    "playmode": []
+  }
 }

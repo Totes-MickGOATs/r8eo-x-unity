@@ -17,5 +17,16 @@
     "Assets/Scripts/GameFlow/R8EOX.GameFlow.asmdef"
   ],
   "dependencies": ["core"],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [
+      "GameFlowStateMachineTests",
+      "GameFlowManagerTests",
+      "NavigationStackTests",
+      "SceneRegistryTests",
+      "SessionConfigTests",
+      "SceneBootstrapperTests"
+    ],
+    "playmode": []
+  }
 }

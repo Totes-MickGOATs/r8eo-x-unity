@@ -10,5 +10,13 @@
     "Assets/Scripts/Input/R8EOXInputActions.inputactions"
   ],
   "dependencies": [],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [
+      "InputMathTests",
+      "InputProcessingTests",
+      "ZeroInputTests"
+    ],
+    "playmode": []
+  }
 }

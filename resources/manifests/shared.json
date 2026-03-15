@@ -6,5 +6,9 @@
     "Assets/Scripts/Shared/UnitConversion.cs",
     "Assets/Scripts/Shared/R8EOX.Shared.asmdef"
   ],
-  "dependencies": []
+  "dependencies": [],
+  "tests": {
+    "editmode": [],
+    "playmode": []
+  }
 }

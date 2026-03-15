@@ -18,9 +18,25 @@ Manifests can be JSON (engine-agnostic) or `.tres` (Godot-specific).
     "scenes/my_system.tscn"
   ],
   "dependencies": ["other_system"],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": ["MySystemTests"],
+    "playmode": ["MySystemIntegrationTests"]
+  }
 }
 ```
+
+### `tests` Field
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `tests.editmode` | `string[]` | EditMode test class names (without `.cs` extension) owned by this module |
+| `tests.playmode` | `string[]` | PlayMode test class names owned by this module |
+
+Values are test **class names** matching the `.cs` filename without extension.
+Used by `scripts/tools/resolve_module_tests.py` to determine which tests to run
+when files in this module change. Empty arrays are valid (no test coverage declared
+will emit a validator warning if the module has source files).
 
 ### Status Values
 

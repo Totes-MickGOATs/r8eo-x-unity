@@ -7,5 +7,9 @@
     "Assets/Scripts/Track/R8EOX.Track.asmdef"
   ],
   "dependencies": ["core"],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [],
+    "playmode": []
+  }
 }
