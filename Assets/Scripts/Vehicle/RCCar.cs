@@ -111,6 +111,10 @@ namespace R8EOX.Vehicle
         [Tooltip("Centre of mass offset")]
         [SerializeField] private Vector3 _comGround = new Vector3(0f, -0.20f, 0f);
 
+        [Header("Feature Toggles")]
+        [Tooltip("When false, tumble factor is always 0 and physics materials are not blended")]
+        [SerializeField] private bool _enableTumblePhysics = true;
+
         [Header("Crash Physics")]
         [Tooltip("Tilt angle in degrees where tumble blending begins")]
         [SerializeField] private float _tumbleEngageDeg = 50f;
@@ -133,6 +137,12 @@ namespace R8EOX.Vehicle
         public bool IsAirborne { get; private set; }
         public float TumbleFactor { get; private set; }
         public float TiltAngle { get; private set; }
+        /// <summary>Whether tumble physics is enabled. When false, TumbleFactor is always 0.</summary>
+        public bool EnableTumblePhysics
+        {
+            get => _enableTumblePhysics;
+            set => _enableTumblePhysics = value;
+        }
         public bool ReverseEngaged { get; private set; }
         public float ForwardSpeed { get; private set; }
         public MotorPreset ActiveMotorPreset => _motorPreset;
@@ -524,6 +534,14 @@ namespace R8EOX.Vehicle
 
         private void ComputeTumbleFactor()
         {
+            if (!_enableTumblePhysics)
+            {
+                TiltAngle = PhysicsMath.TumbleMath.ComputeTiltAngle(transform.up);
+                TumbleFactor = 0f;
+                _wasTumbling = false;
+                return;
+            }
+
             TiltAngle = PhysicsMath.TumbleMath.ComputeTiltAngle(transform.up);
             TumbleFactor = PhysicsMath.TumbleMath.ComputeTumbleFactor(
                 TiltAngle, IsAirborne, _wasTumbling,
