@@ -5,6 +5,10 @@
   "files": [
     "Assets/Scripts/Editor/SceneSetup.cs",
     "Assets/Scripts/Editor/OutpostTrackSetup.cs",
+    "Assets/Scripts/Editor/TerrainDebug.cs",
+    "Assets/Scripts/Editor/TerrainSpawnCheck.cs",
+    "Assets/Scripts/Editor/RCCarEditor.cs",
+    "Assets/Scripts/Editor/DrivetrainEditor.cs",
     "Assets/Scripts/Editor/R8EOX.Editor.asmdef"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],

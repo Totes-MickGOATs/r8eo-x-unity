@@ -43,6 +43,7 @@ namespace R8EOX.Vehicle
         [Tooltip("Max coupling force for center differential (N)")]
         [SerializeField] private float _centerPreload = 2.0f;
         [Tooltip("0.35 = 35% front / 65% rear torque split")]
+        [Range(0f, 1f)]
         [SerializeField] private float _centerFrontBias = 0.35f;
 
 

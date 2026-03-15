@@ -8,6 +8,10 @@ Editor-only scripts: menu items, debug tools, and scene setup automation. These 
 |------|-------|---------|
 | `SceneSetup.cs` | `SceneSetup` | Menu item to create/configure the TestTrack scene with terrain, lighting, and vehicle |
 | `OutpostTrackSetup.cs` | `OutpostTrackSetup` | Menu item to create/configure the OutpostTrack scene |
+| `TerrainDebug.cs` | `TerrainDebug` | Editor terrain debug visualization utilities |
+| `TerrainSpawnCheck.cs` | `TerrainSpawnCheck` | Editor tool to validate spawn point placement on terrain |
+| `RCCarEditor.cs` | `RCCarEditor` | Custom inspector for RCCar — foldout groups, range sliders, preset warning, degree label |
+| `DrivetrainEditor.cs` | `DrivetrainEditor` | Custom inspector for Drivetrain — hides AWD sections in RWD, disables preload when not BallDiff |
 | `R8EOX.Editor.asmdef` | — | Assembly definition (Editor-only platform) |
 
 ## Conventions
