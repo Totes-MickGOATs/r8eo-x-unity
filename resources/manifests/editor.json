@@ -10,12 +10,13 @@
     "Assets/Scripts/Editor/RCCarEditor.cs",
     "Assets/Scripts/Editor/DrivetrainEditor.cs",
     "Assets/Scripts/Editor/R8EOX.Editor.asmdef",
-    "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr"
+    "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr",
+    "Assets/Scripts/Editor/AddBuggyMaterials.cs"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],
   "replaced_by": "",
   "tests": {
-    "editmode": ["OutpostTrackSetupTests"],
+    "editmode": ["OutpostTrackSetupTests", "BuggyMaterialsTests"],
     "playmode": []
   }
 }

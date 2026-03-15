@@ -8,6 +8,7 @@ Editor-only scripts: menu items, debug tools, and scene setup automation. These 
 |------|-------|---------|
 | `SceneSetup.cs` | `SceneSetup` | Menu item to create/configure the TestTrack scene with terrain, lighting, and vehicle |
 | `OutpostTrackSetup.cs` | `OutpostTrackSetup` | Menu item to create/configure the OutpostTrack scene |
+| `AddBuggyMaterials.cs` | `AddBuggyMaterials` | Menu item to create persistent material assets and assign them to RCBuggy visual meshes |
 | `R8EOX.Editor.asmdef` | — | Assembly definition (Editor-only platform) |
 
 ## Conventions
