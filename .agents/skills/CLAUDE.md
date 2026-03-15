@@ -61,4 +61,5 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `reverse-engineering` | Process | Chain-of-custody debugging, symptom-to-root-cause, decompilation, analysis |
 | `user-interaction-testing` | Quality | Input injection, menu flow mocking, user journey simulation |
 | `user-test-monitoring` | Quality | Observing and analyzing user testing sessions, telemetry, feedback loops |
+| `prompt-coach` | Process | Subagent prompt quality checklist, anti-patterns, template, project-specific patterns |
 | `release-pipeline` | Process | Non-code release deliverables: changelog, store pages, screenshots, press kit, build matrix |
