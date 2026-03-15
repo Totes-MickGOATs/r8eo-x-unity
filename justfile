@@ -365,6 +365,37 @@ worktree-mark-abandoned task:
     echo "--- Tagged wt/done/{{ task }} — safe to clean up ---"
     echo "Run: just worktree-cleanup {{ task }}"
 
+# --- Local Fast-Forward ---
+
+# Fast-forward local main to current branch after successful push (tested commits only)
+ff-main:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BRANCH=$(git branch --show-current)
+    # Safety: must be on a feature branch
+    if [[ "$BRANCH" == "main" || -z "$BRANCH" ]]; then
+        echo "ERROR: Must be on a feature branch, not '$BRANCH'" >&2
+        exit 1
+    fi
+    # Safety: feature branch must be pushed to origin
+    REMOTE_REF=$(git ls-remote --heads origin "$BRANCH" 2>/dev/null | head -1)
+    if [[ -z "$REMOTE_REF" ]]; then
+        echo "ERROR: Branch '$BRANCH' not pushed to origin. Push first (tests must pass)." >&2
+        exit 1
+    fi
+    # Safety: main must be ancestor of HEAD (fast-forward only)
+    if ! git merge-base --is-ancestor main HEAD 2>/dev/null; then
+        echo "ERROR: main is not an ancestor of HEAD. Rebase onto main first." >&2
+        exit 1
+    fi
+    # Fast-forward local main ref to current HEAD
+    OLD_SHA=$(git rev-parse --short main)
+    git update-ref refs/heads/main HEAD
+    NEW_SHA=$(git rev-parse --short main)
+    echo "ff-main: local main fast-forwarded $OLD_SHA -> $NEW_SHA"
+    echo "  Branch: $BRANCH"
+    echo "  Note: Remote main unchanged — PR still required for official merge."
+
 # --- Fast Iteration ---
 
 # Push current branch and create PR in one command
