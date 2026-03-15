@@ -1,33 +1,27 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
-/// Runtime diagnostic script for debugging phantom input issues.
-/// Attach to the car GameObject to log raw axis values and processed input.
-/// Remove after debugging is complete.
+/// Runtime diagnostic script for debugging input issues.
+/// Attach to the car GameObject to log device state and processed input.
 /// </summary>
 public class InputDiagnostics : MonoBehaviour
 {
     void Start()
     {
-        // Log ALL raw joystick axes 0-19
-        for (int i = 0; i < 20; i++)
+        foreach (var device in InputSystem.devices)
+            Debug.Log($"[InputDiag] Device: {device.displayName} ({device.deviceId})");
+
+        if (Gamepad.current != null)
         {
-            float val = Input.GetAxisRaw($"joystick axis {i}");
-            if (Mathf.Abs(val) > 0.001f)
-                Debug.Log($"[InputDiag] STARTUP axis{i}={val:F4}");
+            Debug.Log($"[InputDiag] Gamepad: {Gamepad.current.displayName}");
+            Debug.Log($"[InputDiag] RT={Gamepad.current.rightTrigger.ReadValue():F4}");
+            Debug.Log($"[InputDiag] LT={Gamepad.current.leftTrigger.ReadValue():F4}");
+            Debug.Log($"[InputDiag] LeftStick={Gamepad.current.leftStick.ReadValue()}");
         }
-        // Log named axes
-        string[] axes = { "Horizontal", "Vertical", "RightTrigger", "LeftTrigger", "CombinedTriggers" };
-        foreach (var a in axes)
+        else
         {
-            try
-            {
-                Debug.Log($"[InputDiag] STARTUP {a}={Input.GetAxisRaw(a):F4}");
-            }
-            catch (System.Exception e)
-            {
-                Debug.Log($"[InputDiag] STARTUP {a} axis not found: {e.Message}");
-            }
+            Debug.Log("[InputDiag] No gamepad detected");
         }
     }
 
@@ -40,6 +34,9 @@ public class InputDiagnostics : MonoBehaviour
         var input = GetComponent<R8EOX.Input.RCInput>();
         if (input != null)
             Debug.Log($"[InputDiag] F{_frame} T={input.Throttle:F4} B={input.Brake:F4} S={input.Steer:F4}");
+
+        if (Gamepad.current != null)
+            Debug.Log($"[InputDiag] F{_frame} RT={Gamepad.current.rightTrigger.ReadValue():F4} LT={Gamepad.current.leftTrigger.ReadValue():F4}");
 
         var rb = GetComponent<Rigidbody>();
         if (rb != null)

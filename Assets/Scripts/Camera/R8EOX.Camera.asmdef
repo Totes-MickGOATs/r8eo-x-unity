@@ -1,7 +1,9 @@
 {
     "name": "R8EOX.Camera",
     "rootNamespace": "R8EOX.Camera",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

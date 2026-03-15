@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using R8EOX.Vehicle;
 
 namespace R8EOX.Debug
@@ -27,6 +28,10 @@ namespace R8EOX.Debug
         [Header("Target")]
         [Tooltip("The RC car to display telemetry for")]
         [SerializeField] private RCCar _car;
+
+        [Header("Input")]
+        [Tooltip("Action for toggling the HUD")]
+        [SerializeField] private InputActionReference _toggleAction;
 
         [Header("Display")]
         [Tooltip("Whether the HUD is visible")]
@@ -57,9 +62,21 @@ namespace R8EOX.Debug
             _headerStyle.normal.textColor = Color.yellow;
         }
 
+        void OnEnable()
+        {
+            if (_toggleAction != null && _toggleAction.action != null)
+                _toggleAction.action.Enable();
+        }
+
+        void OnDisable()
+        {
+            if (_toggleAction != null && _toggleAction.action != null)
+                _toggleAction.action.Disable();
+        }
+
         void Update()
         {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.F2))
+            if (_toggleAction != null && _toggleAction.action.WasPressedThisFrame())
                 _showHUD = !_showHUD;
         }
 

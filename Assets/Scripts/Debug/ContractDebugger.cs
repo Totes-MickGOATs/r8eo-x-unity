@@ -54,7 +54,6 @@ namespace R8EOX.Debug
         // ---- Private Fields ----
 
         private IVehicleInput _input;
-        private RCInput _rcInput;
         private Rigidbody _rb;
         private RaycastWheel[] _wheels;
 
@@ -201,32 +200,6 @@ namespace R8EOX.Debug
                     _input.Steer, -1f, 1f, frame);
             }
 
-            // During TriggerDetector Detecting/None: throttle and brake must be 0
-            if (_rcInput != null)
-            {
-                ValidateDetectorModeContracts(frame);
-            }
-
-            // During InputGuard suppression: all inputs must be 0
-            if (InputGuard.ShouldSuppressInput(frame))
-            {
-                if (Mathf.Abs(_input.Throttle) > k_Epsilon)
-                {
-                    LogInputViolation("Throttle non-zero during InputGuard suppression",
-                        _input.Throttle, 0f, 0f, frame);
-                }
-                if (Mathf.Abs(_input.Brake) > k_Epsilon)
-                {
-                    LogInputViolation("Brake non-zero during InputGuard suppression",
-                        _input.Brake, 0f, 0f, frame);
-                }
-                if (Mathf.Abs(_input.Steer) > k_Epsilon)
-                {
-                    LogInputViolation("Steer non-zero during InputGuard suppression",
-                        _input.Steer, 0f, 0f, frame);
-                }
-            }
-
             if (_logAllValues)
             {
                 UnityEngine.Debug.Log($"[ContractDebugger] Input OK frame={frame} " +
@@ -245,11 +218,6 @@ namespace R8EOX.Debug
             if (_car == null) return;
 
             int frame = Time.frameCount;
-
-            // CurrentEngineForce >= 0 (reverse produces negative — that is the design,
-            // but the task spec says >= 0. Checking absolute non-negativity for forward drive.
-            // Note: ESCMath can produce negative engine force for reverse. We check that
-            // engine and brake are not BOTH positive simultaneously instead.)
 
             // CurrentBrakeForce >= 0
             if (_car.CurrentBrakeForce < -k_Epsilon)
@@ -462,30 +430,8 @@ namespace R8EOX.Debug
             if (_car != null)
             {
                 _input = _car.GetComponent<IVehicleInput>();
-                _rcInput = _car.GetComponent<RCInput>();
                 _rb = _car.GetComponent<Rigidbody>();
                 _wheels = _car.GetAllWheels();
-            }
-        }
-
-        private void ValidateDetectorModeContracts(int frame)
-        {
-            var mode = _rcInput.DetectorMode;
-
-            if (mode == TriggerDetector.Mode.Detecting || mode == TriggerDetector.Mode.None)
-            {
-                if (Mathf.Abs(_input.Throttle) > k_Epsilon)
-                {
-                    LogInputViolation(
-                        $"Throttle non-zero during detector mode {mode}",
-                        _input.Throttle, 0f, 0f, frame);
-                }
-                if (Mathf.Abs(_input.Brake) > k_Epsilon)
-                {
-                    LogInputViolation(
-                        $"Brake non-zero during detector mode {mode}",
-                        _input.Brake, 0f, 0f, frame);
-                }
             }
         }
 

@@ -1,12 +1,13 @@
 {
   "name": "input",
-  "description": "Input abstraction for RC buggy: keyboard + gamepad with auto-detection",
+  "description": "Input abstraction for RC buggy using Unity Input System package",
   "status": "ACTIVE",
   "files": [
     "Assets/Scripts/Input/IVehicleInput.cs",
     "Assets/Scripts/Input/InputMath.cs",
     "Assets/Scripts/Input/RCInput.cs",
-    "Assets/Scripts/Input/R8EOX.Input.asmdef"
+    "Assets/Scripts/Input/R8EOX.Input.asmdef",
+    "Assets/Settings/Input/R8EOXInputActions.inputactions"
   ],
   "dependencies": [],
   "replaced_by": ""

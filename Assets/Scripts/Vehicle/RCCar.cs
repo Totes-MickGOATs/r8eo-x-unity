@@ -188,7 +188,7 @@ namespace R8EOX.Vehicle
         // ---- Private Fields ----
 
         private Rigidbody _rb;
-        private R8EOX.Input.RCInput _input;
+        private R8EOX.Input.IVehicleInput _input;
         private RCAirPhysics _airPhysics;
         private Drivetrain _drivetrain;
         private RaycastWheel[] _allWheels;
