@@ -2,13 +2,23 @@
   "mcpServers": {
     "UnityMCP": {
       "command": "npx",
-      "args": ["-y", "@anthropic/unity-mcp@latest"],
+      "args": [
+        "-y",
+        "@anthropic/unity-mcp@latest"
+      ],
       "env": {}
     },
     "coplay-mcp": {
       "command": "npx",
-      "args": ["-y", "coplay-mcp@latest"],
+      "args": [
+        "-y",
+        "coplay-mcp@latest"
+      ],
       "env": {}
+    },
+    "fathom": {
+      "type": "http",
+      "url": "http://localhost:19876/mcp"
     }
   }
 }
