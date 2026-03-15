@@ -6,4 +6,4 @@ Project status tracking: phases, milestones, and system inventory.
 
 | File | Role |
 |------|------|
-| `project-status.md` | Phase checklist and systems inventory |
+| `project-status.md` | Phase checklist, playable milestone kernels (Phases 2-5), task backlogs, and systems inventory |

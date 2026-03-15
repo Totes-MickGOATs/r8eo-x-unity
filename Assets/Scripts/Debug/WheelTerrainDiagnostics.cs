@@ -14,7 +14,6 @@ namespace R8EOX.Debug
 
         const float k_VerySteepThreshold = 0.7f;
         const int k_HighResHeightmap = 513;
-        const int k_FrameBufferSize = 20;
 
 
         // ---- Serialized Fields ----
@@ -29,23 +28,15 @@ namespace R8EOX.Debug
 
         [Header("Suspension Force")]
         [Tooltip("Frame-over-frame suspension force delta (in Newtons) that triggers a spike warning")]
-        [SerializeField] private float _forceSpikeThreshold = 15f;
+        [SerializeField] private float _forceSpikeThreshold = 30f;
 
         [Header("Velocity")]
         [Tooltip("Tire velocity magnitude change (m/s per frame) that triggers a discontinuity warning")]
-        [SerializeField] private float _velocityDiscontinuityThreshold = 0.8f;
+        [SerializeField] private float _velocityDiscontinuityThreshold = 2f;
 
         [Header("Contact Point")]
         [Tooltip("Contact point jump distance (metres per frame) that triggers a warning while grounded")]
-        [SerializeField] private float _contactJumpThreshold = 0.02f;
-
-        [Header("Lateral Force")]
-        [Tooltip("Lateral force magnitude (Newtons) that triggers a spike warning")]
-        [SerializeField] private float _lateralForceSpikeThreshold = 15f;
-
-        [Header("Total Force")]
-        [Tooltip("Total combined force magnitude (Newtons) that triggers a spike warning")]
-        [SerializeField] private float _totalForceSpikeThreshold = 80f;
+        [SerializeField] private float _contactJumpThreshold = 0.05f;
 
         [Header("Ground Flicker")]
         [Tooltip("Number of physics frames in the sliding window for flicker detection")]
@@ -53,10 +44,6 @@ namespace R8EOX.Debug
 
         [Tooltip("Number of ground-state toggles within the window that triggers a flicker warning")]
         [SerializeField] private int _flickerCountThreshold = 3;
-
-        [Header("Frame Buffer")]
-        [Tooltip("Enable per-wheel circular buffer dump when any anomaly triggers")]
-        [SerializeField] private bool _enableFrameDump = true;
 
         [Header("Log Throttle")]
         [Tooltip("Minimum seconds between logs of the same type per wheel to prevent spam")]
@@ -68,19 +55,6 @@ namespace R8EOX.Debug
 
 
         // ---- Nested Types ----
-
-        /// <summary>Per-frame snapshot for the circular buffer.</summary>
-        private struct FrameSnapshot
-        {
-            public Vector3 ContactPoint;
-            public Vector3 ContactNormal;
-            public float SuspensionForce;
-            public float LateralForce;
-            public float TotalForce;
-            public Vector3 TireVelocity;
-            public string HitColliderName;
-            public bool IsOnGround;
-        }
 
         /// <summary>Per-wheel tracking state for frame-over-frame comparisons.</summary>
         private struct WheelState
@@ -94,21 +68,12 @@ namespace R8EOX.Debug
             public bool[] GroundHistory;
             public int GroundHistoryIndex;
 
-            // Frame buffer for dump-on-anomaly
-            public FrameSnapshot[] FrameBuffer;
-            public int FrameBufferIndex;
-            public int FrameBufferCount;
-
             // Per-detection-type cooldown timestamps
             public float LastNormalLogTime;
             public float LastForceLogTime;
             public float LastVelocityLogTime;
             public float LastContactLogTime;
             public float LastFlickerLogTime;
-            public float LastColliderLogTime;
-            public float LastLateralLogTime;
-            public float LastTotalForceLogTime;
-            public float LastFrameDumpLogTime;
         }
 
 
@@ -160,70 +125,19 @@ namespace R8EOX.Debug
                 if (wheel == null) continue;
 
                 ref WheelState state = ref _states[i];
-                bool anomalyTriggered = false;
-                string anomalyReason = null;
 
                 if (wheel.IsOnGround)
                 {
-                    // Collider identification — #1 most important check
-                    if (CheckColliderIdentification(wheel, ref state))
-                    {
-                        anomalyTriggered = true;
-                        anomalyReason = "non-terrain collider";
-                    }
-
-                    if (CheckNormalDeviation(wheel, ref state))
-                    {
-                        anomalyTriggered = true;
-                        anomalyReason ??= "steep normal";
-                    }
-
-                    if (CheckForceSpikeDetection(wheel, ref state))
-                    {
-                        anomalyTriggered = true;
-                        anomalyReason ??= "suspension force spike";
-                    }
-
-                    if (CheckVelocityDiscontinuity(wheel, ref state))
-                    {
-                        anomalyTriggered = true;
-                        anomalyReason ??= "velocity discontinuity";
-                    }
-
-                    if (CheckContactPointJump(wheel, ref state))
-                    {
-                        anomalyTriggered = true;
-                        anomalyReason ??= "contact point jump";
-                    }
-
-                    if (CheckLateralForceSpike(wheel, ref state))
-                    {
-                        anomalyTriggered = true;
-                        anomalyReason ??= "lateral force spike";
-                    }
-
-                    if (CheckTotalForceSpike(wheel, ref state))
-                    {
-                        anomalyTriggered = true;
-                        anomalyReason ??= "total force spike";
-                    }
+                    CheckNormalDeviation(wheel, ref state);
+                    CheckForceSpikeDetection(wheel, ref state);
+                    CheckVelocityDiscontinuity(wheel, ref state);
+                    CheckContactPointJump(wheel, ref state);
 
                     if (_drawContactNormals)
                         DrawContactNormal(wheel);
                 }
 
-                if (CheckGroundFlicker(wheel, ref state))
-                {
-                    anomalyTriggered = true;
-                    anomalyReason ??= "ground flicker";
-                }
-
-                // Record frame to circular buffer
-                RecordFrame(wheel, ref state);
-
-                // Dump buffer on anomaly
-                if (anomalyTriggered && _enableFrameDump)
-                    DumpFrameBuffer(wheel, ref state, anomalyReason);
+                CheckGroundFlicker(wheel, ref state);
 
                 // Store current frame as previous for next frame
                 state.PrevSuspensionForce = wheel.SuspensionForce;
@@ -244,10 +158,7 @@ namespace R8EOX.Debug
                 _states[i] = new WheelState
                 {
                     GroundHistory = new bool[_flickerWindowFrames],
-                    GroundHistoryIndex = 0,
-                    FrameBuffer = new FrameSnapshot[k_FrameBufferSize],
-                    FrameBufferIndex = 0,
-                    FrameBufferCount = 0
+                    GroundHistoryIndex = 0
                 };
             }
         }
@@ -297,126 +208,63 @@ namespace R8EOX.Debug
 
         // ---- Per-Frame Checks ----
 
-        /// <summary>
-        /// Checks if the wheel hit a non-terrain collider. Returns true if anomaly detected.
-        /// </summary>
-        private bool CheckColliderIdentification(RaycastWheel wheel, ref WheelState state)
-        {
-            if (string.IsNullOrEmpty(wheel.HitColliderName)) return false;
-            if (wheel.HitColliderIsTerrain) return false;
-
-            if (!CanLog(ref state.LastColliderLogTime)) return true; // anomaly but throttled
-
-            string layerName = LayerMask.LayerToName(wheel.HitColliderLayer);
-            UnityEngine.Debug.LogWarning(
-                $"[physics] {wheel.name} hit non-terrain collider: \"{wheel.HitColliderName}\" " +
-                $"(layer: {layerName}) at {wheel.ContactPoint}");
-
-            return true;
-        }
-
-        private bool CheckNormalDeviation(RaycastWheel wheel, ref WheelState state)
+        private void CheckNormalDeviation(RaycastWheel wheel, ref WheelState state)
         {
             float normalY = wheel.ContactNormal.y;
-            if (normalY >= _normalDeviationThreshold) return false;
+            if (normalY >= _normalDeviationThreshold) return;
 
-            if (!CanLog(ref state.LastNormalLogTime)) return true;
+            if (!CanLog(ref state.LastNormalLogTime)) return;
 
             UnityEngine.Debug.LogWarning(
                 $"[physics] {wheel.name} hit steep normal ({wheel.ContactNormal}) " +
                 $"at {wheel.ContactPoint} — possible terrain seam");
-
-            return true;
         }
 
-        private bool CheckForceSpikeDetection(RaycastWheel wheel, ref WheelState state)
+        private void CheckForceSpikeDetection(RaycastWheel wheel, ref WheelState state)
         {
             float delta = Mathf.Abs(wheel.SuspensionForce - state.PrevSuspensionForce);
-            if (delta <= _forceSpikeThreshold) return false;
+            if (delta <= _forceSpikeThreshold) return;
 
             // Skip the first frame after landing — damping sanitisation handles that
-            if (!state.PrevIsOnGround) return false;
+            if (!state.PrevIsOnGround) return;
 
-            if (!CanLog(ref state.LastForceLogTime)) return true;
+            if (!CanLog(ref state.LastForceLogTime)) return;
 
             UnityEngine.Debug.LogWarning(
                 $"[suspension] {wheel.name} force spike: {state.PrevSuspensionForce:F1}" +
                 $"→{wheel.SuspensionForce:F1} (Δ{delta:F1}N) at {wheel.ContactPoint}");
-
-            return true;
         }
 
-        private bool CheckVelocityDiscontinuity(RaycastWheel wheel, ref WheelState state)
+        private void CheckVelocityDiscontinuity(RaycastWheel wheel, ref WheelState state)
         {
-            if (!state.PrevIsOnGround) return false;
+            if (!state.PrevIsOnGround) return;
 
             float prevSpeed = state.PrevTireVelocity.magnitude;
             float currentSpeed = wheel.TireVelocity.magnitude;
             float deltaMag = (wheel.TireVelocity - state.PrevTireVelocity).magnitude;
 
-            if (deltaMag <= _velocityDiscontinuityThreshold) return false;
-            if (!CanLog(ref state.LastVelocityLogTime)) return true;
+            if (deltaMag <= _velocityDiscontinuityThreshold) return;
+            if (!CanLog(ref state.LastVelocityLogTime)) return;
 
             UnityEngine.Debug.LogWarning(
                 $"[physics] {wheel.name} velocity discontinuity: {prevSpeed:F2}→{currentSpeed:F2} m/s " +
                 $"(Δ{deltaMag:F2}) at {wheel.ContactPoint}");
-
-            return true;
         }
 
-        private bool CheckContactPointJump(RaycastWheel wheel, ref WheelState state)
+        private void CheckContactPointJump(RaycastWheel wheel, ref WheelState state)
         {
-            if (!state.PrevIsOnGround) return false;
+            if (!state.PrevIsOnGround) return;
 
             float distance = Vector3.Distance(wheel.ContactPoint, state.PrevContactPoint);
-            if (distance <= _contactJumpThreshold) return false;
-            if (!CanLog(ref state.LastContactLogTime)) return true;
+            if (distance <= _contactJumpThreshold) return;
+            if (!CanLog(ref state.LastContactLogTime)) return;
 
             UnityEngine.Debug.LogWarning(
                 $"[physics] {wheel.name} contact point jump: {distance:F3}m in one frame " +
                 $"at {wheel.ContactPoint}");
-
-            return true;
         }
 
-        /// <summary>
-        /// Checks if lateral force exceeds threshold. Returns true if anomaly detected.
-        /// </summary>
-        private bool CheckLateralForceSpike(RaycastWheel wheel, ref WheelState state)
-        {
-            float magnitude = wheel.LateralForceMagnitude;
-            if (magnitude <= _lateralForceSpikeThreshold) return false;
-
-            if (!CanLog(ref state.LastLateralLogTime)) return true;
-
-            UnityEngine.Debug.LogWarning(
-                $"[physics] {wheel.name} lateral force spike: {magnitude:F1}N at {wheel.ContactPoint}");
-
-            return true;
-        }
-
-        /// <summary>
-        /// Checks if total combined force exceeds threshold. Returns true if anomaly detected.
-        /// </summary>
-        private bool CheckTotalForceSpike(RaycastWheel wheel, ref WheelState state)
-        {
-            float magnitude = wheel.TotalForceMagnitude;
-            if (magnitude <= _totalForceSpikeThreshold) return false;
-
-            if (!CanLog(ref state.LastTotalForceLogTime)) return true;
-
-            float suspForce = wheel.SuspensionForce;
-            float latForce = wheel.LateralForceMagnitude;
-            float longForce = magnitude; // approximation for log
-
-            UnityEngine.Debug.LogWarning(
-                $"[physics] {wheel.name} total force spike: {magnitude:F1}N " +
-                $"(susp={suspForce:F1} lat={latForce:F1}) at {wheel.ContactPoint}");
-
-            return true;
-        }
-
-        private bool CheckGroundFlicker(RaycastWheel wheel, ref WheelState state)
+        private void CheckGroundFlicker(RaycastWheel wheel, ref WheelState state)
         {
             // Record current ground state in ring buffer
             state.GroundHistory[state.GroundHistoryIndex] = wheel.IsOnGround;
@@ -432,61 +280,12 @@ namespace R8EOX.Debug
                     toggleCount++;
             }
 
-            if (toggleCount < _flickerCountThreshold) return false;
-            if (!CanLog(ref state.LastFlickerLogTime)) return true;
+            if (toggleCount < _flickerCountThreshold) return;
+            if (!CanLog(ref state.LastFlickerLogTime)) return;
 
             UnityEngine.Debug.LogWarning(
                 $"[physics] {wheel.name} ground contact flickering — {toggleCount} toggles " +
                 $"in {_flickerWindowFrames} frames at {wheel.transform.position}");
-
-            return true;
-        }
-
-
-        // ---- Frame Buffer ----
-
-        private void RecordFrame(RaycastWheel wheel, ref WheelState state)
-        {
-            state.FrameBuffer[state.FrameBufferIndex] = new FrameSnapshot
-            {
-                ContactPoint = wheel.ContactPoint,
-                ContactNormal = wheel.ContactNormal,
-                SuspensionForce = wheel.SuspensionForce,
-                LateralForce = wheel.LateralForceMagnitude,
-                TotalForce = wheel.TotalForceMagnitude,
-                TireVelocity = wheel.TireVelocity,
-                HitColliderName = wheel.HitColliderName ?? "",
-                IsOnGround = wheel.IsOnGround
-            };
-            state.FrameBufferIndex = (state.FrameBufferIndex + 1) % k_FrameBufferSize;
-            if (state.FrameBufferCount < k_FrameBufferSize)
-                state.FrameBufferCount++;
-        }
-
-        private void DumpFrameBuffer(RaycastWheel wheel, ref WheelState state, string reason)
-        {
-            if (!CanLog(ref state.LastFrameDumpLogTime)) return;
-            if (state.FrameBufferCount == 0) return;
-
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"[physics] {wheel.name} FRAME DUMP (trigger: {reason}):");
-
-            int start = (state.FrameBufferIndex - state.FrameBufferCount + k_FrameBufferSize)
-                        % k_FrameBufferSize;
-
-            for (int i = 0; i < state.FrameBufferCount; i++)
-            {
-                int idx = (start + i) % k_FrameBufferSize;
-                var snap = state.FrameBuffer[idx];
-                int frameOffset = i - state.FrameBufferCount;
-                sb.AppendLine(
-                    $"  frame {frameOffset}: pos={snap.ContactPoint} n={snap.ContactNormal} " +
-                    $"susp={snap.SuspensionForce:F1} lat={snap.LateralForce:F1} " +
-                    $"total={snap.TotalForce:F1} vel={snap.TireVelocity} " +
-                    $"collider=\"{snap.HitColliderName}\" grounded={snap.IsOnGround}");
-            }
-
-            UnityEngine.Debug.Log(sb.ToString());
         }
 
 

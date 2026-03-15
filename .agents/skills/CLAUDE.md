@@ -55,8 +55,10 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `unity-e2e-testing` | Quality | End-to-end testing automation, testing pyramid, full gameplay flow validation |
 | `clean-room-qa` | Quality | Black-box testing with zero implementation knowledge, domain-physics-derived assertions |
 | `branch-workflow` | Process | Merge queue, worktree recipes, PR lifecycle, CI/CD, branch protection |
+| `changelog` | Process | Changelog generation from conventional commits, community/store announcement templates |
 | `debug-system` | Process | Debug overlays, logging, diagnostic tools, runtime inspection |
 | `physics-conformance-audit` | Quality | 93 conformance checks across 12 categories, tolerance tiers, SQLite persistence |
 | `reverse-engineering` | Process | Chain-of-custody debugging, symptom-to-root-cause, decompilation, analysis |
 | `user-interaction-testing` | Quality | Input injection, menu flow mocking, user journey simulation |
 | `user-test-monitoring` | Quality | Observing and analyzing user testing sessions, telemetry, feedback loops |
+| `release-pipeline` | Process | Non-code release deliverables: changelog, store pages, screenshots, press kit, build matrix |

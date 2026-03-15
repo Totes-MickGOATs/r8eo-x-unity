@@ -1,9 +1,9 @@
 {
   "generated": "2026-03-14",
-  "total_tests": 333,
+  "total_tests": 327,
   "categories": {
     "Vehicle/Physics": {
-      "test_count": 107,
+      "test_count": 101,
       "source_files": 6
     },
     "Vehicle/ESC": {
