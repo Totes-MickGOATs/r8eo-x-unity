@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
+using R8EOX.Shared;
 using R8EOX.Vehicle;
 
 namespace R8EOX.Editor
@@ -102,11 +103,15 @@ namespace R8EOX.Editor
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginDisabledGroup(!isCustom);
-                EditorGUILayout.PropertyField(_engineForceMax,  new GUIContent("Engine Force Max (N)"));
-                EditorGUILayout.PropertyField(_maxSpeed,        new GUIContent("Max Speed (m/s)"));
-                EditorGUILayout.PropertyField(_brakeForce,      new GUIContent("Brake Force (N)"));
-                EditorGUILayout.PropertyField(_reverseForce,    new GUIContent("Reverse Force (N)"));
-                EditorGUILayout.PropertyField(_coastDrag,       new GUIContent("Coast Drag (N)"));
+                UnitField(_engineForceMax, "Engine Force Max", "kgf", "N",
+                    UnitConversion.NToKgf, UnitConversion.KgfToN);
+                UnitField(_maxSpeed, "Max Speed", "km/h", "m/s",
+                    UnitConversion.MsToKmh, UnitConversion.KmhToMs);
+                UnitField(_brakeForce, "Brake Force", "kgf", "N",
+                    UnitConversion.NToKgf, UnitConversion.KgfToN);
+                UnitField(_reverseForce, "Reverse Force", "kgf", "N",
+                    UnitConversion.NToKgf, UnitConversion.KgfToN);
+                EditorGUILayout.PropertyField(_coastDrag, new GUIContent("Coast Drag (N)"));
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
             }
@@ -128,9 +133,8 @@ namespace R8EOX.Editor
             if (foldSteering)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_steeringMax, new GUIContent("Steering Max (rad)"));
-                float deg = _steeringMax.floatValue * Mathf.Rad2Deg;
-                EditorGUILayout.LabelField(" ", $"= {deg:F1}°", EditorStyles.miniLabel);
+                UnitField(_steeringMax, "Steering Max", "deg", "rad",
+                    UnitConversion.RadToDeg, UnitConversion.DegToRad);
                 EditorGUILayout.PropertyField(_steeringSpeed,      new GUIContent("Steering Speed (rad/s)"));
                 EditorGUILayout.PropertyField(_steeringSpeedLimit, new GUIContent("Speed Limit (m/s)"));
                 EditorGUILayout.Slider(_steeringHighSpeedFactor,   0f, 1f,
@@ -143,7 +147,8 @@ namespace R8EOX.Editor
             if (foldSuspension)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_springStrength, new GUIContent("Spring Strength (N/m)"));
+                UnitField(_springStrength, "Spring Strength", "N/mm", "N/m",
+                    UnitConversion.NmToNmm, UnitConversion.NmmToNm);
                 EditorGUILayout.PropertyField(_springDamping,  new GUIContent("Spring Damping"));
                 EditorGUI.indentLevel--;
             }
@@ -192,6 +197,27 @@ namespace R8EOX.Editor
             if (next != current)
                 SessionState.SetBool(key, next);
             return next;
+        }
+
+        /// <summary>
+        /// Draws an editable field in human-friendly display units alongside a
+        /// grayed-out read-only label showing the raw internal value.
+        /// Layout: [ displayValue ] displayUnit  ░ internalValue internalUnit
+        /// </summary>
+        static void UnitField(SerializedProperty prop, string label, string displayUnit, string internalUnit,
+            System.Func<float, float> toDisplay, System.Func<float, float> toInternal)
+        {
+            float displayVal = toDisplay(prop.floatValue);
+            EditorGUILayout.BeginHorizontal();
+            float newDisplay = EditorGUILayout.FloatField(new GUIContent(label), displayVal);
+            GUILayout.Label(displayUnit, GUILayout.Width(36));
+            GUI.enabled = false;
+            EditorGUILayout.FloatField(prop.floatValue, GUILayout.Width(60));
+            GUI.enabled = true;
+            GUILayout.Label(internalUnit, GUILayout.Width(30));
+            EditorGUILayout.EndHorizontal();
+            if (!Mathf.Approximately(newDisplay, displayVal))
+                prop.floatValue = toInternal(newDisplay);
         }
     }
 }

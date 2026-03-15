@@ -7,6 +7,7 @@
         "R8EOX.Debug",
         "R8EOX.GameFlow",
         "R8EOX.UI",
+        "R8EOX.Shared",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework"
     ],
