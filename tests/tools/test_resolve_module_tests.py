@@ -177,6 +177,50 @@ class TestExpandWithDependents:
 # Tests: collect_tests
 # ---------------------------------------------------------------------------
 
+class TestManifestName:
+    def test_name_key_preferred(self):
+        assert rmt._manifest_name({"name": "foo", "system": "bar"}) == "foo"
+
+    def test_system_key_fallback(self):
+        assert rmt._manifest_name({"system": "bar"}) == "bar"
+
+    def test_empty_manifest_returns_empty_string(self):
+        assert rmt._manifest_name({}) == ""
+
+
+class TestExpandWithDependencies:
+    def test_editor_module_expands_to_include_dependencies(self):
+        result = rmt.expand_with_dependencies({"editor"}, FIXTURE_MANIFESTS)
+        assert result >= {"editor", "vehicle", "input", "camera", "debug"}
+
+    def test_leaf_module_with_no_deps_stays_singleton(self):
+        result = rmt.expand_with_dependencies({"input"}, FIXTURE_MANIFESTS)
+        assert result == {"input"}
+
+    def test_multiple_modules_union_of_their_deps(self):
+        result = rmt.expand_with_dependencies({"editor", "vehicle"}, FIXTURE_MANIFESTS)
+        assert "editor" in result
+        assert "vehicle" in result
+        assert "input" in result  # vehicle dep
+        assert "core" in result   # vehicle dep
+        assert "camera" in result  # editor dep
+        assert "debug" in result   # editor dep
+
+    def test_does_not_transitively_follow_deps(self):
+        """Only direct deps are added, not transitive deps-of-deps."""
+        # debug depends on [vehicle, input]; vehicle depends on [input, core]
+        # expand_with_dependencies(debug) should add vehicle + input but NOT core
+        result = rmt.expand_with_dependencies({"debug"}, FIXTURE_MANIFESTS)
+        assert "vehicle" in result
+        assert "input" in result
+        # core is a dep-of-dep, not direct — should NOT be included
+        assert "core" not in result
+
+    def test_empty_set_stays_empty(self):
+        result = rmt.expand_with_dependencies(set(), FIXTURE_MANIFESTS)
+        assert result == set()
+
+
 class TestCollectTests:
     def test_vehicle_module_includes_suspension_tests(self):
         editmode, playmode = rmt.collect_tests({"vehicle"}, FIXTURE_MANIFESTS)
@@ -259,3 +303,56 @@ class TestResolve:
         )
         assert playmode == []
         assert len(editmode) > 0
+
+    def test_editor_file_without_with_dependencies_returns_no_tests(self):
+        """Editor has empty test list; without --with-dependencies no tests are returned."""
+        changed = ["Assets/Scripts/Editor/SceneSetup.cs"]
+        modules, editmode, playmode = rmt.resolve(
+            changed, FIXTURE_MANIFESTS, transitive=True, with_dependencies=False
+        )
+        # Editor is matched but has no tests; its reverse-deps (none) add nothing
+        assert "editor" in modules
+        assert editmode == []
+        assert playmode == []
+
+    def test_editor_file_with_with_dependencies_includes_vehicle_tests(self):
+        """With --with-dependencies, editor changes pull in vehicle + debug + input tests."""
+        changed = ["Assets/Scripts/Editor/SceneSetup.cs"]
+        modules, editmode, playmode = rmt.resolve(
+            changed, FIXTURE_MANIFESTS, transitive=True, with_dependencies=True
+        )
+        assert "editor" in modules
+        assert "vehicle" in modules
+        assert "debug" in modules
+        assert "input" in modules
+        assert "SuspensionMathTests" in editmode
+        assert "ContractDebuggerTests" in editmode
+        assert "InputMathTests" in editmode
+        assert "VehicleIntegrationTests" in playmode
+
+    def test_with_dependencies_does_not_duplicate_tests(self):
+        """When vehicle is already in the expansion, --with-dependencies should not duplicate its tests."""
+        # vehicle depends on input and core; debug depends on vehicle and input
+        # Changing a debug file expands to include editor (reverse dep of debug)
+        # with_dependencies on editor adds vehicle+input+camera+debug (already present)
+        changed = ["Assets/Scripts/Debug/ContractDebugger.cs"]
+        modules, editmode, playmode = rmt.resolve(
+            changed, FIXTURE_MANIFESTS, transitive=True, with_dependencies=True
+        )
+        assert len(editmode) == len(set(editmode)), "Duplicate EditMode tests found"
+        assert len(playmode) == len(set(playmode)), "Duplicate PlayMode tests found"
+
+    def test_with_dependencies_is_additive_to_transitive_expansion(self):
+        """--with-dependencies adds deps; transitive dependent expansion still applies."""
+        # Changing an input file: transitive expansion includes vehicle, debug, editor
+        # with_dependencies: editor's deps (vehicle, input, camera, debug) — already present
+        # vehicle's deps (input, core) — core is new
+        changed = ["Assets/Scripts/Input/InputMath.cs"]
+        modules_plain, _, _ = rmt.resolve(
+            changed, FIXTURE_MANIFESTS, transitive=True, with_dependencies=False
+        )
+        modules_with, _, _ = rmt.resolve(
+            changed, FIXTURE_MANIFESTS, transitive=True, with_dependencies=True
+        )
+        # with_dependencies is a superset of the plain result
+        assert modules_plain.issubset(modules_with)
