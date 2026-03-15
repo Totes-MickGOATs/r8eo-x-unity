@@ -7,7 +7,7 @@
     "Assets/Scripts/Input/InputMath.cs",
     "Assets/Scripts/Input/RCInput.cs",
     "Assets/Scripts/Input/R8EOX.Input.asmdef",
-    "Assets/Settings/Input/R8EOXInputActions.inputactions"
+    "Assets/Scripts/Input/R8EOXInputActions.inputactions"
   ],
   "dependencies": [],
   "replaced_by": ""

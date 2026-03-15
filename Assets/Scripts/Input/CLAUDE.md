@@ -11,6 +11,8 @@ Input processing pipeline: raw Unity input axes to vehicle commands (throttle, b
 | `InputMath.cs` | `InputMath` | Pure math: deadzone remapping and steering curve application |
 | `InputGuard.cs` | `InputGuard` | Startup suppression — zeroes input for the first few frames to avoid stale axis values |
 | `TriggerDetector.cs` | `TriggerDetector` | Gamepad trigger mode detection (Separate vs Combined vs None) with grace period and confirmation |
+| `R8EOXInputActions.inputactions` | — | Unity Input System actions asset (generated wrapper: `R8EOXInputActions.cs`) |
+| `R8EOXInputActions.cs` | `R8EOXInputActions` | Auto-generated C# wrapper for the input actions asset |
 | `R8EOX.Input.asmdef` | — | Assembly definition for the Input system |
 
 ## Architecture
