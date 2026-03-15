@@ -57,7 +57,7 @@ namespace R8EOX.Editor
             ConfigureTerrain(terrainGO);
 
             // Save the TerrainData as an asset
-            AssetDatabase.CreateAsset(terrainData, k_TerrainDataAsset);
+            SaveOrReplaceAsset(terrainData, k_TerrainDataAsset);
             AssetDatabase.SaveAssets();
 
             SetupDesertEnvironment();
@@ -66,6 +66,20 @@ namespace R8EOX.Editor
             UnityEngine.Debug.Log($"  Terrain: {k_TerrainWidth}x{k_TerrainLength}m, height={k_TerrainHeight}m");
             UnityEngine.Debug.Log($"  Heightmap: {k_HeightmapRes}x{k_HeightmapRes}");
             Selection.activeGameObject = terrainGO;
+        }
+
+
+        // ---- Helpers ----
+
+        /// <summary>
+        /// Deletes any existing asset at <paramref name="assetPath"/> before creating
+        /// the new one, so re-runs don't fail with "asset already exists" errors.
+        /// </summary>
+        static void SaveOrReplaceAsset(UnityEngine.Object obj, string assetPath)
+        {
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath) != null)
+                AssetDatabase.DeleteAsset(assetPath);
+            AssetDatabase.CreateAsset(obj, assetPath);
         }
 
 
@@ -135,7 +149,7 @@ namespace R8EOX.Editor
             for (int i = 0; i < layers.Length; i++)
             {
                 string layerPath = $"{k_DataPath}/TerrainLayer_{layers[i].name}.asset";
-                AssetDatabase.CreateAsset(layers[i], layerPath);
+                SaveOrReplaceAsset(layers[i], layerPath);
             }
 
             terrainData.terrainLayers = layers;
@@ -317,8 +331,8 @@ namespace R8EOX.Editor
         static void SetupDesertEnvironment()
         {
             // ---- Skybox ----
-            Cubemap hdriCubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(k_SkyboxHdriPath);
-            if (hdriCubemap == null)
+            Texture2D hdriTex = AssetDatabase.LoadAssetAtPath<Texture2D>(k_SkyboxHdriPath);
+            if (hdriTex == null)
             {
                 UnityEngine.Debug.LogWarning(
                     "[OutpostTrack] Desert HDRI not found at " + k_SkyboxHdriPath +
@@ -326,12 +340,14 @@ namespace R8EOX.Editor
             }
             else
             {
-                Material skyboxMat = new Material(Shader.Find("Skybox/Cubemap"));
-                skyboxMat.SetTexture("_Tex", hdriCubemap);
+                Material skyboxMat = new Material(Shader.Find("Skybox/Panoramic"));
+                skyboxMat.SetTexture("_MainTex", hdriTex);
                 skyboxMat.SetFloat("_Exposure", 1.0f);
-                AssetDatabase.CreateAsset(skyboxMat, k_SkyboxMaterialPath);
+                skyboxMat.SetFloat("_Mapping", 1f); // 1 = Latitude Longitude Layout
+                skyboxMat.SetFloat("_ImageType", 0f); // 0 = 360 degrees
+                SaveOrReplaceAsset(skyboxMat, k_SkyboxMaterialPath);
                 RenderSettings.skybox = skyboxMat;
-                UnityEngine.Debug.Log("[OutpostTrack] Desert HDRI skybox applied.");
+                UnityEngine.Debug.Log("[OutpostTrack] Desert HDRI panoramic skybox applied.");
             }
 
             // ---- Fog ----
