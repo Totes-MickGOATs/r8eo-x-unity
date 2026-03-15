@@ -7,7 +7,8 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 | File | Role |
 |------|------|
 | `validate_claude_md.py` | Check CLAUDE.md freshness against directory git dates |
-| `validate_registry.py` | Validate system manifests (JSON + .tres) against disk |
+| `validate_registry.py` | Validate system manifests (JSON + .tres) against disk; checks `tests` field ownership and file existence |
+| `resolve_module_tests.py` | Resolve which test classes to run given a list of changed files (module-based test gating) |
 | `test_coverage_report.py` | Track per-category test coverage with baseline comparison |
 
 ## Notes
