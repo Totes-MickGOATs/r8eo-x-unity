@@ -14,10 +14,10 @@ namespace R8EOX.Vehicle
         // ---- Constants ----
 
         const int k_AirborneThreshold = 5;
-        const float k_DefaultMass = 1.5f;
+        const float k_DefaultMass = 15.0f;
         const float k_DefaultAngularDrag = 0.05f;
         const float k_DefaultBounciness = 0.05f;
-        const float k_FlipHeightOffset = 1.4f;
+        const float k_FlipHeightOffset = 5.6f;
         const float k_ReverseSpeedThreshold = 0.25f;
         const float k_ForwardSpeedClearThreshold = 0.50f;
         const float k_ReverseBrakeMinThreshold = 0.1f;
@@ -54,12 +54,12 @@ namespace R8EOX.Vehicle
 
         static readonly MotorData[] k_MotorPresets =
         {
-            new MotorData(15.5f, 13.2f,  8.5f, 2.0f, 13f, 3.0f),  // 21.5T
-            new MotorData(18.0f, 15.3f,  9.9f, 2.5f, 20f, 4.0f),  // 17.5T
-            new MotorData(26.0f, 22.1f, 14.3f, 3.0f, 27f, 5.5f),  // 13.5T
-            new MotorData(34.0f, 28.9f, 18.7f, 3.5f, 34f, 7.0f),  // 9.5T
-            new MotorData(44.0f, 37.4f, 24.2f, 4.0f, 44f, 9.0f),  // 5.5T
-            new MotorData(56.0f, 47.6f, 30.8f, 5.0f, 56f, 12.0f), // 1.5T
+            new MotorData(155f, 132f,  85f, 20f, 13f, 3.0f),  // 21.5T
+            new MotorData(180f, 153f,  99f, 25f, 20f, 4.0f),  // 17.5T
+            new MotorData(260f, 221f, 143f, 30f, 27f, 5.5f),  // 13.5T
+            new MotorData(340f, 289f, 187f, 35f, 34f, 7.0f),  // 9.5T
+            new MotorData(440f, 374f, 242f, 40f, 44f, 9.0f),  // 5.5T
+            new MotorData(560f, 476f, 308f, 50f, 56f, 12.0f), // 1.5T
         };
 
 
@@ -71,15 +71,15 @@ namespace R8EOX.Vehicle
 
         [Header("Engine")]
         [Tooltip("Peak driving force in Newtons")]
-        [SerializeField] private float _engineForceMax = 26f;
+        [SerializeField] private float _engineForceMax = 260f;
         [Tooltip("Maximum speed in m/s")]
         [SerializeField] private float _maxSpeed = 27f;
         [Tooltip("Braking force in Newtons (~85% of engine)")]
-        [SerializeField] private float _brakeForce = 22.1f;
+        [SerializeField] private float _brakeForce = 221f;
         [Tooltip("Reverse force in Newtons (~55% of forward)")]
-        [SerializeField] private float _reverseForce = 14.3f;
+        [SerializeField] private float _reverseForce = 143f;
         [Tooltip("Drivetrain drag force while coasting in Newtons")]
-        [SerializeField] private float _coastDrag = 3.0f;
+        [SerializeField] private float _coastDrag = 30f;
 
         [Header("Throttle Response")]
         [Tooltip("Ramp rate from 0 to 1 in units/sec")]
@@ -100,9 +100,9 @@ namespace R8EOX.Vehicle
 
         [Header("Suspension")]
         [Tooltip("Spring stiffness in N/m (distributed across all wheels)")]
-        [SerializeField] private float _springStrength = 75f;
+        [SerializeField] private float _springStrength = 187.5f;
         [Tooltip("Damping coefficient")]
-        [SerializeField] private float _springDamping = 4.25f;
+        [SerializeField] private float _springDamping = 10.625f;
 
         [Header("Traction")]
         [Tooltip("Global grip multiplier (0-1)")]
@@ -111,7 +111,7 @@ namespace R8EOX.Vehicle
 
         [Header("Centre of Mass")]
         [Tooltip("Centre of mass offset")]
-        [SerializeField] private Vector3 _comGround = new Vector3(0f, -0.20f, 0f);
+        [SerializeField] private Vector3 _comGround = new Vector3(0f, -0.80f, 0f);
 
         [Header("Crash Physics")]
         [Tooltip("Tilt angle in degrees where tumble blending begins")]

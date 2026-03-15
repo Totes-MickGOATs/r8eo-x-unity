@@ -10,7 +10,7 @@ namespace R8EOX.Vehicle
     {
         // ---- Constants ----
 
-        const float k_DiffStiffness = 500f;
+        const float k_DiffStiffness = 5000f;
 
 
         // ---- Enums ----
@@ -29,19 +29,19 @@ namespace R8EOX.Vehicle
         [Tooltip("Rear axle differential type")]
         [SerializeField] private DiffType _rearDiffType = DiffType.Open;
         [Tooltip("Max coupling force the rear ball diff transfers between wheels (N)")]
-        [SerializeField] private float _rearPreload = 5.0f;
+        [SerializeField] private float _rearPreload = 50.0f;
 
         [Header("Front Differential")]
         [Tooltip("Front axle differential type")]
         [SerializeField] private DiffType _frontDiffType = DiffType.Open;
         [Tooltip("Max coupling force for front differential (N)")]
-        [SerializeField] private float _frontPreload = 1.0f;
+        [SerializeField] private float _frontPreload = 10.0f;
 
         [Header("Center Differential (AWD only)")]
         [Tooltip("Center differential type for AWD torque distribution")]
         [SerializeField] private DiffType _centerDiffType = DiffType.Open;
         [Tooltip("Max coupling force for center differential (N)")]
-        [SerializeField] private float _centerPreload = 2.0f;
+        [SerializeField] private float _centerPreload = 20.0f;
         [Tooltip("0.35 = 35% front / 65% rear torque split")]
         [Range(0f, 1f)]
         [SerializeField] private float _centerFrontBias = 0.35f;
