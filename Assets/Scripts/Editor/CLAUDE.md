@@ -8,10 +8,6 @@ Editor-only scripts: menu items, debug tools, and scene setup automation. These 
 |------|-------|---------|
 | `SceneSetup.cs` | `SceneSetup` | Menu item to create/configure the TestTrack scene with terrain, lighting, and vehicle |
 | `OutpostTrackSetup.cs` | `OutpostTrackSetup` | Menu item to create/configure the OutpostTrack scene |
-| `TerrainDebug.cs` | `TerrainDebug` | Editor terrain debug visualization utilities |
-| `TerrainSpawnCheck.cs` | `TerrainSpawnCheck` | Editor tool to validate spawn point placement on terrain |
-| `RCCarEditor.cs` | `RCCarEditor` | Custom inspector for RCCar — foldout groups, range sliders, preset warning, unit-converted fields (km/h, kgf, deg, N/mm) |
-| `DrivetrainEditor.cs` | `DrivetrainEditor` | Custom inspector for Drivetrain — hides AWD sections in RWD, disables preload when not BallDiff |
 | `R8EOX.Editor.asmdef` | — | Assembly definition (Editor-only platform) |
 
 ## Conventions
@@ -19,7 +15,6 @@ Editor-only scripts: menu items, debug tools, and scene setup automation. These 
 - Namespace: `R8EOX.Editor`
 - All scripts use `[MenuItem]` attributes for Unity menu integration
 - Assembly definition targets Editor platform only — excluded from player builds
-- `RCCarEditor` depends on `R8EOX.Shared` (`Assets/Scripts/Shared/`) for unit conversion helpers — no UnityEditor code lives in Shared
 
 ## Editor Script Rules (Mandatory)
 
@@ -91,6 +86,30 @@ public void BuildMethod_CalledTwice_ProducesNoErrors()
     MyEditorSetup.BuildMethod(); // second call must not throw or log errors
 }
 ```
+
+### 4. Never assign `new Material()` or any unsaved object to a serialized scene field
+
+`new Material(shader)` creates an in-memory object with no asset GUID. Unity cannot serialize
+a GUID-less object into a scene file, so the field silently saves as null and reverts to null
+on every domain reload — terrain becomes invisible, components lose their material, etc.
+
+**Always save the object as an asset file before assigning it:**
+
+```csharp
+// BAD — reverts to null on reload:
+terrain.materialTemplate = new Material(shader);
+
+// GOOD — survives reload:
+var mat = AssetDatabase.LoadAssetAtPath<Material>(k_TerrainMaterialPath);
+if (mat == null) { mat = new Material(shader); SaveOrReplaceAsset(mat, k_TerrainMaterialPath); }
+else             { mat.shader = shader; EditorUtility.SetDirty(mat); }
+terrain.materialTemplate = mat;
+EditorUtility.SetDirty(terrain);
+AssetDatabase.SaveAssets();
+```
+
+This applies to Materials, ScriptableObjects, and any other Unity object assigned to a
+`[SerializeField]` or public field that Unity serializes into the scene.
 
 ## Relevant Skills
 
