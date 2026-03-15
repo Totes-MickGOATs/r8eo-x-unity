@@ -6,6 +6,7 @@
     "Assets/Scripts/Debug/TelemetryHUD.cs",
     "Assets/Scripts/Debug/TuningPanel.cs",
     "Assets/Scripts/Debug/ContractDebugger.cs",
+    "Assets/Scripts/Debug/WheelTerrainDiagnostics.cs",
     "Assets/Scripts/Debug/R8EOX.Debug.asmdef"
   ],
   "dependencies": ["vehicle", "input"],
