@@ -1,6 +1,6 @@
 # Unity Design Patterns
 
-Use this skill when choosing, implementing, or combining design patterns in Unity. Covers 11 patterns with RC racing examples, Unity-specific implementation details, and guidance on when each pattern helps vs. when it is overkill.
+Use this skill when choosing, implementing, or combining design patterns in Unity. Covers SOLID principles and 11 patterns with RC racing examples, Unity-specific implementation details, advanced combination techniques, and guidance on when each pattern helps vs. when it is overkill.
 
 ---
 
@@ -1038,6 +1038,35 @@ Patterns frequently combine. Each row shows a proven combination with an RC raci
 | State + Observer | State machine fires `OnStateChanged` for UI/audio reactions | Vehicle state change notifies HUD (show "AIRBORNE" label) and audio (switch engine sound) |
 | Factory + Strategy | Factory selects creation strategy based on config | Vehicle factory uses different assembly strategies for buggy vs. truck vs. truggy |
 | Observer + SO Event Channel | SO-based events decouple across scenes | `OnRaceFinished` SO channel notifies both in-race HUD and post-race results scene |
+| Observer + Command (buffering) | Buffer high-frequency events into a throttled command queue | 1000 particles hitting surfaces queue sound commands; audio system processes N per frame to prevent spikes |
+
+### Advanced Tip: Observer + Command Buffering
+
+When many objects fire events simultaneously (e.g., 1000 particles triggering sound effects, or dozens of collisions in a single physics step), naive Observer handling creates performance spikes. Combine Observer with Command pattern: buffer incoming events into a command queue and process them throttled per frame. This prevents audio channel exhaustion, rendering spikes, or physics overload from burst events.
+
+```csharp
+public class ThrottledEventProcessor : MonoBehaviour
+{
+    private readonly Queue<ICommand> _pendingCommands = new();
+    private const int MaxCommandsPerFrame = 8;
+
+    // Called by Observer subscription -- buffers instead of executing immediately
+    public void EnqueueCommand(ICommand command)
+    {
+        _pendingCommands.Enqueue(command);
+    }
+
+    private void Update()
+    {
+        int processed = 0;
+        while (_pendingCommands.Count > 0 && processed < MaxCommandsPerFrame)
+        {
+            _pendingCommands.Dequeue().Execute();
+            processed++;
+        }
+    }
+}
+```
 
 ---
 
@@ -1103,6 +1132,17 @@ public abstract class RuntimeSetSO<T> : ScriptableObject
 ```
 
 This applies to any SO that accumulates runtime state. Without this cleanup, re-entering Play Mode starts with stale data from the previous run.
+
+---
+
+## Source References
+
+| Resource | URL |
+|----------|-----|
+| Free e-book (100 pages) | `https://unity.com/resources/games/level-up-your-code-with-game-programming-patterns` |
+| GitHub sample project | `https://github.com/Unity-Technologies/game-programming-patterns-demo` |
+| Unity Learn course (Unity 6) | `https://learn.unity.com/course/design-patterns-unity-6` |
+| SOLID talk (Unite Austin 2017) | `https://www.youtube.com/watch?v=eIf3-aDTOOA` |
 
 ---
 
