@@ -8,9 +8,9 @@ Claude Code event hooks. These run automatically at various lifecycle points.
 |------|------------|------|
 | `lint-on-save.sh` | PostToolUse (Edit/Write) | Lint saved files, dispatch to engine-specific linter |
 | `lint-session-stop.sh` | SessionEnd | Full lint sweep report at end of session |
-| `pre-compact-context.sh` | PreCompact | Capture branch/PR state before context compaction |
+| `pre-compact-context.sh` | PreCompact | Capture branch/PR state before context compaction; warn about context budget |
 | `session-start.sh` | SessionStart | Configure git hooks, run engine-specific init |
-| `stop-uncommitted-check.sh` | Stop | Warn about uncommitted code files |
+| `stop-uncommitted-check.sh` | Stop | Detect worktree branch contamination (auto-recover) + warn about uncommitted code files |
 | `subagent-quality-gate.sh` | SubagentStop | Verify subagent pushed and created PR, remind to run `/dev:clean-loop` |
 | `worktree-setup.sh` | WorktreeCreate | Auto-setup new worktrees (delegates to engine hook) |
 

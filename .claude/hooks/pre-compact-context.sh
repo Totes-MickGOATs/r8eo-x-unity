@@ -49,4 +49,12 @@ fi
 echo ""
 echo "=== END CONTEXT SNAPSHOT ==="
 
+# --- Context budget awareness ---
+echo ""
+echo "CONTEXT BUDGET: Compaction triggered — context window is filling up."
+echo "  Consider:"
+echo "  - Commit and push current progress"
+echo "  - File issues for remaining work"
+echo "  - Start a fresh session for complex remaining tasks"
+
 exit 0
