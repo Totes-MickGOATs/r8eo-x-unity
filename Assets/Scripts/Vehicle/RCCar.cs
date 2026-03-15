@@ -95,6 +95,7 @@ namespace R8EOX.Vehicle
         [Tooltip("Speed in m/s at which steering reduces")]
         [SerializeField] private float _steeringSpeedLimit = 8f;
         [Tooltip("Fraction of steeringMax kept at high speed")]
+        [Range(0f, 1f)]
         [SerializeField] private float _steeringHighSpeedFactor = 0.4f;
 
         [Header("Suspension")]
@@ -105,6 +106,7 @@ namespace R8EOX.Vehicle
 
         [Header("Traction")]
         [Tooltip("Global grip multiplier (0-1)")]
+        [Range(0f, 1f)]
         [SerializeField] private float _gripCoeff = 0.7f;
 
         [Header("Centre of Mass")]
@@ -117,8 +119,10 @@ namespace R8EOX.Vehicle
         [Tooltip("Tilt angle in degrees for full tumble effect")]
         [SerializeField] private float _tumbleFullDeg = 70f;
         [Tooltip("Bounciness coefficient during tumble")]
+        [Range(0f, 1f)]
         [SerializeField] private float _tumbleBounce = 0.35f;
         [Tooltip("Friction coefficient during tumble")]
+        [Range(0f, 1f)]
         [SerializeField] private float _tumbleFriction = 0.3f;
         [Tooltip("Hysteresis band in degrees to prevent threshold oscillation")]
         [SerializeField] private float _tumbleHysteresisDeg = 5f;
