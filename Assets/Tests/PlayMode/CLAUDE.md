@@ -38,6 +38,7 @@ If only these 3 fail, treat the run as green for your changes.
 |------|-------|---------|
 | `VehicleIntegrationTests.cs` | `VehicleIntegrationTests` | Integration tests: settlement, zero-input safety, motor direction, friction, steering, drive layout |
 | `CompoundConformanceTests.cs` | `CompoundConformanceTests` | Physics conformance compound scenarios (L1, L3, L5, L7, L8, L10, D8, L12) |
+| `DebugLoggingTests.cs` | `DebugLoggingTests` | Black-box tests: car active/driving and car landing → tagged console logs appear |
 | `R8EOX.Tests.PlayMode.asmdef` | -- | Assembly definition referencing Vehicle, Input, Camera, Debug, Core |
 
 ## Subdirectories
