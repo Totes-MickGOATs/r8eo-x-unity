@@ -9,7 +9,7 @@ Runtime debug overlays for vehicle development and tuning.
 | `TelemetryHUD.cs` | On-screen telemetry overlay (speed, forces, wheel state). Toggle with F2. |
 | `TuningPanel.cs` | Runtime parameter tuning panel with sliders for all vehicle physics. Toggle with Tab. |
 | `ContractDebugger.cs` | Runtime chain-of-custody assertions: validates input/vehicle/wheel/observable contracts every frame. Stripped in release builds. |
-| `WheelTerrainDiagnostics.cs` | Runtime terrain snag detector: monitors per-wheel contact normals, suspension spikes, velocity discontinuities, contact jumps, ground flicker, non-terrain collider hits, lateral/total force spikes. Includes 20-frame circular buffer with dump-on-anomaly for full diagnostic context. Logs tagged warnings to DebugLogSink. |
+| `WheelTerrainDiagnostics.cs` | Runtime terrain snag detector: monitors per-wheel contact normals, suspension spikes, velocity discontinuities, contact jumps, ground flicker. Logs tagged warnings to DebugLogSink. |
 | `R8EOX.Debug.asmdef` | Assembly definition referencing R8EOX.Vehicle and R8EOX.Input |
 
 ## Subdirectories

@@ -20,10 +20,6 @@ namespace R8EOX.Vehicle
 
         // ---- Serialized Fields ----
 
-        [Header("Feature Toggles")]
-        [Tooltip("When false, skips all gyroscopic/reaction torque application")]
-        [SerializeField] private bool _enableAirPhysics = true;
-
         [Header("Gyroscopic Configuration")]
         [Tooltip("Wheel inertia and scale factors. Create via Assets > Create > R8EOX > Wheel Inertia Config")]
         [SerializeField] private WheelInertiaConfig _inertiaConfig;
@@ -44,13 +40,6 @@ namespace R8EOX.Vehicle
 
 
         // ---- Properties ----
-
-        /// <summary>Whether air physics torques are enabled. Toggle via Inspector for testing.</summary>
-        public bool IsEnabled
-        {
-            get => _enableAirPhysics;
-            set => _enableAirPhysics = value;
-        }
 
         /// <summary>Wheel moment of inertia from config or default.</summary>
         private float WheelMoI => _inertiaConfig != null ? _inertiaConfig.WheelMoI : k_DefaultWheelMoI;
@@ -84,7 +73,6 @@ namespace R8EOX.Vehicle
         /// </summary>
         public void Apply(float dt, float throttle, float brake, float steer)
         {
-            if (!_enableAirPhysics) return;
             if (_wheels == null || _wheels.Length == 0 || dt <= 0f) return;
 
             Vector3 bodyOmega = _rb.angularVelocity;

@@ -102,17 +102,6 @@ namespace R8EOX.Vehicle
         /// <summary>Tire velocity at the contact point from the most recent frame.</summary>
         public Vector3 TireVelocity => _tireVelocity;
 
-        /// <summary>Name of the GameObject whose collider was hit by the wheel raycast.</summary>
-        public string HitColliderName { get; private set; } = "";
-        /// <summary>Layer index of the collider hit by the wheel raycast.</summary>
-        public int HitColliderLayer { get; private set; }
-        /// <summary>True when the hit collider is a Terrain or TerrainCollider.</summary>
-        public bool HitColliderIsTerrain { get; private set; }
-        /// <summary>Magnitude of the lateral (X-axis) force vector.</summary>
-        public float LateralForceMagnitude => _xForce.magnitude;
-        /// <summary>Magnitude of the combined suspension + lateral + longitudinal + motor force.</summary>
-        public float TotalForceMagnitude => (_yForce + _xForce + _zForce + _motorForce).magnitude;
-
 
         // ---- Private Fields ----
 
@@ -190,11 +179,6 @@ namespace R8EOX.Vehicle
             _contactPoint = hit.point;
             _contactNormal = hit.normal;
 
-            HitColliderName = hit.collider.gameObject.name;
-            HitColliderLayer = hit.collider.gameObject.layer;
-            HitColliderIsTerrain = hit.collider is TerrainCollider
-                || hit.collider.GetComponent<Terrain>() != null;
-
             ComputeSuspension(carRb, dt, wasGroundedLastFrame);
             ComputeLateralForce();
             ComputeLongitudinalForce(carRb);
@@ -223,9 +207,6 @@ namespace R8EOX.Vehicle
             IsOnGround = false;
             _wasOnGround = false;
             _prevSpringLen = _restDistance + _overExtend;
-            HitColliderName = "";
-            HitColliderLayer = 0;
-            HitColliderIsTerrain = false;
 
             float droopTarget = -(_restDistance + _overExtend);
             if (_wheelVisual != null)
