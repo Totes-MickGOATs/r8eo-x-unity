@@ -15,8 +15,12 @@ input=$(cat)
 
 # --- Extract data ---
 MODEL=$(echo "$input" | jq -r '.model.display_name // "unknown"')
-if [ "${ANTHROPIC_MODEL:-}" = "opusplan" ]; then
-  MODEL="${MODEL} (OpusPlan)"
+if [[ "${ANTHROPIC_MODEL,,}" = "opusplan" ]]; then
+  if [ -f /tmp/cc-plan-mode-active ]; then
+    MODEL="Claude Opus 4.6 (OpusPlan)"
+  else
+    MODEL="Claude Sonnet 4.6 (OpusPlan)"
+  fi
 fi
 SESSION_ID=$(echo "$input" | jq -r '.session_id // "unknown"')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
