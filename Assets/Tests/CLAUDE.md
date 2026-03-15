@@ -22,8 +22,12 @@ Three layers enforce test coverage:
 2. **Pre-push:** Runs tests for changed files, blocks push on failure (bypass: `SKIP_TEST_CHECK=1`)
 3. **CI:** Coverage baseline ratchet -- total test count can never decrease
 
+**Module-based test gating:** When files in a module change, pre-push and `just ff-main` automatically
+run ALL tests declared for that module plus transitive dependents. Test classes are resolved from
+`tests.editmode` / `tests.playmode` in each manifest. See `scripts/tools/resolve_module_tests.py`.
+
 Baseline file: `.coverage-baseline.json` (project root). Updated automatically when tests are added.
-Coverage report: `uv run python scripts/tools/test_coverage_report.py`
+Coverage report: `uv run python scripts/tools/test_coverage_report.py` (categories loaded from manifests)
 
 ## Relevant Skills
 

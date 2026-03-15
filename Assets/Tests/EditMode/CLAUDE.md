@@ -47,6 +47,10 @@ just test  # Runs EditMode tests
 
 Or in Unity: Window → General → Test Runner → EditMode → Run All
 
+**Module-based gating:** Pre-push automatically runs only the tests for changed modules (plus
+transitive dependents). Test class membership is declared in `resources/manifests/*.json` under
+`tests.editmode`. Full bypass: `SKIP_TEST_CHECK=1 git push`.
+
 ## Relevant Skills
 
 - **`unity-testing-patterns`** — TDD with Unity Test Framework

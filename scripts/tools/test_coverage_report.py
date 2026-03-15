@@ -28,61 +28,55 @@ PROJECT = Path(__file__).resolve().parent.parent.parent
 TESTS_EDITMODE = PROJECT / "Assets" / "Tests" / "EditMode"
 TESTS_PLAYMODE = PROJECT / "Assets" / "Tests" / "PlayMode"
 BASELINE_FILE = PROJECT / ".coverage-baseline.json"
+MANIFEST_DIR = PROJECT / "resources" / "manifests"
 
 # Regex to match [Test] and [UnityTest] attributes
 TEST_ATTR_RE = re.compile(r"^\s*\[(Test|UnityTest)\]\s*$")
 
-# ── System categories with test-to-source mappings ────────────────────────────
-CATEGORIES: dict[str, dict] = {
-    "Vehicle/Physics": {
-        "test_patterns": [
-            "SuspensionMath*",
-            "GripMath*",
-            "DrivetrainMath*",
-            "AirPhysicsMath*",
-            "TumbleMath*",
-            "GroundDrive*",
-            "ForceDirection*",
-        ],
-        "source_patterns": ["Assets/Scripts/Vehicle/Physics/*.cs"],
-    },
-    "Vehicle/ESC": {
-        "test_patterns": ["ReverseESC*"],
-        "source_patterns": ["Assets/Scripts/Vehicle/*.cs"],
-    },
-    "Input": {
-        "test_patterns": [
-            "InputMath*",
-            "InputDetection*",
-            "InputProcessing*",
-            "PhantomTrigger*",
-            "SteeringTests*",
-            "ZeroInput*",
-        ],
-        "source_patterns": ["Assets/Scripts/Input/*.cs"],
-    },
-    "Core": {
-        "test_patterns": ["TuningApi*"],
-        "source_patterns": ["Assets/Scripts/Core/*.cs"],
-    },
-    "GameFlow": {
-        "test_patterns": [
-            "GameFlowStateMachine*",
-            "NavigationStack*",
-            "SceneRegistry*",
-            "SessionConfig*",
-        ],
-        "source_patterns": ["Assets/Scripts/GameFlow/*.cs"],
-    },
-    "BlackBox/Integration": {
-        "test_patterns": [
-            "BlackBoxPhysics*",
-            "GripTractionCritical*",
-            "VehicleIntegration*",
-        ],
-        "source_patterns": [],  # Cross-cutting tests
-    },
-}
+
+def load_categories_from_manifests() -> dict[str, dict]:
+    """Build CATEGORIES from manifest tests fields.
+
+    Maps module name -> { test_patterns, source_patterns }
+    where test_patterns are built from tests.editmode + tests.playmode class names
+    and source_patterns are derived from the manifest files[] paths.
+    """
+    categories: dict[str, dict] = {}
+
+    for manifest_path in sorted(MANIFEST_DIR.glob("*.json")):
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        name = data.get("name") or data.get("system") or manifest_path.stem
+        tests = data.get("tests", {})
+        editmode = tests.get("editmode", [])
+        playmode = tests.get("playmode", [])
+        all_test_classes = editmode + playmode
+
+        if not all_test_classes:
+            continue  # Skip modules with no declared tests
+
+        # Build test_patterns from class names (glob-friendly: "ClassName*")
+        test_patterns = [f"{cls}*" for cls in all_test_classes]
+
+        # Derive source_patterns from files[] entries
+        # Group by directory prefix (e.g., Assets/Scripts/Vehicle/Physics/*.cs)
+        source_dirs: set[str] = set()
+        for file_path in data.get("files", []):
+            p = Path(file_path)
+            if p.suffix == ".cs":
+                # Use forward slashes for glob consistency across platforms
+                source_dirs.add(str(p.parent / "*.cs").replace("\\", "/"))
+        source_patterns = sorted(source_dirs)
+
+        categories[name] = {
+            "test_patterns": test_patterns,
+            "source_patterns": source_patterns,
+        }
+
+    return categories
+
+
+# ── System categories loaded dynamically from manifests ───────────────────────
+CATEGORIES = load_categories_from_manifests()
 
 
 def _glob_test_files(pattern: str) -> list[Path]:
