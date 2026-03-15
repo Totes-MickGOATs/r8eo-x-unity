@@ -41,12 +41,27 @@ importer.textureShape  = TextureImporterShape.Texture2D;   // not Cube for equir
 importer.SaveAndReimport();
 ```
 
-### 2. Wrap every `AssetDatabase.CreateAsset` in a delete-before-create helper
+### 2. Use load-and-update for assets referenced by components; SaveOrReplace only for generated assets
 
-`AssetDatabase.CreateAsset` silently fails if the asset already exists, leaving the object
-non-persisted. This causes "works first run, invisible on re-run" bugs.
+`AssetDatabase.CreateAsset` silently fails if the asset already exists. The correct fix
+depends on whether anything references the asset by GUID:
 
-Every setup script must use a helper like `SaveOrReplaceAsset` (see `OutpostTrackSetup.cs`):
+**TerrainData, TerrainLayers, and any asset a Component serializes by GUID** — use load-and-update.
+Deleting and recreating these assets changes their GUID, which can invalidate Terrain component
+references after asset refresh. Load the existing asset and modify it in place:
+
+```csharp
+static TerrainData LoadOrCreateTerrainData()
+{
+    var existing = AssetDatabase.LoadAssetAtPath<TerrainData>(k_TerrainDataAsset);
+    if (existing != null) { /* update fields */ EditorUtility.SetDirty(existing); return existing; }
+    var data = new TerrainData(); /* configure */
+    AssetDatabase.CreateAsset(data, k_TerrainDataAsset);
+    return data;
+}
+```
+
+**Generated assets nothing references by GUID** (e.g. skybox materials) — `SaveOrReplaceAsset` is fine:
 
 ```csharp
 static void SaveOrReplaceAsset(UnityEngine.Object obj, string assetPath)
@@ -57,7 +72,10 @@ static void SaveOrReplaceAsset(UnityEngine.Object obj, string assetPath)
 }
 ```
 
-Bare `AssetDatabase.CreateAsset(...)` calls are not permitted in this directory.
+**Critical ordering rule:** Save TerrainData to disk (via `AssetDatabase.CreateAsset` or
+`EditorUtility.SetDirty` + `AssetDatabase.SaveAssets()`) BEFORE calling
+`Terrain.CreateTerrainGameObject(terrainData)`. Creating the GO with an unsaved TerrainData
+can cause the Terrain component reference to become invalid after asset refresh.
 
 ### 3. Require an EditMode idempotency test for every setup method
 
