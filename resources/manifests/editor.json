@@ -5,7 +5,6 @@
   "files": [
     "Assets/Scripts/Editor/SceneSetup.cs",
     "Assets/Scripts/Editor/OutpostTrackSetup.cs",
-    "Assets/Scripts/Editor/OutpostTerrainConfig.cs",
     "Assets/Scripts/Editor/TerrainDebug.cs",
     "Assets/Scripts/Editor/TerrainSpawnCheck.cs",
     "Assets/Scripts/Editor/RCCarEditor.cs",
