@@ -69,6 +69,17 @@ namespace R8EOX.Tests.EditMode
         }
 
         [Test]
+        public void BuildOutpostTrack_TerrainHasMaterialAssigned()
+        {
+            OutpostTrackSetup.BuildOutpostTrackInternal();
+
+            var terrain = Object.FindObjectOfType<Terrain>();
+            Assert.IsNotNull(terrain, "Terrain must exist");
+            Assert.IsNotNull(terrain.materialTemplate,
+                "materialTemplate must not be null — terrain would be invisible in Built-in RP");
+        }
+
+        [Test]
         public void BuildOutpostTrack_ConfiguresDesertFog()
         {
             OutpostTrackSetup.BuildOutpostTrackInternal();

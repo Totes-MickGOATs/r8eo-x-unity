@@ -296,7 +296,17 @@ namespace R8EOX.Editor
         static void ConfigureTerrain(GameObject terrainGO)
         {
             var terrain = terrainGO.GetComponent<Terrain>();
-            terrain.materialTemplate = null; // Use default terrain material
+
+            // Assign Nature/Terrain/Standard shader material so terrain is visible in Built-in RP.
+            // materialType=3 (Custom) + materialTemplate=null makes terrain invisible in Unity 2022.3.
+            Shader terrainShader = Shader.Find("Nature/Terrain/Standard")
+                ?? Shader.Find("Nature/Terrain/Diffuse");
+            if (terrainShader != null)
+                terrain.materialTemplate = new Material(terrainShader);
+            else
+                UnityEngine.Debug.LogWarning(
+                    "[OutpostTrack] Nature/Terrain/Standard shader not found — terrain may be invisible.");
+
             terrain.heightmapPixelError = 5f;
             terrain.basemapDistance = 1000f;
             terrain.drawInstanced = true;
