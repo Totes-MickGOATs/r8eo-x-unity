@@ -37,7 +37,7 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 | `ContractDebuggerTests.cs` | Toggle defaults, counter reset, null-ref safety, SetTarget API, DetectorMode exposure and contract wiring | `ContractDebugger`, `RCInput`, `TriggerDetector` |
 | `WheelTerrainDiagnosticsTests.cs` | Wheel discovery lifecycle: normal order, no wheels, no car, Start order race condition | `WheelTerrainDiagnostics`, `RCCar` |
 | `DebugBootstrapTests.cs` | Component attachment, no-duplication guard, null-safe no-RCCar case, log assertion | `DebugBootstrap`, `ContractDebugger`, `WheelTerrainDiagnostics`, `InputDiagnostics` |
-| `OutpostTrackSetupTests.cs` | Black-box: terrain GO exists, TerrainData non-null, 2 layers, idempotent re-run, fog + ambient, terrain material is saved asset, skybox assigned, panoramic shader, HDRI texture assigned | `OutpostTrackSetup` |
+| `OutpostTrackSetupTests.cs` | Black-box: terrain GO exists, TerrainData non-null, 2 layers, idempotent re-run, fog + ambient | `OutpostTrackSetup` |
 
 ## Running Tests
 
