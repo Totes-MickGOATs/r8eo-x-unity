@@ -1,6 +1,6 @@
 # engine/unity/skills/
 
-49 game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
+50 game development skills. Copied to `.agents/skills/` by `tools/setup-engine.sh`.
 
 These are lazy-loaded reference guides — Claude Code agents read them on-demand when working on related topics.
 
@@ -35,6 +35,7 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `unity-testing-debugging-qa` | Quality | Testing philosophy, Roslyn analyzers, IDE debugging, UTF, TDD, CI/CD, QA |
 | `unity-editor-scripting` | Quality | Custom inspectors, editor windows, build pipeline |
 | `clean-loop` | Process | End-of-task checklist: lessons learned, doc sweep, memory sync, clean git state |
+| `feature-toggles` | Process | Compile-time defines, runtime SO flags, decision matrix, active toggles registry, toggle hygiene |
 | `swarm-development` | Process | Multi-agent orchestration, parallel review, convergence protocol |
 | `unity-mcp-workflows` | Tools | UnityMCP + coplay-mcp, paging, editor automation |
 | `unity-save-load` | Data | JSON, Addressables, PlayerPrefs, cloud saves |
