@@ -18,6 +18,16 @@ namespace R8EOX.Vehicle
         const float k_StaticFrictionTraction = 5.0f;
         const float k_DroopSpeed = 20f;
         const float k_RpmConversion = 60f / (2f * Mathf.PI);
+        /// <summary>
+        /// Sphere radius used in SphereCast ground detection.
+        /// Averages contact normals over the tire contact patch to smooth
+        /// discontinuous normals at terrain triangle edges (anti-snag).
+        /// Value tuned for 1/10 scale tire contact patch (approx. 15mm).
+        /// </summary>
+        private const float k_SphereCastRadius = 0.015f;
+
+        /// <summary>Public accessor for the SphereCast radius. Used by tests to validate the constant.</summary>
+        public static float SphereCastRadius => k_SphereCastRadius;
 
 
         // ---- Serialized Fields ----
@@ -161,10 +171,16 @@ namespace R8EOX.Vehicle
             _rayLen = PhysicsMath.SuspensionMath.ComputeRayLength(
                 _restDistance, _overExtend, _wheelRadius);
 
-            Ray ray = new Ray(transform.position, -transform.up);
+            // Use SphereCast instead of Raycast to average contact normals over the
+            // tire contact patch width. This suppresses discontinuous normals at terrain
+            // triangle edges, preventing contact point jumps and phantom velocity gain
+            // (terrain anti-snag fix). The sphere origin is offset upward by the sphere
+            // radius so the cast covers the same total distance as the original ray.
+            Vector3 rayOrigin = transform.position + transform.up * k_SphereCastRadius;
+            Ray ray = new Ray(rayOrigin, -transform.up);
             RaycastHit hit;
 
-            if (!UnityEngine.Physics.Raycast(ray, out hit, _rayLen, _groundMask))
+            if (!UnityEngine.Physics.SphereCast(ray, k_SphereCastRadius, out hit, _rayLen, _groundMask))
             {
                 HandleAirborne(dt);
                 return;

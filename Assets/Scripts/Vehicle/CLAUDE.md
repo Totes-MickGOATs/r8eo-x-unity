@@ -7,7 +7,7 @@ RC car vehicle system: MonoBehaviour controllers that wire together physics, dri
 | File | Class | Purpose |
 |------|-------|---------|
 | `RCCar.cs` | `RCCar` | Root vehicle controller — reads input, applies forces, exposes tuning API |
-| `RaycastWheel.cs` | `RaycastWheel` | Raycast-based wheel: suspension, grip, surface detection |
+| `RaycastWheel.cs` | `RaycastWheel` | SphereCast-based wheel: suspension, grip, surface detection. Uses `Physics.SphereCast` with radius `k_SphereCastRadius = 0.015f` to smooth contact normals over terrain triangle edges (anti-snag). |
 | `Drivetrain.cs` | `Drivetrain` | Differential force distribution across wheels |
 | `RCAirPhysics.cs` | `RCAirPhysics` | Airborne physics: gyroscopic precession and reaction torque (physics-first) |
 | `R8EOX.Vehicle.asmdef` | — | Assembly definition for the Vehicle system |

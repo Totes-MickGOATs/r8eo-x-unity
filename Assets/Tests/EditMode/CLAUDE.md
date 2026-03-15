@@ -6,6 +6,7 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 
 | File | Tests | Coverage |
 |------|-------|----------|
+| `SphereCastTests.cs` | SphereCast radius constant accessible and in valid range (0.010–0.020m) | `RaycastWheel` |
 | `SuspensionMathTests.cs` | Hooke's law, damping, bump stop, grip load, ray length | `SuspensionMath` |
 | `SuspensionStabilityTests.cs` | M7 landing damping spike suppression, M8 oscillation decay | `SuspensionMath` |
 | `GripMathTests.cs` | Slip ratio, lateral force, longitudinal friction, traction modes, RPM | `GripMath` |
