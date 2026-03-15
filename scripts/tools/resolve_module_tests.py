@@ -37,6 +37,11 @@ def load_manifests() -> list[dict]:
     return manifests
 
 
+def _manifest_name(manifest: dict) -> str:
+    """Return the canonical name for a manifest, supporting both 'name' and 'system' keys."""
+    return manifest.get("name") or manifest.get("system") or ""
+
+
 def build_reverse_deps(manifests: list[dict]) -> dict[str, set[str]]:
     """Build reverse dependency graph: module -> set of modules that depend on it.
 
@@ -44,10 +49,10 @@ def build_reverse_deps(manifests: list[dict]) -> dict[str, set[str]]:
     own name to rdeps[a], rdeps[b], rdeps[c].
     """
     # Initialise every module with an empty set
-    rdeps: dict[str, set[str]] = {m["name"]: set() for m in manifests}
+    rdeps: dict[str, set[str]] = {_manifest_name(m): set() for m in manifests}
 
     for manifest in manifests:
-        owner = manifest["name"]
+        owner = _manifest_name(manifest)
         for dep in manifest.get("dependencies", []):
             if dep in rdeps:
                 rdeps[dep].add(owner)
@@ -62,7 +67,7 @@ def find_module_for_file(file_path: str, manifests: list[dict]) -> str | None:
     """Return the module name that owns this file path, or None."""
     for manifest in manifests:
         if file_path in manifest.get("files", []):
-            return manifest["name"]
+            return _manifest_name(manifest)
     return None
 
 
@@ -81,6 +86,25 @@ def expand_with_dependents(modules: set[str], reverse_deps: dict[str, set[str]])
     return visited
 
 
+def expand_with_dependencies(modules: set[str], manifests: list[dict]) -> set[str]:
+    """Add direct dependencies of each module to the expansion set.
+
+    Used so that changing a 'leaf' module (like editor) also runs
+    the tests of the systems it depends on.
+    """
+    result = set(modules)
+    # Build forward dep map: module -> set of direct dependencies
+    dep_map: dict[str, set[str]] = {}
+    for m in manifests:
+        name = _manifest_name(m)
+        dep_map[name] = set(m.get("dependencies", []))
+
+    for mod in modules:
+        result.update(dep_map.get(mod, set()))
+
+    return result
+
+
 def collect_tests(
     modules: set[str],
     manifests: list[dict],
@@ -95,7 +119,7 @@ def collect_tests(
     playmode: list[str] = []
 
     for manifest in manifests:
-        if manifest["name"] not in modules:
+        if _manifest_name(manifest) not in modules:
             continue
         tests = manifest.get("tests", {})
         for cls in tests.get("editmode", []):
@@ -116,6 +140,7 @@ def resolve(
     *,
     transitive: bool = True,
     editmode_only: bool = False,
+    with_dependencies: bool = False,
 ) -> tuple[set[str], list[str], list[str]]:
     """Core resolution pipeline.
 
@@ -124,6 +149,9 @@ def resolve(
         manifests: List of loaded manifest dicts.
         transitive: Whether to expand to dependent modules.
         editmode_only: If True, return empty playmode list.
+        with_dependencies: If True, also include direct dependencies of matched
+            modules in the expansion. Enables leaf modules (e.g. editor) with
+            empty test lists to pull in tests from the modules they depend on.
 
     Returns:
         (modules, editmode_tests, playmode_tests)
@@ -142,6 +170,10 @@ def resolve(
 
     # Expand transitively if requested
     modules = expand_with_dependents(direct_modules, rdeps) if transitive else set(direct_modules)
+
+    # Also expand with direct dependencies of matched modules if requested
+    if with_dependencies:
+        modules = expand_with_dependencies(modules, manifests)
 
     # Collect tests
     editmode, playmode = collect_tests(modules, manifests)
@@ -172,6 +204,15 @@ def main() -> int:
         action="store_true",
         help="Only output EditMode filter (suppress playmode)",
     )
+    parser.add_argument(
+        "--with-dependencies",
+        action="store_true",
+        help=(
+            "Also include direct dependencies of matched modules in the expansion. "
+            "Enables leaf modules (e.g. editor) with no tests of their own to pull "
+            "in tests from the systems they depend on."
+        ),
+    )
     args = parser.parse_args()
 
     try:
@@ -191,6 +232,7 @@ def main() -> int:
         manifests,
         transitive=not args.no_transitive,
         editmode_only=args.editmode_only,
+        with_dependencies=args.with_dependencies,
     )
 
     if not modules:
