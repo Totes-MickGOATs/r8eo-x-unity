@@ -54,7 +54,7 @@ else
 
     if [ -n "$CHANGED_CS" ]; then
         # Resolve module-based test filters via resolver script
-        RESOLVER_OUTPUT=$(echo "$CHANGED_CS" | uv run python scripts/tools/resolve_module_tests.py --format shell --editmode-only 2>/dev/null)
+        RESOLVER_OUTPUT=$(echo "$CHANGED_CS" | uv run python scripts/tools/resolve_module_tests.py --format shell --editmode-only --with-dependencies 2>/dev/null)
         RESOLVER_EXIT=$?
 
         if [ "$RESOLVER_EXIT" -eq 1 ]; then

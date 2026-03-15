@@ -398,7 +398,7 @@ ff-main:
 
         if [[ -n "$CHANGED_CS" ]]; then
             # Resolve module tests via resolver
-            RESOLVER_OUTPUT=$(echo "$CHANGED_CS" | uv run python scripts/tools/resolve_module_tests.py --format shell 2>/dev/null)
+            RESOLVER_OUTPUT=$(echo "$CHANGED_CS" | uv run python scripts/tools/resolve_module_tests.py --format shell --with-dependencies 2>/dev/null)
             RESOLVER_EXIT=$?
 
             if [[ "$RESOLVER_EXIT" -eq 1 ]]; then
