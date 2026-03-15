@@ -2,6 +2,7 @@
     "name": "R8EOX.Tests.EditMode",
     "rootNamespace": "R8EOX.Tests.EditMode",
     "references": [
+        "R8EOX.Editor",
         "R8EOX.Vehicle",
         "R8EOX.Input",
         "R8EOX.Debug",
