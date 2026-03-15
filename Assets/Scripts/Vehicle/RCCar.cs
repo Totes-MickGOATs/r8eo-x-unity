@@ -199,6 +199,9 @@ namespace R8EOX.Vehicle
         private bool _wasTumbling;
         private int _airborneFrames;
         private bool _flipRequested;
+#if UNITY_EDITOR || DEBUG
+        private float _debugLogTimer;
+#endif
 
 
         // ---- Unity Lifecycle ----
@@ -283,6 +286,15 @@ namespace R8EOX.Vehicle
                 if (w.IsSteer)
                     w.transform.localRotation = Quaternion.Euler(0f, CurrentSteering * Mathf.Rad2Deg, 0f);
             }
+
+#if UNITY_EDITOR || DEBUG
+            _debugLogTimer += dt;
+            if (_debugLogTimer >= 0.5f)
+            {
+                Debug.Log($"[esc] throttle={SmoothThrottle:F3} engineForce={CurrentEngineForce:F2}N brake={CurrentBrakeForce:F2}N reverse={ReverseEngaged} airborne={IsAirborne}");
+                _debugLogTimer = 0f;
+            }
+#endif
         }
 
 

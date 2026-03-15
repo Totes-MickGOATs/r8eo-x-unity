@@ -105,6 +105,10 @@ namespace R8EOX.Vehicle
 
         // ---- Private Fields ----
 
+#if UNITY_EDITOR || DEBUG
+        float _debugLogTimer;
+#endif
+
         private Transform _wheelVisual;
         private Transform _hubVisual;
         private RCCar _cachedCar;
@@ -192,6 +196,16 @@ namespace R8EOX.Vehicle
             WheelRpm = PhysicsMath.GripMath.ComputeWheelRpm(_fSpeed, _wheelRadius);
 
             _wasOnGround = IsOnGround;
+
+#if UNITY_EDITOR || DEBUG
+            _debugLogTimer += dt;
+            if (_debugLogTimer >= 0.5f)
+            {
+                Debug.Log($"[suspension] wheel={name} springLen={_springLen:F4}m suspForce={_suspensionForce:F2}N gripLoad={_gripLoad:F3}");
+                Debug.Log($"[grip] wheel={name} slip={SlipRatio:F4} gripFactor={GripFactor:F3} lat={_xForce.magnitude:F2}N long={_zForce.magnitude:F2}N motor={_motorForce.magnitude:F2}N");
+                _debugLogTimer = 0f;
+            }
+#endif
 
             if (_showDebug)
                 DrawDebug();
