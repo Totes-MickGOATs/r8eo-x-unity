@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEditor;
 using System.IO;
 
@@ -30,6 +31,15 @@ namespace R8EOX.Editor
 
         const float k_DirtTileSize = 5f; // Repeating dirt texture tile size in metres
 
+        const string k_SkyboxPath = k_TexturePath + "/Skybox";
+        const string k_SkyboxHdriPath = k_SkyboxPath + "/goegap_2k.hdr";
+        const string k_SkyboxMaterialPath = k_DataPath + "/DesertSkybox.mat";
+
+        // Desert fog settings
+        const float k_FogDensity = 0.005f;
+        // Desert directional light
+        const float k_SunIntensity = 1.2f;
+
 
         // ---- Menu Item ----
 
@@ -49,6 +59,8 @@ namespace R8EOX.Editor
             // Save the TerrainData as an asset
             AssetDatabase.CreateAsset(terrainData, k_TerrainDataAsset);
             AssetDatabase.SaveAssets();
+
+            SetupDesertEnvironment();
 
             UnityEngine.Debug.Log("[OutpostTrack] Outpost track built successfully!");
             UnityEngine.Debug.Log($"  Terrain: {k_TerrainWidth}x{k_TerrainLength}m, height={k_TerrainHeight}m");
@@ -299,6 +311,54 @@ namespace R8EOX.Editor
             else
             {
                 UnityEngine.Debug.LogWarning("[OutpostTrack] Normal map not found at " + normalPath);
+            }
+        }
+
+        static void SetupDesertEnvironment()
+        {
+            // ---- Skybox ----
+            Cubemap hdriCubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(k_SkyboxHdriPath);
+            if (hdriCubemap == null)
+            {
+                UnityEngine.Debug.LogWarning(
+                    "[OutpostTrack] Desert HDRI not found at " + k_SkyboxHdriPath +
+                    " — skipping skybox setup. Download goegap_2k.hdr from Poly Haven.");
+            }
+            else
+            {
+                Material skyboxMat = new Material(Shader.Find("Skybox/Cubemap"));
+                skyboxMat.SetTexture("_Tex", hdriCubemap);
+                skyboxMat.SetFloat("_Exposure", 1.0f);
+                AssetDatabase.CreateAsset(skyboxMat, k_SkyboxMaterialPath);
+                RenderSettings.skybox = skyboxMat;
+                UnityEngine.Debug.Log("[OutpostTrack] Desert HDRI skybox applied.");
+            }
+
+            // ---- Fog ----
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.Exponential;
+            RenderSettings.fogColor = new Color(0.85f, 0.75f, 0.6f);
+            RenderSettings.fogDensity = k_FogDensity;
+            UnityEngine.Debug.Log("[OutpostTrack] Desert fog configured (exponential, density=0.005).");
+
+            // ---- Ambient Lighting ----
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor    = new Color(0.85f, 0.75f, 0.55f); // Warm tan/orange sky
+            RenderSettings.ambientEquatorColor = new Color(0.70f, 0.60f, 0.45f); // Sandy equator
+            RenderSettings.ambientGroundColor = new Color(0.35f, 0.28f, 0.18f); // Dark sand ground
+            UnityEngine.Debug.Log("[OutpostTrack] Desert ambient trilight configured.");
+
+            // ---- Directional Light ----
+            Light sun = GameObject.FindObjectOfType<Light>();
+            if (sun != null && sun.type == LightType.Directional)
+            {
+                sun.color = new Color(1.0f, 0.92f, 0.70f);
+                sun.intensity = k_SunIntensity;
+                UnityEngine.Debug.Log("[OutpostTrack] Desert sun color applied to directional light.");
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning("[OutpostTrack] No directional light found in scene.");
             }
         }
 
