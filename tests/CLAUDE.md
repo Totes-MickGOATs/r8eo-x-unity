@@ -12,7 +12,9 @@ tests/
 ├── PlayMode/           # Runtime tests: MonoBehaviours, physics, coroutines
 │   ├── Game.Tests.PlayMode.asmdef
 │   └── Test_*.cs
-└── helpers/            # Shared test utilities
+├── helpers/            # Shared test utilities
+└── tools/              # Python pytest tests for scripts/tools/
+    └── test_resolve_module_tests.py
 ```
 
 ## Conventions

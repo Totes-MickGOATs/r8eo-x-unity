@@ -10,5 +10,12 @@
     "Assets/Scripts/UI/ThemeConstants.cs"
   ],
   "dependencies": ["core", "gameflow"],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [
+      "ScreenRegistryTests",
+      "UIManagerTests"
+    ],
+    "playmode": []
+  }
 }

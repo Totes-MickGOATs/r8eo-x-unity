@@ -13,5 +13,9 @@
     "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [],
+    "playmode": []
+  }
 }

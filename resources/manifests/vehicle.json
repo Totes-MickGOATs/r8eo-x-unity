@@ -20,5 +20,27 @@
     "Assets/Scripts/Vehicle/Config/WheelInertiaConfig.cs"
   ],
   "dependencies": ["input", "core"],
-  "replaced_by": ""
+  "replaced_by": "",
+  "tests": {
+    "editmode": [
+      "SuspensionMathTests",
+      "SuspensionStabilityTests",
+      "GripMathTests",
+      "GripTractionCriticalTests",
+      "DrivetrainMathTests",
+      "AirPhysicsMathTests",
+      "GyroscopicMathTests",
+      "TumbleMathTests",
+      "GroundDriveTests",
+      "ForceDirectionTests",
+      "BlackBoxPhysicsTests",
+      "ReverseESCTests",
+      "SteeringTests",
+      "TuningApiTests"
+    ],
+    "playmode": [
+      "VehicleIntegrationTests",
+      "CompoundConformanceTests"
+    ]
+  }
 }

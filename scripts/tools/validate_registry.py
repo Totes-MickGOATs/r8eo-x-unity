@@ -32,6 +32,10 @@ def parse_json_manifest(path: Path) -> dict:
         "files": data.get("files", []),
         "dependencies": data.get("dependencies", []),
         "replaced_by": data.get("replaced_by", ""),
+        "tests": {
+            "editmode": data.get("tests", {}).get("editmode", []),
+            "playmode": data.get("tests", {}).get("playmode", []),
+        },
     }
 
 
@@ -130,19 +134,68 @@ def validate() -> list[str]:
             if dep and dep not in system_names:
                 issues.append(f"[{name}] Missing dependency: {dep}")
 
+    # Test field validation
+    test_owners: dict[str, str] = {}  # class_name -> module_name
+
+    for data in manifests:
+        name = data["system_name"]
+        tests = data.get("tests", {})
+        editmode_tests = tests.get("editmode", [])
+        playmode_tests = tests.get("playmode", [])
+
+        # Duplicate test class ownership check
+        for cls in editmode_tests + playmode_tests:
+            if cls in test_owners:
+                issues.append(
+                    f"[{name}] Duplicate test ownership: {cls} (also owned by {test_owners[cls]})"
+                )
+            else:
+                test_owners[cls] = name
+
+        # Test file existence checks (warnings)
+        for cls in editmode_tests:
+            test_path = PROJECT_ROOT / "Assets" / "Tests" / "EditMode" / f"{cls}.cs"
+            if not test_path.exists():
+                issues.append(
+                    f"[{name}] WARNING: Test class not found: {cls} "
+                    f"(expected at {test_path.relative_to(PROJECT_ROOT)})"
+                )
+
+        for cls in playmode_tests:
+            test_path = PROJECT_ROOT / "Assets" / "Tests" / "PlayMode" / f"{cls}.cs"
+            if not test_path.exists():
+                issues.append(
+                    f"[{name}] WARNING: Test class not found: {cls} "
+                    f"(expected at {test_path.relative_to(PROJECT_ROOT)})"
+                )
+
+        # No coverage warning
+        all_files = data.get("files", [])
+        if all_files and not editmode_tests and not playmode_tests:
+            issues.append(f"[{name}] WARNING: no test coverage declared")
+
     return issues
 
 
 def main() -> int:
     print(f"=== Registry Validation: {MANIFEST_DIR} ===")
     issues = validate()
+    warnings = [i for i in issues if "WARNING" in i]
+    errors = [i for i in issues if "WARNING" not in i]
     if not issues:
         print("  Validation: CLEAN")
         return 0
-    print(f"\n  {len(issues)} issue(s):")
-    for issue in issues:
-        print(f"    - {issue}")
-    return 1
+    if warnings:
+        print(f"\n  {len(warnings)} warning(s):")
+        for issue in warnings:
+            print(f"    - {issue}")
+    if errors:
+        print(f"\n  {len(errors)} error(s):")
+        for issue in errors:
+            print(f"    - {issue}")
+        return 1
+    print("  Validation: CLEAN (with warnings)")
+    return 0
 
 
 if __name__ == "__main__":
