@@ -24,5 +24,8 @@ namespace R8EOX.Input
 
         /// <summary>True on the frame the camera cycle button was pressed.</summary>
         bool CameraCyclePressed { get; }
+
+        /// <summary>True on the frame the pause button was pressed.</summary>
+        bool PausePressed { get; }
     }
 }

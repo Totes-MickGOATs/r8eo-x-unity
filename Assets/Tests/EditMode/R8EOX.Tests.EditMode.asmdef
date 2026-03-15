@@ -6,7 +6,9 @@
         "R8EOX.Input",
         "R8EOX.Debug",
         "R8EOX.GameFlow",
-        "R8EOX.UI"
+        "R8EOX.UI",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [
         "Editor"

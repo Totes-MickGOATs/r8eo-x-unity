@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using R8EOX.Vehicle;
 
 namespace R8EOX.Debug
@@ -32,6 +33,10 @@ namespace R8EOX.Debug
         [Header("Target")]
         [Tooltip("The RC car to tune parameters on")]
         [SerializeField] private RCCar _car;
+
+        [Header("Input")]
+        [Tooltip("Action for toggling the tuning panel")]
+        [SerializeField] private InputActionReference _toggleAction;
 
         [Header("Display")]
         [Tooltip("Whether the panel is visible on start")]
@@ -89,9 +94,21 @@ namespace R8EOX.Debug
 
         // ---- Unity Lifecycle ----
 
+        void OnEnable()
+        {
+            if (_toggleAction != null && _toggleAction.action != null)
+                _toggleAction.action.Enable();
+        }
+
+        void OnDisable()
+        {
+            if (_toggleAction != null && _toggleAction.action != null)
+                _toggleAction.action.Disable();
+        }
+
         void Update()
         {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab))
+            if (_toggleAction != null && _toggleAction.action.WasPressedThisFrame())
             {
                 _showPanel = !_showPanel;
                 if (_showPanel)

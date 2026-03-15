@@ -178,51 +178,6 @@ namespace R8EOX.Tests.EditMode
             }
         }
 
-        // ---- DetectorMode Property Tests ----
-
-        [Test]
-        public void DetectorMode_ExposedOnRCInput_DefaultsToDetecting()
-        {
-            // RCInput.DetectorMode delegates to TriggerDetector.CurrentMode.
-            // A freshly-created RCInput should start in Detecting mode.
-            var inputGo = new GameObject("DetectorModeTest");
-            try
-            {
-                var rcInput = inputGo.AddComponent<RCInput>();
-                Assert.AreEqual(TriggerDetector.Mode.Detecting, rcInput.DetectorMode,
-                    "DetectorMode should default to Detecting on a fresh RCInput");
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(inputGo);
-            }
-        }
-
-        [Test]
-        public void ValidateInputContracts_WithRCInput_DetectingMode_NoViolationsWhenInputZero()
-        {
-            // When RCInput is in Detecting mode and throttle/brake are 0 (default),
-            // the detector mode contract should not fire.
-            var carGo = new GameObject("TestCarWithInput");
-            try
-            {
-                var rb = carGo.AddComponent<Rigidbody>();
-                var car = carGo.AddComponent<RCCar>();
-                carGo.AddComponent<RCInput>();
-
-                _debugger.SetTarget(car);
-                _debugger.ResetCounters();
-                _debugger.ValidateInputContracts();
-
-                Assert.AreEqual(0, _debugger.InputViolationCount,
-                    "Zero throttle/brake during Detecting mode should not produce violations");
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(carGo);
-            }
-        }
-
         [Test]
         public void ValidateInputContracts_WithRCInput_DoesNotThrow()
         {
@@ -243,26 +198,6 @@ namespace R8EOX.Tests.EditMode
             {
                 UnityEngine.Object.DestroyImmediate(carGo);
             }
-        }
-
-        [Test]
-        public void TriggerDetector_CurrentMode_Detecting_IsExposableViaProperty()
-        {
-            // Pure-logic test: TriggerDetector.CurrentMode starts as Detecting
-            // and is the backing field for RCInput.DetectorMode.
-            var detector = new TriggerDetector(graceFrames: 60, confirmFrames: 5);
-            Assert.AreEqual(TriggerDetector.Mode.Detecting, detector.CurrentMode);
-        }
-
-        [Test]
-        public void TriggerDetector_CurrentMode_None_IsExposableViaProperty()
-        {
-            // Pure-logic test: after timeout, mode transitions to None.
-            var detector = new TriggerDetector(graceFrames: 0, confirmFrames: 5);
-            for (int i = 0; i < 300; i++)
-                detector.ProcessFrame(0f, 0f, 0f, i);
-
-            Assert.AreEqual(TriggerDetector.Mode.None, detector.CurrentMode);
         }
 
 #endif // UNITY_EDITOR || DEBUG

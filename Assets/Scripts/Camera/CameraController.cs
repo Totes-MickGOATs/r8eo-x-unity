@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace R8EOX.Camera
 {
@@ -26,8 +27,8 @@ namespace R8EOX.Camera
         [SerializeField] private Transform _target;
 
         [Header("Mode")]
-        [Tooltip("Key used to cycle through camera modes")]
-        [SerializeField] private KeyCode _cycleModeKey = KeyCode.C;
+        [Tooltip("Input action for cycling through camera modes")]
+        [SerializeField] private InputActionReference _cameraCycleAction;
 
         [Tooltip("Speed of the smooth transition between modes")]
         [SerializeField] private float _transitionSpeed = 5f;
@@ -54,6 +55,12 @@ namespace R8EOX.Camera
 
         [Tooltip("Height offset for the orbit look-at point in metres")]
         [SerializeField] private float _orbitLookHeight = 0.5f;
+
+        [Tooltip("Input action for orbit camera look (right stick / mouse delta)")]
+        [SerializeField] private InputActionReference _cameraOrbitAction;
+
+        [Tooltip("Input action for enabling mouse orbit (right mouse button)")]
+        [SerializeField] private InputActionReference _cameraOrbitEnableAction;
 
         [Header("FPV Mode")]
         [Tooltip("Local position offset for the FPV camera on the car body")]
@@ -102,9 +109,29 @@ namespace R8EOX.Camera
             _orbitPitch = k_DefaultOrbitPitch;
         }
 
+        void OnEnable()
+        {
+            if (_cameraCycleAction != null && _cameraCycleAction.action != null)
+                _cameraCycleAction.action.Enable();
+            if (_cameraOrbitAction != null && _cameraOrbitAction.action != null)
+                _cameraOrbitAction.action.Enable();
+            if (_cameraOrbitEnableAction != null && _cameraOrbitEnableAction.action != null)
+                _cameraOrbitEnableAction.action.Enable();
+        }
+
+        void OnDisable()
+        {
+            if (_cameraCycleAction != null && _cameraCycleAction.action != null)
+                _cameraCycleAction.action.Disable();
+            if (_cameraOrbitAction != null && _cameraOrbitAction.action != null)
+                _cameraOrbitAction.action.Disable();
+            if (_cameraOrbitEnableAction != null && _cameraOrbitEnableAction.action != null)
+                _cameraOrbitEnableAction.action.Disable();
+        }
+
         void Update()
         {
-            if (Input.GetKeyDown(_cycleModeKey))
+            if (_cameraCycleAction != null && _cameraCycleAction.action.WasPressedThisFrame())
             {
                 CycleMode();
             }
@@ -205,20 +232,27 @@ namespace R8EOX.Camera
 
         private void UpdateOrbitInput()
         {
-            float mouseX = Input.GetAxis("Mouse X");
-            float mouseY = Input.GetAxis("Mouse Y");
+            float yawInput = 0f;
+            float pitchInput = 0f;
 
-            bool rightMouseHeld = Input.GetMouseButton(1);
-            float rightStickX = GetAxisSafe("RightStickHorizontal");
-            float rightStickY = GetAxisSafe("RightStickVertical");
-
-            float yawInput = rightStickX;
-            float pitchInput = rightStickY;
-
-            if (rightMouseHeld)
+            // Right stick via the orbit action
+            if (_cameraOrbitAction != null && _cameraOrbitAction.action != null)
             {
-                yawInput += mouseX;
-                pitchInput -= mouseY;
+                Vector2 stickDelta = _cameraOrbitAction.action.ReadValue<Vector2>();
+                yawInput = stickDelta.x;
+                pitchInput = stickDelta.y;
+            }
+
+            // Mouse orbit gated by right mouse button hold
+            bool mouseOrbitEnabled = _cameraOrbitEnableAction != null
+                && _cameraOrbitEnableAction.action != null
+                && _cameraOrbitEnableAction.action.IsPressed();
+
+            if (mouseOrbitEnabled && Mouse.current != null)
+            {
+                Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+                yawInput += mouseDelta.x * 0.1f;
+                pitchInput -= mouseDelta.y * 0.1f;
             }
 
             float dt = Time.deltaTime;
@@ -391,21 +425,6 @@ namespace R8EOX.Camera
             _orbitPitch = Mathf.Asin(
                 Mathf.Clamp(offset.y / offset.magnitude, -1f, 1f)) * Mathf.Rad2Deg;
             _orbitPitch = Mathf.Clamp(_orbitPitch, k_MinOrbitPitch, k_MaxOrbitPitch);
-        }
-
-
-        // ---- Private Methods: Utility ----
-
-        private static float GetAxisSafe(string axisName)
-        {
-            try
-            {
-                return Input.GetAxis(axisName);
-            }
-            catch (System.ArgumentException)
-            {
-                return 0f;
-            }
         }
     }
 }

@@ -1,7 +1,9 @@
 {
     "name": "R8EOX.Input",
     "rootNamespace": "R8EOX.Input",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

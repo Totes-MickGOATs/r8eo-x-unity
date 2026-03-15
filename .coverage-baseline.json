@@ -1,6 +1,6 @@
 {
   "generated": "2026-03-14",
-  "total_tests": 373,
+  "total_tests": 327,
   "categories": {
     "Vehicle/Physics": {
       "test_count": 101,
@@ -11,8 +11,8 @@
       "source_files": 4
     },
     "Input": {
-      "test_count": 76,
-      "source_files": 5
+      "test_count": 30,
+      "source_files": 3
     },
     "Core": {
       "test_count": 12,
