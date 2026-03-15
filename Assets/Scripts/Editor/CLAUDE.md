@@ -8,7 +8,6 @@ Editor-only scripts: menu items, debug tools, and scene setup automation. These 
 |------|-------|---------|
 | `SceneSetup.cs` | `SceneSetup` | Menu item to create/configure the TestTrack scene with terrain, lighting, and vehicle |
 | `OutpostTrackSetup.cs` | `OutpostTrackSetup` | Menu item to create/configure the OutpostTrack scene |
-| `OutpostTerrainConfig.cs` | `OutpostTerrainConfig` | ScriptableObject holding configurable terrain dimensions (Width, Length, MaxHeight, DirtTileSize); auto-created by OutpostTrackSetup if absent |
 | `R8EOX.Editor.asmdef` | — | Assembly definition (Editor-only platform) |
 
 ## Conventions
