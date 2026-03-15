@@ -64,7 +64,7 @@ Current state: _Update `.ai/knowledge/status/project-status.md` with phase track
 just worktree-create <task>          # 1. Create feature branch + worktree
 # ... develop, commit, test ...      # 2. Work on feat/<task> branch
 git push -u origin feat/<task>       # 3. Push (pre-push runs tests)
-just ff-main                         # 4. Fast-forward local main to tested commits
+just ff-main                         # 4. Fast-forward local main (mid-dev, before PR merges)
 gh pr create --base main             # 5. Open PR → CI runs automatically
 # CI auto-labels ready-to-merge      # 6. Auto-merge triggers on label → squash-merges
 just worktree-mark-done <task>       # 7. After PR merges, transition tag
@@ -76,7 +76,7 @@ just worktree-cleanup <task>         # 8. Clean up worktree, branches, and tags
 1. **Create a worktree:** `just worktree-create <task-name>` (creates `feat/<task>` from `origin/main`)
 2. **Develop:** Commit frequently in the feature branch. Commit message format: `type: short description`
 3. **Push:** `git push -u origin feat/<task>` (pre-push hook runs tests)
-4. **Fast-forward local main:** `just ff-main` (gives next task immediate access to your changes)
+4. **Fast-forward local main (mid-dev only):** `just ff-main` (gives next task immediate access to your changes before the PR merges — NOT for post-merge sync)
 5. **Create PR:** `gh pr create --base main` (CI runs automatically)
 6. **CI validates:** Lint & Preflight must pass (tests are advisory unless configured otherwise)
 7. **Merge:** CI auto-adds `ready-to-merge` label → auto-merge workflow squash-merges when up-to-date
@@ -123,6 +123,8 @@ A task is **not done** until ALL of these are true:
 6. **Clean loop completed** — run `/dev:clean-loop` to capture lessons, update docs, and verify clean state
 7. **PR merged and main updated** — watch CI, confirm merge, then update local main
 
+> **Enforcement note:** Criteria 2 (Lint CI green) and 3 (ready-to-merge label) are CI-enforced — the auto-merge workflow will not merge without them. All other criteria (1, 4, 5, 6, 7) are agent-discipline requirements with no automated gate. Agents are trusted to complete all criteria before reporting done.
+
 **Subagents MUST watch CI through merge completion:**
 ```bash
 gh run watch                                    # Watch CI until done
@@ -154,6 +156,8 @@ If lint CI fails after you push, you are responsible for:
 
 > **MANDATORY:** Write tests FIRST, run them, then implement. Never claim "fixed" without running tests.
 > Full standards: `.ai/knowledge/architecture/coding-standards.md` | Skills: `unity-testing-patterns`, `clean-room-qa`
+>
+> **Enforcement reality:** TDD is a mandatory agent-discipline requirement, NOT a CI gate. CI enforces lint (`Lint & Preflight`), not test results. Tests must pass locally before you declare done — Unity isn't in PATH on CI, so pre-push doesn't run tests automatically. You are on the honor system for all test criteria.
 
 **TDD Cycle:** Hypothesize -> Write failing test (RED) -> Implement (GREEN) -> Commit. Steps 2-3 are non-negotiable.
 
