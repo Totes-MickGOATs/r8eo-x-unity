@@ -57,7 +57,7 @@ namespace R8EOX.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[AddBuggyMaterials] Materials applied to RCBuggy prefab.");
+            UnityEngine.Debug.Log("[AddBuggyMaterials] Materials applied to RCBuggy prefab.");
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
@@ -97,13 +97,13 @@ namespace R8EOX.Editor
             var child = root.transform.Find(childName);
             if (child == null)
             {
-                Debug.LogWarning($"[AddBuggyMaterials] Child not found: {childName}");
+                UnityEngine.Debug.LogWarning($"[AddBuggyMaterials] Child not found: {childName}");
                 return;
             }
             var r = child.GetComponent<Renderer>();
             if (r == null)
             {
-                Debug.LogWarning($"[AddBuggyMaterials] No Renderer on: {childName}");
+                UnityEngine.Debug.LogWarning($"[AddBuggyMaterials] No Renderer on: {childName}");
                 return;
             }
             r.sharedMaterial = mat;
@@ -114,13 +114,13 @@ namespace R8EOX.Editor
             var child = parent.Find(childName);
             if (child == null)
             {
-                Debug.LogWarning($"[AddBuggyMaterials] Child not found under {parent.name}: {childName}");
+                UnityEngine.Debug.LogWarning($"[AddBuggyMaterials] Child not found under {parent.name}: {childName}");
                 return;
             }
             var r = child.GetComponent<Renderer>();
             if (r == null)
             {
-                Debug.LogWarning($"[AddBuggyMaterials] No Renderer on: {childName}");
+                UnityEngine.Debug.LogWarning($"[AddBuggyMaterials] No Renderer on: {childName}");
                 return;
             }
             r.sharedMaterial = mat;
