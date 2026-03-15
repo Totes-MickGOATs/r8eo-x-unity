@@ -34,9 +34,11 @@ Manifests can be JSON (engine-agnostic) or `.tres` (Godot-specific).
 | `tests.playmode` | `string[]` | PlayMode test class names owned by this module |
 
 Values are test **class names** matching the `.cs` filename without extension.
-Used by `scripts/tools/resolve_module_tests.py` to determine which tests to run
-when files in this module change. Empty arrays are valid (no test coverage declared
-will emit a validator warning if the module has source files).
+Used by:
+- `scripts/tools/resolve_module_tests.py` — determines which tests to run when files in this module change (pre-push and `ff-main` gating)
+- `scripts/tools/test_coverage_report.py` — builds coverage categories dynamically from these fields
+
+Empty arrays are valid (no test coverage declared will emit a validator warning if the module has source files).
 
 ### Status Values
 
