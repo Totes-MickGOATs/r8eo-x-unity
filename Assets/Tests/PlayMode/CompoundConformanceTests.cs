@@ -424,7 +424,6 @@ namespace R8EOX.Tests.PlayMode
             // 26N total engine force (13.5T motor preset)
             SetMotorForce(26f);
 
-            float prevSpeed = 0f;
             float speedAtHalfway = 0f;
 
             for (int i = 0; i < k_ExtendedDriveFrames; i++)

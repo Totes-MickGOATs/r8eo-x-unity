@@ -86,9 +86,6 @@ namespace R8EOX.Tests.EditMode
             float springLen = 0.12f; // Slightly compressed from landing
             float prevLen = springLen; // Sanitized by landing fix
 
-            float prevForce = float.MaxValue;
-            bool forcesDecreasing = true;
-
             // Simulate 20 frames of suspension settling
             for (int i = 0; i < 20; i++)
             {
