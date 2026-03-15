@@ -310,8 +310,15 @@ namespace R8EOX.Vehicle
             return count > 0 ? slip / count : 0f;
         }
 
-        /// <summary>Returns all wheel components for telemetry display.</summary>
-        public RaycastWheel[] GetAllWheels() => _allWheels;
+        /// <summary>Returns all wheel components for telemetry display.
+        /// Lazy-initialises wheel discovery if not yet performed, making this
+        /// safe to call regardless of Start() execution order.</summary>
+        public RaycastWheel[] GetAllWheels()
+        {
+            if (_allWheels == null)
+                DiscoverWheels();
+            return _allWheels;
+        }
 
         /// <summary>Pushes current suspension settings to all wheels.</summary>
         public void ApplySuspensionSettings()
