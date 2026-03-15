@@ -97,7 +97,10 @@ namespace R8EOX.Debug
                 enabled = false;
                 return;
             }
+        }
 
+        void Start()
+        {
             _wheels = _car.GetAllWheels();
             if (_wheels == null || _wheels.Length == 0)
             {
@@ -108,10 +111,6 @@ namespace R8EOX.Debug
             }
 
             InitStates();
-        }
-
-        void Start()
-        {
             CheckCollisionDetectionMode();
             CheckTerrainCollider();
         }
