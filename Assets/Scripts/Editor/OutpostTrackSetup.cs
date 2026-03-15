@@ -34,6 +34,8 @@ namespace R8EOX.Editor
 
         const float k_DirtTileSize = 5f; // Repeating dirt texture tile size in metres
 
+        const string k_TerrainMaterialPath = k_DataPath + "/TerrainMaterial.mat";
+
         const string k_SkyboxPath = k_TexturePath + "/Skybox";
         const string k_SkyboxHdriPath = k_SkyboxPath + "/goegap_2k.hdr";
         const string k_SkyboxMaterialPath = k_DataPath + "/DesertSkybox.mat";
@@ -68,6 +70,14 @@ namespace R8EOX.Editor
             ConfigureTerrain(terrainGO);
 
             SetupDesertEnvironment();
+
+            // Flush all pending asset writes (terrain material, layers, terrain data, skybox)
+            AssetDatabase.SaveAssets();
+
+            // Mark scene dirty so Unity prompts the user to save — do not auto-save as that
+            // can be disruptive (e.g. overwriting an unsaved scene with other work).
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
+                UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
 
             UnityEngine.Debug.Log("[OutpostTrack] Outpost track built successfully!");
             UnityEngine.Debug.Log($"  Terrain: {k_TerrainWidth}x{k_TerrainLength}m, height={k_TerrainHeight}m");
@@ -298,15 +308,36 @@ namespace R8EOX.Editor
         {
             var terrain = terrainGO.GetComponent<Terrain>();
 
-            // Assign Nature/Terrain/Standard shader material so terrain is visible in Built-in RP.
-            // materialType=3 (Custom) + materialTemplate=null makes terrain invisible in Unity 2022.3.
+            // Load or create a persistent terrain material asset so Unity can serialize
+            // the reference into the scene file.  new Material(...) produces an in-memory-only
+            // object with no asset GUID — Unity serializes it as null on domain/scene reload,
+            // making the terrain invisible (materialType=3 + materialTemplate=null).
             Shader terrainShader = Shader.Find("Nature/Terrain/Standard")
                 ?? Shader.Find("Nature/Terrain/Diffuse");
-            if (terrainShader != null)
-                terrain.materialTemplate = new Material(terrainShader);
-            else
+            if (terrainShader == null)
+            {
                 UnityEngine.Debug.LogWarning(
                     "[OutpostTrack] Nature/Terrain/Standard shader not found — terrain may be invisible.");
+            }
+            else
+            {
+                Material mat = AssetDatabase.LoadAssetAtPath<Material>(k_TerrainMaterialPath);
+                if (mat != null)
+                {
+                    // Update shader on existing persistent asset
+                    mat.shader = terrainShader;
+                    EditorUtility.SetDirty(mat);
+                }
+                else
+                {
+                    // Create and persist a new material asset
+                    mat = new Material(terrainShader);
+                    SaveOrReplaceAsset(mat, k_TerrainMaterialPath);
+                }
+
+                terrain.materialTemplate = mat;
+                EditorUtility.SetDirty(terrain);
+            }
 
             terrain.heightmapPixelError = 5f;
             terrain.basemapDistance = 1000f;
