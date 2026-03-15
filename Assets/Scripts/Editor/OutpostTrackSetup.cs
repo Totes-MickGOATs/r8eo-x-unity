@@ -27,7 +27,7 @@ namespace R8EOX.Editor
         const int k_HeightmapRes = 2049; // 2^11 + 1
         const float k_TerrainWidth = 100f;  // metres
         const float k_TerrainLength = 100f; // metres
-        const float k_TerrainHeight = 0.1f;  // height scale
+        const float k_TerrainHeight = 20f;  // height scale in metres
         const int k_DetailRes = 1024;
         const int k_AlphamapRes = 2048; // Resolution for splatmap blending
         const int k_BaseMapRes = 1024;
