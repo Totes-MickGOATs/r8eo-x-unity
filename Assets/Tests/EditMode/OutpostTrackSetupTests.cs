@@ -99,38 +99,15 @@ namespace R8EOX.Tests.EditMode
         }
 
         [Test]
-        public void BuildOutpostTrack_CreatesConfigAssetWithDefaultDimensions()
-        {
-            const string configPath = "Assets/Terrain/Outpost/Data/OutpostTerrainConfig.asset";
-
-            // Delete any pre-existing config to force auto-creation
-            if (AssetDatabase.LoadAssetAtPath<OutpostTerrainConfig>(configPath) != null)
-                AssetDatabase.DeleteAsset(configPath);
-
-            OutpostTrackSetup.BuildOutpostTrackInternal();
-
-            var cfg = AssetDatabase.LoadAssetAtPath<OutpostTerrainConfig>(configPath);
-            Assert.IsNotNull(cfg, "OutpostTerrainConfig asset should be auto-created");
-            Assert.AreEqual(100f, cfg.Width,   1e-4f, "Default width should be 100m");
-            Assert.AreEqual(100f, cfg.Length,  1e-4f, "Default length should be 100m");
-            Assert.AreEqual(2f,   cfg.MaxHeight, 1e-4f, "Default max height should be 2m");
-            Assert.AreEqual(5f,   cfg.DirtTileSize, 1e-4f, "Default tile size should be 5m");
-        }
-
-        [Test]
-        public void BuildOutpostTrack_TerrainSizeMatchesConfig()
+        public void BuildOutpostTrack_TerrainSizeMatchesConstants()
         {
             OutpostTrackSetup.BuildOutpostTrackInternal();
-
-            const string configPath = "Assets/Terrain/Outpost/Data/OutpostTerrainConfig.asset";
-            var cfg = AssetDatabase.LoadAssetAtPath<OutpostTerrainConfig>(configPath);
-            Assert.IsNotNull(cfg, "Config asset must exist after build");
 
             var terrain = Object.FindObjectOfType<Terrain>();
             Assert.IsNotNull(terrain, "Terrain must exist");
-            Assert.AreEqual(cfg.Width,     terrain.terrainData.size.x, 1e-4f, "Terrain X matches config Width");
-            Assert.AreEqual(cfg.MaxHeight, terrain.terrainData.size.y, 1e-4f, "Terrain Y matches config MaxHeight");
-            Assert.AreEqual(cfg.Length,    terrain.terrainData.size.z, 1e-4f, "Terrain Z matches config Length");
+            Assert.AreEqual(100f, terrain.terrainData.size.x, 1e-4f, "Terrain X should be 100m");
+            Assert.AreEqual(2f,   terrain.terrainData.size.y, 1e-4f, "Terrain Y should be 2m");
+            Assert.AreEqual(100f, terrain.terrainData.size.z, 1e-4f, "Terrain Z should be 100m");
         }
     }
 }

@@ -32,9 +32,7 @@ namespace R8EOX.Editor
         const int k_AlphamapRes = 2048; // Resolution for splatmap blending
         const int k_BaseMapRes = 1024;
 
-        const float k_DirtTileSize = 5f; // Repeating dirt texture tile size in metres (default baked into OutpostTerrainConfig)
-
-        const string k_ConfigAsset = k_DataPath + "/OutpostTerrainConfig.asset";
+        const float k_DirtTileSize = 5f; // Repeating dirt texture tile size in metres
 
         const string k_TerrainMaterialPath = k_DataPath + "/TerrainMaterial.mat";
 
@@ -58,19 +56,17 @@ namespace R8EOX.Editor
         {
             UnityEngine.Debug.Log("[OutpostTrack] Building Outpost track...");
 
-            OutpostTerrainConfig cfg = LoadConfig();
-
             // Load existing TerrainData or create fresh — NEVER delete-and-recreate.
             // TerrainData must be a persisted asset before the Terrain GO is created,
             // otherwise the Terrain component's reference becomes invalid after asset refresh.
-            TerrainData terrainData = LoadOrCreateTerrainData(cfg);
+            TerrainData terrainData = LoadOrCreateTerrainData();
             ImportHeightmap(terrainData);
-            ConfigureTerrainLayers(terrainData, cfg);
+            ConfigureTerrainLayers(terrainData);
             ApplyEdgeMaskSplatmap(terrainData);
             EditorUtility.SetDirty(terrainData);
             AssetDatabase.SaveAssets(); // Persist before creating GO
 
-            GameObject terrainGO = CreateTerrainGameObject(terrainData, cfg);
+            GameObject terrainGO = CreateTerrainGameObject(terrainData);
             ConfigureTerrain(terrainGO);
 
             SetupDesertEnvironment();
@@ -84,27 +80,13 @@ namespace R8EOX.Editor
                 UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
 
             UnityEngine.Debug.Log("[OutpostTrack] Outpost track built successfully!");
-            UnityEngine.Debug.Log($"  Terrain: {cfg.Width}x{cfg.Length}m, height={cfg.MaxHeight}m");
+            UnityEngine.Debug.Log($"  Terrain: {k_TerrainWidth}x{k_TerrainLength}m, height={k_TerrainHeight}m");
             UnityEngine.Debug.Log($"  Heightmap: {k_HeightmapRes}x{k_HeightmapRes}");
             Selection.activeGameObject = terrainGO;
         }
 
 
         // ---- Helpers ----
-
-        /// <summary>
-        /// Loads the OutpostTerrainConfig asset, or creates it with defaults if it doesn't exist.
-        /// </summary>
-        static OutpostTerrainConfig LoadConfig()
-        {
-            var cfg = AssetDatabase.LoadAssetAtPath<OutpostTerrainConfig>(k_ConfigAsset);
-            if (cfg != null) return cfg;
-            cfg = ScriptableObject.CreateInstance<OutpostTerrainConfig>();
-            AssetDatabase.CreateAsset(cfg, k_ConfigAsset);
-            AssetDatabase.SaveAssets();
-            UnityEngine.Debug.Log("[OutpostTrack] Created default OutpostTerrainConfig at " + k_ConfigAsset);
-            return cfg;
-        }
 
         /// <summary>
         /// Deletes the existing asset at assetPath before creating a new one.
@@ -121,14 +103,14 @@ namespace R8EOX.Editor
 
         // ---- Build Steps ----
 
-        static TerrainData LoadOrCreateTerrainData(OutpostTerrainConfig cfg)
+        static TerrainData LoadOrCreateTerrainData()
         {
             var existing = AssetDatabase.LoadAssetAtPath<TerrainData>(k_TerrainDataAsset);
             if (existing != null)
             {
                 // Update size/resolution in case they changed
                 existing.heightmapResolution = k_HeightmapRes;
-                existing.size = new Vector3(cfg.Width, cfg.MaxHeight, cfg.Length);
+                existing.size = new Vector3(k_TerrainWidth, k_TerrainHeight, k_TerrainLength);
                 existing.alphamapResolution = k_AlphamapRes;
                 existing.SetDetailResolution(k_DetailRes, 16);
                 existing.baseMapResolution = k_BaseMapRes;
@@ -137,7 +119,7 @@ namespace R8EOX.Editor
 
             var data = new TerrainData();
             data.heightmapResolution = k_HeightmapRes;
-            data.size = new Vector3(cfg.Width, cfg.MaxHeight, cfg.Length);
+            data.size = new Vector3(k_TerrainWidth, k_TerrainHeight, k_TerrainLength);
             data.alphamapResolution = k_AlphamapRes;
             data.SetDetailResolution(k_DetailRes, 16);
             data.baseMapResolution = k_BaseMapRes;
@@ -182,13 +164,13 @@ namespace R8EOX.Editor
             UnityEngine.Debug.Log("[OutpostTrack] Heightmap imported successfully.");
         }
 
-        static void ConfigureTerrainLayers(TerrainData terrainData, OutpostTerrainConfig cfg)
+        static void ConfigureTerrainLayers(TerrainData terrainData)
         {
             // Layer 0: Base soil (dark compacted surface, visible everywhere)
             // Layer 1: Top soil (lighter gravel, blended in via edge mask)
             var layers = new TerrainLayer[2];
-            layers[0] = LoadOrConfigureTerrainLayer("DirtBase", "DirtBase", cfg.DirtTileSize);
-            layers[1] = LoadOrConfigureTerrainLayer("DirtTop", "DirtTop", cfg.DirtTileSize);
+            layers[0] = LoadOrConfigureTerrainLayer("DirtBase", "DirtBase", k_DirtTileSize);
+            layers[1] = LoadOrConfigureTerrainLayer("DirtTop", "DirtTop", k_DirtTileSize);
             terrainData.terrainLayers = layers;
             UnityEngine.Debug.Log("[OutpostTrack] Terrain layers configured (Poly Haven PBR textures).");
         }
@@ -302,7 +284,7 @@ namespace R8EOX.Editor
             UnityEngine.Debug.Log("[OutpostTrack] Edge mask splatmap applied.");
         }
 
-        static GameObject CreateTerrainGameObject(TerrainData terrainData, OutpostTerrainConfig cfg)
+        static GameObject CreateTerrainGameObject(TerrainData terrainData)
         {
             // Remove existing terrain if present
             var existing = GameObject.Find("OutpostTerrain");
@@ -315,9 +297,9 @@ namespace R8EOX.Editor
 
             // Position so terrain is centered at origin
             terrainGO.transform.position = new Vector3(
-                -cfg.Width * 0.5f,
+                -k_TerrainWidth * 0.5f,
                 0f,
-                -cfg.Length * 0.5f);
+                -k_TerrainLength * 0.5f);
 
             return terrainGO;
         }
