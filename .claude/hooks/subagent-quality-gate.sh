@@ -63,6 +63,18 @@ if [ -z "$REMOTE_REF" ]; then
     WARNINGS="${WARNINGS}  Run: git push -u origin $BRANCH\n\n"
 fi
 
+# Auto fast-forward local main if safe to do so
+if [ -n "$REMOTE_REF" ]; then
+    if git merge-base --is-ancestor main HEAD 2>/dev/null; then
+        OLD_SHA=$(git rev-parse --short main 2>/dev/null)
+        git update-ref refs/heads/main HEAD 2>/dev/null
+        NEW_SHA=$(git rev-parse --short main 2>/dev/null)
+        if [ "$OLD_SHA" != "$NEW_SHA" ]; then
+            echo "ff-main: local main fast-forwarded $OLD_SHA -> $NEW_SHA"
+        fi
+    fi
+fi
+
 # Check if PR exists for this branch
 if command -v gh &>/dev/null && [ -n "$REMOTE_REF" ]; then
     PR_JSON=$(gh pr list --head "$BRANCH" --state open --json number,title --limit 1 2>/dev/null || echo "[]")
