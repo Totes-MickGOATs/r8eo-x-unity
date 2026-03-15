@@ -84,7 +84,7 @@ namespace R8EOX.Vehicle
         public float ZBrakeTraction { get => _zBrakeTraction; set => _zBrakeTraction = value; }
 
 
-        // ---- Public Properties (read by telemetry) ----
+        // ---- Public Properties (read by telemetry / diagnostics) ----
 
         public float GripFactor { get; private set; }
         public float SlipRatio { get; private set; }
@@ -92,6 +92,15 @@ namespace R8EOX.Vehicle
         public float WheelRpm { get; private set; }
         public float LastSpringLen { get; private set; }
         public float LastGripLoad { get; private set; }
+
+        /// <summary>World-space contact point from the most recent ground raycast.</summary>
+        public Vector3 ContactPoint => _contactPoint;
+        /// <summary>World-space surface normal at the contact point.</summary>
+        public Vector3 ContactNormal => _contactNormal;
+        /// <summary>Computed suspension force in Newtons from the most recent frame.</summary>
+        public float SuspensionForce => _suspensionForce;
+        /// <summary>Tire velocity at the contact point from the most recent frame.</summary>
+        public Vector3 TireVelocity => _tireVelocity;
 
 
         // ---- Private Fields ----
