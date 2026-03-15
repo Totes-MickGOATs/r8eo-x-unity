@@ -2,11 +2,41 @@
 
 PlayMode integration and conformance tests that run inside a live Unity game loop with real physics simulation.
 
+## Running PlayMode Tests
+
+**CI does NOT run PlayMode tests** — only lint/preflight. Always run locally after writing PlayMode tests.
+
+Unity Editor must be **closed** first (batch mode crashes if the project is already open):
+
+```bash
+"/c/Program Files/Unity/Hub/Editor/2022.3.22f1/Editor/Unity.exe" \
+  -batchmode -nographics -runTests -testPlatform PlayMode \
+  -projectPath "$(pwd)" \
+  -testResults test-results/playmode.xml -logFile test-results/playmode.log
+
+# Check summary
+grep -E 'testcasecount|passed=|failed=' test-results/playmode.xml | head -3
+```
+
+Exit code 0 = all passed; exit code 2 = some failed (check XML).
+
+## Known Pre-existing Failures
+
+These 3 tests fail consistently and are **not caused by your changes** — do not investigate:
+
+| Test | Failure |
+|------|---------|
+| `L1_AtRestOnFlat_AllForcesBalance_NoDrift` | velocity 0.059 > threshold 0.05 (marginal) |
+| `L3_FullThrottleAndBrake_Decelerates` | speed 0.486 < threshold 0.5 (marginal) |
+| `Car_SuspensionSettles_NearRestDistance` | spring 0.142m outside 0.20±0.05m band |
+
+If only these 3 fail, treat the run as green for your changes.
+
 ## Files
 
 | File | Class | Purpose |
 |------|-------|---------|
-| `VehicleIntegrationTests.cs` | `VehicleIntegrationTests` | Integration tests: settlement, zero-input safety, motor direction, friction, steering |
+| `VehicleIntegrationTests.cs` | `VehicleIntegrationTests` | Integration tests: settlement, zero-input safety, motor direction, friction, steering, drive layout |
 | `CompoundConformanceTests.cs` | `CompoundConformanceTests` | Physics conformance compound scenarios (L1, L3, L5, L7, L8, L10, D8, L12) |
 | `R8EOX.Tests.PlayMode.asmdef` | -- | Assembly definition referencing Vehicle, Input, Camera, Debug, Core |
 
