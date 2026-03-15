@@ -84,6 +84,88 @@ jobs:
         env:
           REPORT: ${{ steps.coverage.outputs.report }}
 
+      - name: Analyse module impact
+        id: module_impact
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=50 --quiet
+          CHANGED_CS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'Assets/Scripts/**/*.cs' 2>/dev/null | \
+            grep -v '/Editor/' | grep -v '/Tests/' | grep -v '\.asmdef$' || true)
+          EDITOR_CS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'Assets/Scripts/Editor/**/*.cs' 2>/dev/null | \
+            grep -v '\.asmdef$' || true)
+
+          ALL_CS=""
+          if [ -n "$CHANGED_CS" ] && [ -n "$EDITOR_CS" ]; then
+            ALL_CS=$(printf '%s\n%s' "$CHANGED_CS" "$EDITOR_CS")
+          elif [ -n "$CHANGED_CS" ]; then
+            ALL_CS="$CHANGED_CS"
+          elif [ -n "$EDITOR_CS" ]; then
+            ALL_CS="$EDITOR_CS"
+          fi
+
+          if [ -z "$ALL_CS" ]; then
+            echo "impact_json=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          IMPACT_JSON=$(echo "$ALL_CS" | uv run python scripts/tools/resolve_module_tests.py --format json --with-dependencies 2>/dev/null || echo '{}')
+          echo "impact_json=$IMPACT_JSON" >> "$GITHUB_OUTPUT"
+
+      - name: Comment module impact on PR
+        if: github.event_name == 'pull_request' && steps.module_impact.outputs.impact_json != '' && always()
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const impactRaw = process.env.IMPACT_JSON || '{}';
+            let impact;
+            try { impact = JSON.parse(impactRaw); } catch { impact = {}; }
+
+            const modules = impact.modules || [];
+            const editmode = impact.editmode || [];
+            const playmode = impact.playmode || [];
+
+            if (modules.length === 0) return;
+
+            const lines = [
+              '### Module Regression Impact',
+              '',
+              `**Affected modules:** ${modules.sort().join(', ')}`,
+              '',
+            ];
+
+            if (editmode.length > 0) {
+              lines.push(`**EditMode tests required** (${editmode.length}):`);
+              const shown = editmode.slice(0, 10);
+              for (const t of shown) lines.push(`- \`${t}\``);
+              if (editmode.length > 10) lines.push(`- _...and ${editmode.length - 10} more_`);
+              lines.push('');
+            }
+
+            if (playmode.length > 0) {
+              lines.push(`**PlayMode tests required** (${playmode.length}):`);
+              for (const t of playmode) lines.push(`- \`${t}\``);
+              lines.push('');
+            }
+
+            lines.push('_Tests run automatically by pre-push hook and `just ff-main`. Module expansion includes transitive dependents + direct dependencies._');
+
+            const body = lines.join('\n');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.find(c => c.body.includes('### Module Regression Impact'));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+        env:
+          IMPACT_JSON: ${{ steps.module_impact.outputs.impact_json }}
+
       - name: Validate PR title (conventional commit format)
         if: github.event_name == 'pull_request'
         run: |
