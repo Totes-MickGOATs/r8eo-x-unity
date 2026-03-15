@@ -34,8 +34,9 @@ if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
     fi
 fi
 
-# ── Test runner for changed files (Layer 2: coverage enforcement) ────────────
-# Run Unity tests for changed C# scripts before allowing push.
+# ── Test runner for changed files (Layer 2: module-based coverage enforcement) ──
+# Run Unity tests for all tests in affected modules before allowing push.
+# Changing any file in a module runs ALL tests for that module + transitive dependents.
 # Bypass: SKIP_TEST_CHECK=1 git push ...
 
 if [ -n "$SKIP_TEST_CHECK" ]; then
@@ -47,97 +48,79 @@ else
         TRACKING_BRANCH="origin/main"
     fi
 
-    # Get changed .cs files (production scripts only)
-    CHANGED_CS=$(git diff --name-only "$TRACKING_BRANCH"...HEAD -- 'Assets/Scripts/*.cs' 2>/dev/null | \
+    # Get changed .cs files (production scripts only, not test or editor scripts)
+    CHANGED_CS=$(git diff --name-only "$TRACKING_BRANCH"...HEAD -- 'Assets/Scripts/**/*.cs' 2>/dev/null | \
         grep -v '/Editor/' | grep -v '/Tests/' | grep -v '\.asmdef$')
 
     if [ -n "$CHANGED_CS" ]; then
-        # Map changed scripts to test class names
-        TEST_FILTERS=""
-        MISSING_TESTS=""
-        while IFS= read -r file; do
-            baseName=$(basename "$file" .cs)
-            # Find matching test files
-            found=0
-            for testDir in Assets/Tests/EditMode Assets/Tests/PlayMode; do
-                if [ -d "$testDir" ]; then
-                    for match in "$testDir"/*"${baseName}"*Tests.cs "$testDir"/*"${baseName}"*Test.cs; do
-                        if [ -f "$match" ]; then
-                            testClass=$(basename "$match" .cs)
-                            if [ -n "$TEST_FILTERS" ]; then
-                                TEST_FILTERS="${TEST_FILTERS}|${testClass}"
-                            else
-                                TEST_FILTERS="$testClass"
-                            fi
-                            found=1
-                        fi
-                    done
-                fi
-            done
-            if [ "$found" -eq 0 ]; then
-                MISSING_TESTS="${MISSING_TESTS}  - ${file}\n"
-            fi
-        done <<< "$CHANGED_CS"
+        # Resolve module-based test filters via resolver script
+        RESOLVER_OUTPUT=$(echo "$CHANGED_CS" | uv run python scripts/tools/resolve_module_tests.py --format shell --editmode-only 2>/dev/null)
+        RESOLVER_EXIT=$?
 
-        # Warn about scripts without test coverage
-        if [ -n "$MISSING_TESTS" ]; then
-            echo ""
-            echo "WARNING: These changed scripts have no matching test files:"
-            printf "$MISSING_TESTS"
-            echo "  TDD requires tests for all production code."
-            echo ""
-        fi
-
-        # Run matched tests if any were found
-        if [ -n "$TEST_FILTERS" ]; then
-            # Check if Unity is available in PATH
-            UNITY_CMD=""
-            if command -v Unity &>/dev/null; then
-                UNITY_CMD="Unity"
-            elif command -v unity &>/dev/null; then
-                UNITY_CMD="unity"
-            fi
-
-            if [ -z "$UNITY_CMD" ]; then
-                echo "WARNING: Unity not found in PATH — skipping pre-push test run."
-                echo "  CI will run tests after push. Ensure tests pass before merging."
-            else
-                echo "Running EditMode tests for changed files: $TEST_FILTERS"
-                echo ""
-
-                # Run tests with 120-second timeout
-                timeout 120 "$UNITY_CMD" -batchmode -nographics -runTests \
-                    -testPlatform EditMode \
-                    -testFilter "$TEST_FILTERS" \
-                    -projectPath . \
-                    -testResults /dev/null \
-                    -logFile /dev/null 2>&1
-                TEST_EXIT=$?
-
-                if [ "$TEST_EXIT" -eq 124 ]; then
-                    echo "WARNING: Tests timed out after 120 seconds. Push allowed."
-                    echo "  Check test results in CI."
-                elif [ "$TEST_EXIT" -ne 0 ]; then
-                    echo ""
-                    echo "ERROR: Tests FAILED (exit code $TEST_EXIT). Push blocked."
-                    echo ""
-                    echo "  Failed test filter: $TEST_FILTERS"
-                    echo ""
-                    echo "  Possible causes:"
-                    echo "    - Test assertion failures"
-                    echo "    - C# compilation errors (check Unity console for red errors)"
-                    echo "    - Missing references or namespace conflicts"
-                    echo "    - Unity not responding or project not loaded"
-                    echo ""
-                    echo "  Fix failing tests before pushing."
-                    echo "  Bypass (emergency only): SKIP_TEST_CHECK=1 git push ..."
-                    exit 1
-                else
-                    echo "All matched tests passed."
-                fi
-            fi
+        if [ "$RESOLVER_EXIT" -eq 1 ]; then
+            echo "WARNING: Test resolver error — falling back to push-allowed."
+            echo "  Run manually: echo \"<file>\" | uv run python scripts/tools/resolve_module_tests.py"
+        elif [ "$RESOLVER_EXIT" -eq 2 ]; then
+            echo "No module-mapped tests for changed scripts — push allowed."
         else
-            echo "No matching test files for changed scripts — push allowed."
+            # Parse EDITMODE_FILTER from resolver output
+            EDITMODE_FILTER=$(echo "$RESOLVER_OUTPUT" | grep '^EDITMODE_FILTER=' | cut -d= -f2-)
+            MODULES=$(echo "$RESOLVER_OUTPUT" | grep '^MODULES=' | cut -d= -f2-)
+            PLAYMODE_FILTER=$(echo "$RESOLVER_OUTPUT" | grep '^PLAYMODE_FILTER=' | cut -d= -f2-)
+
+            if [ -n "$EDITMODE_FILTER" ]; then
+                # Check if Unity is available in PATH
+                UNITY_CMD=""
+                if command -v Unity &>/dev/null; then
+                    UNITY_CMD="Unity"
+                elif command -v unity &>/dev/null; then
+                    UNITY_CMD="unity"
+                fi
+
+                if [ -z "$UNITY_CMD" ]; then
+                    echo "WARNING: Unity not found in PATH — skipping pre-push test run."
+                    echo "  CI will run tests after push. Ensure tests pass before merging."
+                else
+                    echo "Running EditMode tests for modules: $MODULES"
+                    echo "  Filter: $EDITMODE_FILTER"
+                    echo ""
+
+                    # Run tests with 120-second timeout
+                    timeout 120 "$UNITY_CMD" -batchmode -nographics -runTests \
+                        -testPlatform EditMode \
+                        -testFilter "$EDITMODE_FILTER" \
+                        -projectPath . \
+                        -testResults /dev/null \
+                        -logFile /dev/null 2>&1
+                    TEST_EXIT=$?
+
+                    if [ "$TEST_EXIT" -eq 124 ]; then
+                        echo "WARNING: Tests timed out after 120 seconds. Push allowed."
+                        echo "  Check test results in CI."
+                    elif [ "$TEST_EXIT" -ne 0 ]; then
+                        echo ""
+                        echo "ERROR: Tests FAILED (exit code $TEST_EXIT). Push blocked."
+                        echo ""
+                        echo "  Failed modules: $MODULES"
+                        echo "  Filter: $EDITMODE_FILTER"
+                        echo ""
+                        echo "  Fix failing tests before pushing."
+                        echo "  Bypass (emergency only): SKIP_TEST_CHECK=1 git push ..."
+                        exit 1
+                    else
+                        echo "All module tests passed."
+                    fi
+
+                    # Advisory: PlayMode tests to run manually
+                    if [ -n "$PLAYMODE_FILTER" ]; then
+                        echo ""
+                        echo "Advisory: PlayMode tests should also pass (run manually or in CI):"
+                        echo "  $PLAYMODE_FILTER"
+                    fi
+                fi
+            else
+                echo "No EditMode tests resolved for changed scripts — push allowed."
+            fi
         fi
     fi
 fi
