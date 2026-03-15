@@ -375,6 +375,83 @@ Delete this file after PR merges and permanent memories are updated.
 
 ---
 
+## Parallel Coordination Mode
+
+### When to Use
+
+Parallel subagent dispatch is allowed ONLY when ALL of these conditions are true:
+
+1. **System independence:** Tasks touch completely different system manifests (check `resources/manifests/`)
+2. **File independence:** Zero overlap in files modified (check manifests and anticipate new files)
+3. **No shared constants:** Tasks do not modify shared constants, enums, or configuration files
+4. **No CLAUDE.md conflicts:** Tasks do not modify the same directory's `CLAUDE.md`
+5. **Max 3 parallel branches:** Keeps rebase cascade cost manageable (3 branches = max 6 CI runs vs 2 sequential)
+
+**Contrast with Sequential Coordination:** Sequential mode serializes tasks with memory bridges between each. Parallel mode dispatches all tasks simultaneously but demands strict file independence. If independence cannot be proven, use Sequential.
+
+**Contrast with Swarm Mode:** Swarm mode uses parallel reviewers for ONE complex task. Parallel Coordination dispatches MULTIPLE independent tasks simultaneously, each handled by a single subagent.
+
+### Independence Verification Checklist
+
+Before dispatching parallel subagents, the main agent MUST perform this analysis and document the results in the conversation:
+
+1. **List each task's target systems** by manifest name (from `resources/manifests/`)
+2. **List each task's expected file modifications** (both existing files and anticipated new files)
+3. **Verify zero intersection** between all task pairs — no shared files across any two tasks
+4. **Verify no shared infrastructure files** — project settings, shared assembly definitions, root configuration files
+5. **Document the independence analysis** explicitly in the conversation before dispatching
+
+If ANY step fails verification, fall back to Sequential Coordination Mode.
+
+### Parallel Dispatch Protocol
+
+1. Main agent performs the independence verification checklist (above)
+2. Dispatch all subagents simultaneously with `isolation: "worktree"` — each gets its own worktree and branch
+3. Each subagent follows the standard branch workflow independently (develop, commit, push, PR, CI, auto-merge)
+4. NO in-flight memory files needed — tasks are independent by definition, so there is no cross-task context to share
+5. Main agent monitors all PRs and CI runs concurrently
+6. If any PR introduces unexpected file overlap (merge conflict), immediately convert remaining unmerged tasks to sequential mode
+7. After all PRs merge, update local main once: `git fetch origin && git update-ref refs/heads/main origin/main`
+
+### When to Fall Back to Sequential
+
+- Any file overlap discovered during or after dispatch
+- Merge conflict on any PR
+- A task's scope grows during implementation to touch another task's system
+- More than 3 tasks in the plan (sequential is safer for larger batches)
+- Any task needs to reference the output of another task
+
+### Examples of Safe Parallel Work
+
+These task combinations typically satisfy independence criteria:
+
+- **UI polish** (ui manifest) + **physics tuning** (vehicle manifest) + **audio integration** (audio manifest)
+- **Camera system update** (camera manifest) + **input rebinding** (input manifest)
+- **New skill documentation** (skills directory) + **test coverage** (test assembly) — if they touch different systems
+- **Shader work** (materials/shaders) + **terrain generation** (terrain manifest)
+
+### Examples That MUST Be Sequential
+
+These task combinations have inherent dependencies or overlap:
+
+- Two physics subsystem changes (both touch vehicle manifest)
+- Feature implementation + its tests if tests are in a shared test assembly
+- Any task touching shared infrastructure (assembly definitions, project settings, package manifest)
+- Feature toggle introduction + the feature it gates (toggle must land first)
+- Two tasks that both need to update the same CLAUDE.md or skills index
+
+### Anti-Patterns
+
+| Anti-Pattern | Why It's Bad | Instead |
+|-------------|-------------|---------|
+| **Skipping independence verification** | Merge conflicts discovered post-dispatch waste all parallel benefit | Always run the full checklist before dispatching |
+| **More than 3 parallel branches** | Rebase cascade cost grows quadratically — O(N^2) CI runs | Cap at 3 parallel; queue remaining tasks sequentially |
+| **Assuming independence without checking manifests** | Hidden dependencies (shared utilities, shared test assemblies) cause conflicts | Explicitly verify via manifest file lists |
+| **Continuing parallel after a conflict** | Cascading conflicts multiply rework | Fall back to sequential immediately |
+| **Parallel tasks that modify the same CLAUDE.md** | Guaranteed merge conflict on documentation | Either serialize, or designate one task as the CLAUDE.md owner |
+
+---
+
 ## Example: Skill Creation Swarm
 
 Here's how the swarm was used to create the `unity-architecture-patterns` skill:
