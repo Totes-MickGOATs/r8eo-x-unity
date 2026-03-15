@@ -27,7 +27,7 @@ namespace R8EOX.Editor
         const int k_HeightmapRes = 2049; // 2^11 + 1
         const float k_TerrainWidth = 100f;  // metres
         const float k_TerrainLength = 100f; // metres
-        const float k_TerrainHeight = 10f;  // metres (height scale 0.1 applied via heightmapScale)
+        const float k_TerrainHeight = 0.1f;  // height scale
         const int k_DetailRes = 1024;
         const int k_AlphamapRes = 2048; // Resolution for splatmap blending
         const int k_BaseMapRes = 1024;
@@ -214,6 +214,7 @@ namespace R8EOX.Editor
 
             layer.metallic = 0f;
             layer.smoothness = 0.3f;
+            layer.normalScale = 1.0f;
 
             if (isNew)
                 AssetDatabase.CreateAsset(layer, layerPath);
