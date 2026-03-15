@@ -275,7 +275,7 @@ namespace R8EOX.Tests.EditMode
             car.SelectMotorPreset(RCCar.MotorPreset.Motor21_5T);
 
             Assert.AreEqual(RCCar.MotorPreset.Motor21_5T, car.ActiveMotorPreset);
-            Assert.AreEqual(15.5f, car.EngineForceMax, k_Epsilon);
+            Assert.AreEqual(155f, car.EngineForceMax, k_Epsilon);
             Assert.AreEqual(13f, car.MaxSpeed, k_Epsilon);
 
             DestroyTestCar(car);

@@ -209,7 +209,7 @@ See `.ai/knowledge/architecture/coding-standards.md` for value mutability tiers 
 
 ## RC Car Physics Domain
 
-1/10 scale RC car: mass 1.5kg, wheel radius 0.166m, wheelbase 0.28m. Curve-sampled grip (NOT Pacejka).
+1/1 scale test: mass 15kg, wheel radius 0.664m, wheelbase 1.12m (was 1/4 visual + 1/10 weight, now full scale). Curve-sampled grip (NOT Pacejka).
 Key invariants: suspension force >= 0, no grip without normal load, differential conserves force.
 Full constants + invariants: `.ai/knowledge/architecture/adr-001-physics-model.md` | Skills: `unity-physics-3d`, `unity-physics-tuning`
 

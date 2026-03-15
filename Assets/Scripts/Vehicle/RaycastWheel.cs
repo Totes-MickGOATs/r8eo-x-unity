@@ -16,7 +16,7 @@ namespace R8EOX.Vehicle
         const float k_MinSpeedForGrip = 0.1f;
         const float k_StaticFrictionSpeed = 0.5f;
         const float k_StaticFrictionTraction = 5.0f;
-        const float k_DroopSpeed = 20f;
+        const float k_DroopSpeed = 80f;
         const float k_RpmConversion = 60f / (2f * Mathf.PI);
         /// <summary>
         /// Sphere radius used in SphereCast ground detection.
@@ -34,17 +34,17 @@ namespace R8EOX.Vehicle
 
         [Header("Suspension")]
         [Tooltip("Suspension rest distance in metres")]
-        [SerializeField] private float _restDistance = 0.20f;
+        [SerializeField] private float _restDistance = 0.80f;
         [Tooltip("Extra droop extension when airborne in metres")]
-        [SerializeField] private float _overExtend = 0.08f;
+        [SerializeField] private float _overExtend = 0.32f;
         [Tooltip("Maximum suspension force clamp in Newtons")]
-        [SerializeField] private float _maxSpringForce = 50f;
+        [SerializeField] private float _maxSpringForce = 500f;
         [Tooltip("Bump stop minimum spring length in metres")]
-        [SerializeField] private float _minSpringLen = 0.032f;
+        [SerializeField] private float _minSpringLen = 0.128f;
 
         [Header("Wheel")]
         [Tooltip("Tire radius in metres (1/10th scale)")]
-        [SerializeField] private float _wheelRadius = 0.166f;
+        [SerializeField] private float _wheelRadius = 0.664f;
 
         [Header("Motor/Steer")]
         [Tooltip("Whether this wheel receives motor force")]
@@ -76,8 +76,8 @@ namespace R8EOX.Vehicle
 
         // ---- Public Properties (set by RCCar) ----
 
-        public float SpringStrength { get; set; } = 75f;
-        public float SpringDamping { get; set; } = 4.25f;
+        public float SpringStrength { get; set; } = 187.5f;
+        public float SpringDamping { get; set; } = 10.625f;
         public float GripCoeff { get; set; } = 0.7f;
         public LayerMask GroundMask { get => _groundMask; set => _groundMask = value; }
         public bool ShowDebug { get => _showDebug; set => _showDebug = value; }
