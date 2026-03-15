@@ -273,7 +273,7 @@ sync_hooks() {
         ".claude/guard-master-commit.sh"
         ".claude/statusline.sh"
         ".claude/hooks/lint-on-save.sh"
-        ".claude/hooks/subagent-quality-gate.sh"
+        ".claude/hooks/subagent-post-stop.sh"
         ".claude/hooks/stop-uncommitted-check.sh"
         ".claude/hooks/pre-compact-context.sh"
         ".claude/hooks/lint-session-stop.sh"

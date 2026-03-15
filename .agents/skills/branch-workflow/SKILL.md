@@ -41,7 +41,7 @@ Or use the one-liner:
 just pr "feat: description"    # push + create PR in one command
 ```
 
-### 4. Local Fast-Forward (Speed Optimization)
+### 4. Local Fast-Forward (Mid-Development Speed Optimization)
 
 After a successful push (pre-push tests passed), fast-forward local main to the current branch:
 
@@ -51,16 +51,18 @@ just ff-main
 
 **Why:** Gives the next subagent immediate access to your changes on local main, without waiting for the remote PR/CI/merge cycle. The remote PR flow remains the source of truth.
 
+**When to use:** Mid-development, BEFORE the PR merges — to make your in-progress changes visible to the next sequential task.
+
 **Safety:** The recipe enforces:
 - Must be on a feature branch (not main)
 - Branch must be pushed to origin (tests passed)
 - Main must be ancestor of HEAD (fast-forward only, no force)
 
-**After remote PR merges:** Sync local main to the squash commit:
+**After remote PR merges:** Use `git update-ref` to sync local main to the squash commit — do NOT use `just ff-main` post-merge:
 ```bash
 git fetch origin main && git update-ref refs/heads/main origin/main
 ```
-This replaces the individual commits with the single squash commit from the PR merge.
+This replaces the individual commits with the single squash commit from the PR merge. `just ff-main` is for mid-development only; post-merge sync requires fetching from origin.
 
 ### 5. Wait for CI
 
@@ -337,13 +339,13 @@ Every worktree has a lifecycle tracked by lightweight git tags pushed to origin:
 | Tag | Meaning | Created when |
 |-----|---------|-------------|
 | `wt/active/<task>` | In progress — DO NOT delete | `just worktree-create <task>` |
-| `wt/done/<task>` | Completed — safe to delete | `just worktree-mark-done <task>` or auto-transitioned by hooks |
+| `wt/done/<task>` | Completed — safe to delete | `just worktree-mark-done <task>` (manual only — run after confirming PR merge) |
 
 ### How It Works
 
 1. **`just worktree-create foo`** creates `wt/active/foo` tag and pushes it to origin
 2. Agent develops, pushes, creates PR, CI passes, PR merges
-3. **`just worktree-mark-done foo`** verifies PR merged, transitions `wt/active/foo` to `wt/done/foo`
+3. **`just worktree-mark-done foo`** verifies PR merged, transitions `wt/active/foo` to `wt/done/foo` — this is the ONLY way to transition tags; it must be run manually after confirming PR merge
 4. **`just worktree-cleanup foo`** or **`just worktree-sync`** deletes the worktree, branches, and tags
 
 ### Cleanup Safety
@@ -365,8 +367,8 @@ just worktree-cleanup <task>          # Now succeeds
 ### Automatic Tag Transitions
 
 - **Session start hook** cleans up `wt/done/*` worktrees automatically
-- **Subagent quality gate** auto-transitions tags when it detects a merged PR
 - **Session start hook** warns about `wt/active/*` tags older than 48 hours
+- **Tags are NOT auto-transitioned by hooks.** `just worktree-mark-done <task>` is the ONLY way to transition `wt/active` → `wt/done`, and must be run manually after confirming PR merge.
 
 ## Worktree Recipes Reference
 
