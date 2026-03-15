@@ -487,7 +487,7 @@ This statement serves as both an instruction to the developer and an acceptance 
 - **Black-box testing:** Test the system without knowledge of internal workings (inputs and expected outputs only)
 - **White-box testing:** Test with knowledge of internal structure (verify code paths, edge cases)
 
-Functional tests are most powerful when requirements are clearly defined and scoped.
+Both types should be run for comprehensive coverage. Functional tests are most powerful when requirements are clearly defined and scoped.
 
 ### Performance Testing
 
@@ -622,6 +622,23 @@ Unity -batchmode -runTests \
 ```
 
 Exit code 0 = all passed, non-zero = failures.
+
+#### Command-Line Arguments Reference
+
+| Argument | Purpose |
+|----------|---------|
+| `-runTests` | Triggers the test runner |
+| `-batchmode` | No manual input required (essential for CI/CD) |
+| `-projectPath` | Path to the Unity project |
+| `-testResults` | Output path for NUnit XML results file |
+| `-testFilter` | Semicolon-separated test names or regex patterns; `!` prefix for negation |
+| `-testCategory` | Semicolon-separated category names (maps to `[Category]` attribute) |
+| `-assemblyNames` | Filters to specific test assemblies |
+| `-testPlatform` | `EditMode`, `PlayMode`, or a `BuildTarget` enum value |
+| `-testSettingsFile` | Path to a `TestSettings.json` for custom configuration |
+| `-playerHeartbeatTimeout` | Max wait for player heartbeat in seconds (default: 10 min) |
+
+Output format is NUnit XML, compatible with most CI reporting tools.
 
 ### GameCI (GitHub Actions)
 
