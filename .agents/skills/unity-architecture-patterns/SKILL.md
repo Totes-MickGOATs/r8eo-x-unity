@@ -431,6 +431,18 @@ public class CommandHistory
 }
 ```
 
+### Use Cases by Genre
+
+| Genre | Command Pattern Application |
+|-------|----------------------------|
+| RTS | Queue unit/building actions, execute as resources become available |
+| Turn-based | Store moves in queue, execute all at end-of-turn |
+| Puzzle | Player undo/redo for move sequences |
+| Fighting | Detect button sequences in command lists for combo moves |
+| Racing (our project) | Track editor undo/redo, replay recording, ghost playback |
+
+**Performance note:** Stack operations are O(1). Limit stack sizes to prevent unbounded memory growth in long editing sessions.
+
 ### When to Use
 
 - Undo/redo is required (level editor, vehicle setup, track editor)
@@ -612,6 +624,30 @@ public class VehicleTuningViewModel : MonoBehaviour
 - **C# scripting:** Register property change callbacks with `INotifyPropertyChanged` or custom events
 - **Data converters and ConverterGroups:** Transform model data to UI-compatible formats (e.g., `float` to formatted `string`). `ConverterGroups` chain multiple converters together.
 - **BindingMode:** `TwoWay` (default for input controls), `ToTarget` (read-only display), `ToSource` (write-only from UI)
+
+### Unity 6 Data Binding (UI Toolkit)
+
+Two implementation approaches for automatic binding:
+
+**1. No-code via UI Builder:** Right-click UI elements in the UI Builder, select "Add binding", set DataSource to a ScriptableObject or ViewModel, set DataSourcePath to the property name, choose BindingMode, and apply converter groups as needed.
+
+**2. C# scripting:**
+
+```csharp
+var healthBar = root.Q<ProgressBar>("health-bar");
+healthBar.dataSource = playerData; // ScriptableObject
+var binding = new DataBinding
+{
+    dataSourcePath = new PropertyPath("CurrentHealth"),
+    bindingMode = BindingMode.ToTarget
+};
+binding.sourceToUiConverters.AddConverter((ref int value) => (float)value / maxHealth);
+healthBar.SetBinding("value", binding);
+```
+
+**Converters:** Transform data types between Model and View. Examples: `int` health to `float` progress bar value, `int` to `StyleColor` for health bar color coding, `float` speed to formatted `string` with units. Chain multiple converters with `ConverterGroups`.
+
+**When to use MVVM:** Large complex UIs with Unity 6 and UI Toolkit. The data binding eliminates repetitive update code that would otherwise require manual wiring in a Presenter.
 
 ### When to Use
 
@@ -941,6 +977,48 @@ public class DustEffectPool : MonoBehaviour
 - Objects are created once and persist for the scene lifetime -- pooling adds complexity for no benefit
 - Fewer than ~10 total instances over the scene's lifetime -- GC impact is negligible
 - Object state is extremely difficult to reset reliably (complex component graphs with hidden state) -- stale state bugs may cost more than GC spikes
+
+---
+
+## Singleton Pattern (ANTI-PATTERN)
+
+> **This project FORBIDS singletons** (see `.ai/knowledge/architecture/coding-standards.md`). This section exists for completeness and to explain WHY we avoid it and WHAT alternatives to use.
+
+### Concept
+
+Globally accessible class that exists only once with a static self-reference. Any script can access it from anywhere without an explicit reference.
+
+### Basic Unity Implementation (Reference Only)
+
+```csharp
+// ANTI-PATTERN in this project -- shown for reference only
+public class Singleton : MonoBehaviour
+{
+    public static Singleton Instance { get; private set; }
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(this); }
+        else { Instance = this; }
+    }
+}
+```
+
+### Why We Avoid Singletons
+
+- **Hidden dependencies** -- "any script can do anything" makes data flow invisible
+- **Testing difficulty** -- cannot mock or substitute; tests become order-dependent
+- **Multiplayer breakage** -- assumes one instance globally, which fails with multiple players/sessions
+- **Dangerous refactoring** -- changing the singleton interface breaks all callers across the codebase
+- **Violates Dependency Inversion** -- callers depend on a concrete class, not an abstraction
+
+### Our Alternatives
+
+| Instead of Singleton | Use |
+|---------------------|-----|
+| Global manager access | `[SerializeField]` references in Inspector |
+| Cross-system communication | C# events / `event Action` (Observer pattern) |
+| Shared data | ScriptableObject assets |
+| Service location | Explicit dependency injection via constructor or `[SerializeField]` |
 
 ---
 
