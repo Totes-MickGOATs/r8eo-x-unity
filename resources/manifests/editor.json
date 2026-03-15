@@ -10,8 +10,7 @@
     "Assets/Scripts/Editor/RCCarEditor.cs",
     "Assets/Scripts/Editor/DrivetrainEditor.cs",
     "Assets/Scripts/Editor/R8EOX.Editor.asmdef",
-    "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr",
-    "Assets/Terrain/Outpost/Data/DesertSkybox.mat"
+    "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],
   "replaced_by": ""
