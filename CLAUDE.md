@@ -61,24 +61,27 @@ Current state: _Update `.ai/knowledge/status/project-status.md` with phase track
 ### Quick Reference
 
 ```
-just worktree-create <task>          # 1. Create feature branch + worktree (tags wt/active/<task>)
+just worktree-create <task>          # 1. Create feature branch + worktree
 # ... develop, commit, test ...      # 2. Work on feat/<task> branch
-git push -u origin feat/<task>       # 3. Push
-gh pr create --base main             # 4. Open PR → CI runs automatically
-# CI auto-labels ready-to-merge      # 5. Auto-merge triggers on label → squash-merges
-just worktree-mark-done <task>       # 6. After PR merges, transition tag to wt/done/<task>
-just worktree-cleanup <task>         # 7. Clean up worktree, branches, and tags
+git push -u origin feat/<task>       # 3. Push (pre-push runs tests)
+just ff-main                         # 4. Fast-forward local main to tested commits
+gh pr create --base main             # 5. Open PR → CI runs automatically
+# CI auto-labels ready-to-merge      # 6. Auto-merge triggers on label → squash-merges
+just worktree-mark-done <task>       # 7. After PR merges, transition tag
+just worktree-cleanup <task>         # 8. Clean up worktree, branches, and tags
 ```
 
 ### Branch Workflow
 
 1. **Create a worktree:** `just worktree-create <task-name>` (creates `feat/<task>` from `origin/main`)
 2. **Develop:** Commit frequently in the feature branch. Commit message format: `type: short description`
-3. **Push + PR:** `git push -u origin feat/<task>` then `gh pr create --base main`
-4. **CI validates:** Lint & Preflight must pass (tests are advisory unless configured otherwise)
-5. **Merge:** CI auto-adds `ready-to-merge` label → auto-merge workflow squash-merges when up-to-date
-6. **Mark done:** `just worktree-mark-done <task>` (transitions `wt/active` → `wt/done` tag, requires merged PR)
-7. **Cleanup:** `just worktree-cleanup <task>` or `just worktree-sync` for batch cleanup. Cleanup is blocked if `wt/active` tag exists (override with `FORCE=1`)
+3. **Push:** `git push -u origin feat/<task>` (pre-push hook runs tests)
+4. **Fast-forward local main:** `just ff-main` (gives next task immediate access to your changes)
+5. **Create PR:** `gh pr create --base main` (CI runs automatically)
+6. **CI validates:** Lint & Preflight must pass (tests are advisory unless configured otherwise)
+7. **Merge:** CI auto-adds `ready-to-merge` label → auto-merge workflow squash-merges when up-to-date
+8. **Mark done:** `just worktree-mark-done <task>` (transitions `wt/active` → `wt/done` tag, requires merged PR)
+9. **Cleanup:** `just worktree-cleanup <task>` or `just worktree-sync` for batch cleanup. Cleanup is blocked if `wt/active` tag exists (override with `FORCE=1`)
 
 ### Agent Protocol (Claude Code agents with `isolation: "worktree"`)
 

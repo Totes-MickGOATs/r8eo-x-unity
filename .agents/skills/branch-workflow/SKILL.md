@@ -41,14 +41,35 @@ Or use the one-liner:
 just pr "feat: description"    # push + create PR in one command
 ```
 
-### 4. Wait for CI
+### 4. Local Fast-Forward (Speed Optimization)
+
+After a successful push (pre-push tests passed), fast-forward local main to the current branch:
+
+```bash
+just ff-main
+```
+
+**Why:** Gives the next subagent immediate access to your changes on local main, without waiting for the remote PR/CI/merge cycle. The remote PR flow remains the source of truth.
+
+**Safety:** The recipe enforces:
+- Must be on a feature branch (not main)
+- Branch must be pushed to origin (tests passed)
+- Main must be ancestor of HEAD (fast-forward only, no force)
+
+**After remote PR merges:** Sync local main to the squash commit:
+```bash
+git fetch origin main && git update-ref refs/heads/main origin/main
+```
+This replaces the individual commits with the single squash commit from the PR merge.
+
+### 5. Wait for CI
 
 Required checks must pass before the PR can merge:
 - **Lint & Preflight** — format checks, lint, registry validation
 
 If CI fails, fix the issue in the feature branch, push again. CI re-runs automatically.
 
-### 5. Auto-Merge (Event-Driven)
+### 6. Auto-Merge (Event-Driven)
 
 CI automatically adds the `ready-to-merge` label when checks pass. The **auto-merge workflow** (`auto-merge.yml`) triggers immediately on label addition:
 - If the PR is behind main, it rebases automatically, CI re-runs, label re-added on pass, merge re-triggered
@@ -63,7 +84,7 @@ gh pr edit <number> --add-label "ready-to-merge"
 
 **Safety net:** When new commits are pushed to a PR, the `pr-guard.yml` workflow immediately strips the `ready-to-merge` label before CI starts, ensuring the PR must pass CI again.
 
-### 6. Cleanup
+### 7. Cleanup
 
 ```bash
 just worktree-cleanup <task-name>   # Remove worktree + local/remote branch
