@@ -8,7 +8,8 @@
         "R8EOX.Debug",
         "R8EOX.Core",
         "R8EOX.Track",
-        "R8EOX.GameFlow"
+        "R8EOX.GameFlow",
+        "R8EOX.Shared"
     ],
     "includePlatforms": [
         "Editor"

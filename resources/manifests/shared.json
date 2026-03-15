@@ -1,0 +1,10 @@
+{
+  "system": "shared",
+  "status": "ACTIVE",
+  "description": "Runtime-safe utility classes shared between game code and editor tooling",
+  "files": [
+    "Assets/Scripts/Shared/UnitConversion.cs",
+    "Assets/Scripts/Shared/R8EOX.Shared.asmdef"
+  ],
+  "dependencies": []
+}
