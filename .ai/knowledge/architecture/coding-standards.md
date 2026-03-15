@@ -23,7 +23,8 @@
 | Interfaces | `IPascalCase` | `IDamageable`, `IPhysicsBody` |
 | Enums | `PascalCase` (singular) | `enum Surface { Dirt, Gravel, Tarmac }` |
 | Enum members | `PascalCase` | `MotorPreset.Motor17_5T` |
-| Events/Actions | `On` + past tense | `OnLapCompleted`, `OnCollisionDetected` |
+| Events/Actions (after) | `On` + past participle | `OnLapCompleted`, `OnDoorOpened` |
+| Events/Actions (before) | `On` + present participle | `OnLapStarting`, `OnDoorOpening` |
 | Delegates | `PascalCase` + descriptive | `SpeedChangedHandler` |
 | Namespaces | `R8EOX.SubSystem` | `R8EOX.Vehicle`, `R8EOX.Input` |
 | Files | Match class name exactly | `RaycastWheel.cs` contains `class RaycastWheel` |
@@ -31,6 +32,18 @@
 | Test methods | `Method_Condition_Expected` | `ComputeSuspension_FullCompression_ReturnsMaxForce` |
 | Assemblies | `R8EOX.{System}` | `R8EOX.Vehicle`, `R8EOX.Tests.EditMode` |
 | ScriptableObjects | `{Name}Config` or `{Name}Data` | `MotorPresetConfig`, `SurfaceData` |
+
+### Bool Naming
+
+- **Booleans MUST be prefixed with a verb:** `is`, `has`, `was`, `should`, `can`
+- Applies to fields, properties, locals, and parameters: `_isDead`, `_hasStartedTurn`, `IsGameOver`, `CanJump`, `shouldReset`
+- Applies to methods returning `bool` too: `IsNewPosition()`, `HasReachedTarget()`, `CanAccelerate()`
+
+### Event Timing Convention
+
+- **Present participle = before it happens** (pre-event): `OnDoorOpening`, `OnLapStarting`
+- **Past participle = after it happened** (post-event): `OnDoorOpened`, `OnLapCompleted`
+- Always keep the `On` prefix per the naming table above
 
 ### Forbidden Patterns
 
@@ -178,6 +191,13 @@ void OnDestroy()    // Final cleanup: dispose unmanaged resources, remove from r
 | Parameter count | 4 | Use a struct or parameter object |
 | Nesting depth | 3 levels | Use early returns or extract methods |
 | `if/else` chains | 3 branches | Use switch, lookup table, or strategy pattern |
+
+### Method Purity Rules
+
+- **No flag parameters** — don't pass a `bool` that fundamentally changes a method's behavior. Instead, create two clearly-named methods.
+  - Bad: `GetAngle(bool inRadians)` — Good: `GetAngleInDegrees()` and `GetAngleInRadians()`
+  - Bad: `SetActive(bool withAnimation)` — Good: `Activate()` and `ActivateWithAnimation()`
+- **No side effects** — a method must do only what its name advertises. A `GetSpeed()` method must not modify state. A `Calculate()` method must not trigger events. Query methods read; command methods write. Never both in one method.
 
 ### Documentation Requirements
 
@@ -392,13 +412,15 @@ Documentation is layered for efficient context loading:
 
 ```
 Naming:     _private, Public, k_Constant, s_Static, IInterface
+Bools:      Verb-prefixed — is/has/was/should/can (fields, props, locals, return types)
+Events:     OnDoorOpening (before), OnDoorOpened (after)
 Files:      One class per file, name matches class
 Namespace:  R8EOX.{Folder} — always declared
 Lifecycle:  Awake(self) → Start(cross) → FixedUpdate(physics) → Update(input) → LateUpdate(camera)
 Physics:    FixedUpdate only, AddForce only, document units (N, N·m)
 Testing:    TDD mandatory, RED → GREEN → COMMIT, 100% physics coverage
 Constants:  No bare numbers, group in static classes
-Methods:    ≤30 lines, ≤4 params, ≤3 nesting, guard clauses first
+Methods:    ≤30 lines, ≤4 params, ≤3 nesting, guard clauses first, no flag params, no side effects
 Classes:    ≤300 lines, one responsibility, composition over inheritance
 Docs:       XML comments on public API, [Tooltip] on [SerializeField]
 Git:        Conventional commits, one change per commit, never on main
