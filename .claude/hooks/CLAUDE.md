@@ -11,7 +11,7 @@ Claude Code event hooks. These run automatically at various lifecycle points.
 | `pre-compact-context.sh` | PreCompact | Capture branch/PR state before context compaction; warn about context budget |
 | `session-start.sh` | SessionStart | Configure git hooks, run engine-specific init |
 | `stop-uncommitted-check.sh` | Stop | Detect worktree branch contamination (auto-recover) + warn about uncommitted code files |
-| `subagent-quality-gate.sh` | SubagentStop | Recover from worktree teardown contamination + verify subagent pushed and created PR |
+| `subagent-post-stop.sh` | SubagentStop | Recover from worktree teardown contamination, auto-commit stray changes, verify subagent pushed and created PR, remind about Definition of Done |
 | `worktree-setup.sh` | WorktreeCreate | Auto-setup new worktrees (delegates to engine hook) |
 
 ## Engine Hooks
@@ -20,3 +20,5 @@ After `setup-engine.sh` runs, engine-specific hooks are copied here:
 - `lint-on-save-engine.sh` -- engine-specific file linting
 - `pre-commit-engine.sh` -- engine-specific pre-commit checks
 - `worktree-setup-engine.sh` -- engine-specific worktree seeding
+- `session-start-engine.sh` -- sourced by `session-start.sh`; no-op stub present, override with engine impl
+- `lint-session-stop-engine.sh` -- sourced by `lint-session-stop.sh`; no-op stub present, override with engine impl

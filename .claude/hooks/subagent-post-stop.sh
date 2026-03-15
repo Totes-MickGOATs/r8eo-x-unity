@@ -1,6 +1,7 @@
 #!/bin/bash
-# SubagentStop hook: recover from worktree teardown contamination, then verify
-# subagent pushed and created PR before declaring done.
+# Subagent exit handler — performs safety recovery, auto-commit of stray changes,
+# push verification, and reminds agent to complete Definition of Done.
+# NOT a CI quality gate. Enforcement of TDD and clean-loop criteria is agent-discipline only.
 
 cd "$CLAUDE_PROJECT_DIR" || exit 0
 
@@ -63,15 +64,15 @@ if [ -z "$REMOTE_REF" ]; then
     WARNINGS="${WARNINGS}  Run: git push -u origin $BRANCH\n\n"
 fi
 
-# Auto fast-forward local main if safe to do so
+# Sync local main to origin/main if the PR is already merged
+# (post-merge sync only — use 'just ff-main' mid-development before the PR)
 if [ -n "$REMOTE_REF" ]; then
-    if git merge-base --is-ancestor main HEAD 2>/dev/null; then
-        OLD_SHA=$(git rev-parse --short main 2>/dev/null)
-        git update-ref refs/heads/main HEAD 2>/dev/null
-        NEW_SHA=$(git rev-parse --short main 2>/dev/null)
-        if [ "$OLD_SHA" != "$NEW_SHA" ]; then
-            echo "ff-main: local main fast-forwarded $OLD_SHA -> $NEW_SHA"
-        fi
+    MERGED_CHECK=$(gh pr list --head "$BRANCH" --state merged --json number --limit 1 2>/dev/null || echo "[]")
+    MERGED_CHECK_NUM=$(echo "$MERGED_CHECK" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['number'] if d else '')" 2>/dev/null || echo "")
+    if [ -n "$MERGED_CHECK_NUM" ]; then
+        git fetch origin main --quiet 2>/dev/null || true
+        git update-ref refs/heads/main origin/main 2>/dev/null || true
+        echo "post-merge: local main synced to origin/main (PR #$MERGED_CHECK_NUM merged)"
     fi
 fi
 
@@ -90,24 +91,10 @@ if command -v gh &>/dev/null && [ -n "$REMOTE_REF" ]; then
     fi
 fi
 
-# Auto-transition tags if PR is merged
-if command -v gh &>/dev/null; then
-    MERGED_JSON=$(gh pr list --head "$BRANCH" --state merged --json number --limit 1 2>/dev/null || echo "[]")
-    MERGED_NUM=$(echo "$MERGED_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['number'] if d else '')" 2>/dev/null || echo "")
-    if [ -n "$MERGED_NUM" ]; then
-        # PR is merged — transition active->done
-        git tag -d "wt/active/$TASK" 2>/dev/null || true
-        git push origin --delete "wt/active/$TASK" 2>/dev/null || true
-        git tag -f "wt/done/$TASK" HEAD 2>/dev/null || true
-        git push origin "wt/done/$TASK" --force 2>/dev/null || true
-        echo "Auto-transitioned: wt/active/$TASK -> wt/done/$TASK (PR #$MERGED_NUM merged)"
-    fi
-fi
-
 if [ -n "$WARNINGS" ]; then
     echo ""
     echo "╔══════════════════════════════════════╗"
-    echo "║   SUBAGENT QUALITY GATE WARNING      ║"
+    echo "║   SUBAGENT EXIT — ACTION REQUIRED    ║"
     echo "╚══════════════════════════════════════╝"
     echo ""
     echo -e "$WARNINGS"

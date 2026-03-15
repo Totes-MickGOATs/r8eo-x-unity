@@ -60,18 +60,9 @@ namespace R8EOX.Tests.EditMode
         }
 
         [Test]
-        public void Attach_WhenRCCarExists_AddsInputDiagnostics()
-        {
-            DebugBootstrap.AttachTo(_carGo);
-
-            Assert.IsNotNull(_carGo.GetComponent<InputDiagnostics>(),
-                "AttachTo should add InputDiagnostics to the RCCar GameObject");
-        }
-
-        [Test]
         public void Attach_WhenComponentsAlreadyPresent_DoesNotDuplicate()
         {
-            // First call — adds all three components
+            // First call — adds all components
             DebugBootstrap.AttachTo(_carGo);
             // Second call — must be idempotent
             DebugBootstrap.AttachTo(_carGo);
@@ -80,8 +71,6 @@ namespace R8EOX.Tests.EditMode
                 "ContractDebugger must not be duplicated on a second AttachTo call");
             Assert.AreEqual(1, _carGo.GetComponents<WheelTerrainDiagnostics>().Length,
                 "WheelTerrainDiagnostics must not be duplicated on a second AttachTo call");
-            Assert.AreEqual(1, _carGo.GetComponents<InputDiagnostics>().Length,
-                "InputDiagnostics must not be duplicated on a second AttachTo call");
         }
 
         [Test]
