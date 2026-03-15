@@ -8,6 +8,7 @@ Project setup and configuration scripts.
 |------|------|
 | `setup-engine.sh` | Interactive engine setup: copies configs, hooks, CI, skills for chosen engine |
 | `sync-template.sh` | Sync upstream template changes into the project |
+| `audit-skill-usage.sh` | Scan git history for skill name mentions; report used vs unused skills |
 
 ## Relevant Skills
 
