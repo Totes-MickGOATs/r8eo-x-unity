@@ -48,12 +48,6 @@ namespace R8EOX.Debug
                 attached++;
             }
 
-            if (target.GetComponent<InputDiagnostics>() == null)
-            {
-                target.AddComponent<InputDiagnostics>();
-                attached++;
-            }
-
             UnityEngine.Debug.Log($"[DebugBootstrap] Attached {attached} debug components to {target.name}");
         }
 #endif
