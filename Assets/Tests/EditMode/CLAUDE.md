@@ -35,6 +35,7 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 | `UIManagerTests.cs` | Initialization null checks, overlay count | `UIManager` |
 | `ContractDebuggerTests.cs` | Toggle defaults, counter reset, null-ref safety, SetTarget API, DetectorMode exposure and contract wiring | `ContractDebugger`, `RCInput`, `TriggerDetector` |
 | `WheelTerrainDiagnosticsTests.cs` | Wheel discovery lifecycle: normal order, no wheels, no car, Start order race condition | `WheelTerrainDiagnostics`, `RCCar` |
+| `DebugBootstrapTests.cs` | Component attachment, no-duplication guard, null-safe no-RCCar case, log assertion | `DebugBootstrap`, `ContractDebugger`, `WheelTerrainDiagnostics`, `InputDiagnostics` |
 
 ## Running Tests
 

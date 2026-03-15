@@ -22,28 +22,39 @@ namespace R8EOX.Debug
                 return;
             }
 
+            AttachTo(car.gameObject);
+        }
+
+        /// <summary>
+        /// Attaches all debug diagnostic components to the given <paramref name="target"/> GameObject.
+        /// Existing components are never duplicated — idempotent by design.
+        /// </summary>
+        /// <param name="target">The GameObject to attach debug components to.</param>
+        public static void AttachTo(GameObject target)
+        {
+            if (target == null) return;
+
             int attached = 0;
-            GameObject carGO = car.gameObject;
 
-            if (carGO.GetComponent<ContractDebugger>() == null)
+            if (target.GetComponent<ContractDebugger>() == null)
             {
-                carGO.AddComponent<ContractDebugger>();
+                target.AddComponent<ContractDebugger>();
                 attached++;
             }
 
-            if (carGO.GetComponent<WheelTerrainDiagnostics>() == null)
+            if (target.GetComponent<WheelTerrainDiagnostics>() == null)
             {
-                carGO.AddComponent<WheelTerrainDiagnostics>();
+                target.AddComponent<WheelTerrainDiagnostics>();
                 attached++;
             }
 
-            if (carGO.GetComponent<InputDiagnostics>() == null)
+            if (target.GetComponent<InputDiagnostics>() == null)
             {
-                carGO.AddComponent<InputDiagnostics>();
+                target.AddComponent<InputDiagnostics>();
                 attached++;
             }
 
-            UnityEngine.Debug.Log($"[DebugBootstrap] Attached {attached} debug components to {car.name}");
+            UnityEngine.Debug.Log($"[DebugBootstrap] Attached {attached} debug components to {target.name}");
         }
 #endif
     }
