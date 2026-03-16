@@ -17,7 +17,7 @@ namespace R8EOX.Vehicle
         const float k_DefaultMass = 15.0f;
         const float k_DefaultAngularDrag = 0.05f;
         const float k_DefaultBounciness = 0.05f;
-        const float k_FlipHeightOffset = 5.6f;
+        const float k_FlipHeightOffset = 14.0f;
         const float k_ReverseSpeedThreshold = 0.25f;
         const float k_ForwardSpeedClearThreshold = 0.50f;
         const float k_ReverseBrakeMinThreshold = 0.1f;
@@ -100,9 +100,9 @@ namespace R8EOX.Vehicle
 
         [Header("Suspension")]
         [Tooltip("Spring stiffness in N/m (distributed across all wheels)")]
-        [SerializeField] private float _springStrength = 187.5f;
+        [SerializeField] private float _springStrength = 75.0f;
         [Tooltip("Damping coefficient")]
-        [SerializeField] private float _springDamping = 10.625f;
+        [SerializeField] private float _springDamping = 4.25f;
 
         [Header("Traction")]
         [Tooltip("Global grip multiplier (0-1)")]
@@ -111,7 +111,7 @@ namespace R8EOX.Vehicle
 
         [Header("Centre of Mass")]
         [Tooltip("Centre of mass offset")]
-        [SerializeField] private Vector3 _comGround = new Vector3(0f, -0.80f, 0f);
+        [SerializeField] private Vector3 _comGround = new Vector3(0f, -2.0f, 0f);
 
         [Header("Crash Physics")]
         [Tooltip("Tilt angle in degrees where tumble blending begins")]
