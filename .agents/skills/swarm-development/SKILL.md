@@ -84,6 +84,7 @@ Agent(
   subagent_type="general-purpose",
   description="Build [task name]",
   prompt="... full specification ...",
+  model="sonnet",
   run_in_background=true
 )
 ```
@@ -116,10 +117,10 @@ Each reviewer MUST return findings in this format:
 
 ```
 # Launch all reviewers in parallel in a single message
-Agent(description="Review completeness", ...)
-Agent(description="Review accuracy", ...)
-Agent(description="Review style", ...)
-Agent(description="Review practical value", ...)
+Agent(description="Review completeness", model="sonnet", ...)
+Agent(description="Review accuracy", model="sonnet", ...)
+Agent(description="Review style", model="sonnet", ...)
+Agent(description="Review practical value", model="sonnet", ...)
 ```
 
 ### Phase 3: Fix
@@ -176,6 +177,18 @@ Choose reviewers based on the task type. Not every task needs all reviewers.
 | **Root Cause** | Diagnosis quality | Was the root cause identified, not just the symptom? |
 | **Regression** | Side effects | Could this fix break anything else? Is there a regression test? |
 | **Clean Room QA** | Independent verification | Does a black-box test confirm the fix? (See `clean-room-qa` skill) |
+
+---
+
+## Model Routing
+
+Always set the `model` parameter explicitly when dispatching subagents. Inheriting the orchestrator's model wastes cost or loses quality.
+
+| Agent Type | Model | Reason |
+|------------|-------|--------|
+| **Explore** subagents (research, search, read-only) | `haiku` | Fast and cheap for information retrieval |
+| **general-purpose** subagents (Builder, Fixer) | `sonnet` | Best code quality for implementation |
+| **Plan** subagents (architecture, design) | `opus` | Deepest reasoning for complex decisions |
 
 ---
 
@@ -241,6 +254,20 @@ Do NOT edit any files. Report findings only.
 ```
 
 ### Fixer Template
+
+Dispatch the Fixer with `model="sonnet"` — it writes code and must produce quality output:
+
+```
+Agent(
+  subagent_type="general-purpose",
+  description="Fix review feedback for [task name]",
+  prompt="... findings and instructions ...",
+  model="sonnet",
+  run_in_background=true
+)
+```
+
+Fixer prompt template:
 
 ```
 You are working in a git worktree at [WORKTREE_PATH] on branch [BRANCH_NAME].
@@ -449,7 +476,7 @@ If ANY step fails verification, fall back to Sequential Coordination Mode.
 ### Parallel Dispatch Protocol
 
 1. Main agent performs the independence verification checklist (above)
-2. Dispatch all subagents simultaneously with `isolation: "worktree"` — each gets its own worktree and branch
+2. Dispatch all subagents simultaneously with `isolation: "worktree"` and explicit `model` params — each gets its own worktree and branch
 3. Each subagent follows the standard branch workflow independently (develop, commit, push, PR, CI, auto-merge)
 4. NO in-flight memory files needed — tasks are independent by definition, so there is no cross-task context to share
 5. Main agent monitors all PRs and CI runs concurrently
