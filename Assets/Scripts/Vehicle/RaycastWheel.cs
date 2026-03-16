@@ -44,7 +44,7 @@ namespace R8EOX.Vehicle
 
         [Header("Wheel")]
         [Tooltip("Tire radius in metres (1/1 scale)")]
-        [SerializeField] private float _wheelRadius = 1.66f;
+        [SerializeField] private float _wheelRadius = 0.420f;
 
         [Header("Motor/Steer")]
         [Tooltip("Whether this wheel receives motor force")]

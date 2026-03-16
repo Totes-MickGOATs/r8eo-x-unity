@@ -16,7 +16,8 @@ namespace R8EOX.Tests.EditMode
     {
         // ---- Realistic RC car constants (1/10th scale) ----
         const float k_Mass = 1.5f;           // kg
-        const float k_WheelRadius = 0.166f;  // m
+        const float k_WheelRadiusRearFront = 0.0425f;  // m  (Proline Electron front, 1:10 scale)
+        const float k_WheelRadiusRearRear  = 0.0420f;  // m  (Proline Electron rear, 1:10 scale)
         const float k_RestDistance = 0.20f;   // m
         const float k_MinSpringLen = 0.032f;  // m (bump stop)
         const float k_SpringK = 75f;         // N/m
@@ -36,8 +37,8 @@ namespace R8EOX.Tests.EditMode
         {
             // Scenario: contact point is above the anchor (wheel pushed through ground)
             // Raw = anchorToContact - wheelRadius would be negative
-            float anchorToContact = k_WheelRadius * 0.5f; // less than radius
-            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadius, k_MinSpringLen);
+            float anchorToContact = k_WheelRadiusRear * 0.5f; // less than radius
+            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadiusRear, k_MinSpringLen);
             Assert.AreEqual(k_MinSpringLen, result, k_Epsilon,
                 "Spring length must clamp to bump stop when wheel is inside ground");
         }
@@ -46,8 +47,8 @@ namespace R8EOX.Tests.EditMode
         public void ComputeSpringLength_WheelBarelyTouching_ReturnsZeroOrMin()
         {
             // Contact exactly at wheel radius distance — raw spring length = 0
-            float anchorToContact = k_WheelRadius;
-            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadius, k_MinSpringLen);
+            float anchorToContact = k_WheelRadiusRear;
+            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadiusRear, k_MinSpringLen);
             // raw = 0, but minSpringLen = 0.032, so clamps up
             Assert.AreEqual(k_MinSpringLen, result, k_Epsilon,
                 "Zero raw spring length should clamp to min spring length");
@@ -58,8 +59,8 @@ namespace R8EOX.Tests.EditMode
         {
             // Wheel at a normal driving distance from anchor
             float anchorToContact = 0.40f;
-            float expected = anchorToContact - k_WheelRadius;
-            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadius, k_MinSpringLen);
+            float expected = anchorToContact - k_WheelRadiusRear;
+            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadiusRear, k_MinSpringLen);
             Assert.AreEqual(expected, result, k_Epsilon,
                 "Normal distance should return raw distance minus radius");
         }
@@ -67,8 +68,8 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void ComputeSpringLength_ZeroMinSpringLen_AllowsZeroLength()
         {
-            float anchorToContact = k_WheelRadius; // raw = 0
-            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadius, 0f);
+            float anchorToContact = k_WheelRadiusRear; // raw = 0
+            float result = SuspensionMath.ComputeSpringLength(anchorToContact, k_WheelRadiusRear, 0f);
             Assert.AreEqual(0f, result, k_Epsilon,
                 "With min=0, raw=0 should return exactly 0");
         }
@@ -229,8 +230,8 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void RayLength_SumOfComponents()
         {
-            float result = SuspensionMath.ComputeRayLength(k_RestDistance, k_OverExtend, k_WheelRadius);
-            float expected = k_RestDistance + k_OverExtend + k_WheelRadius;
+            float result = SuspensionMath.ComputeRayLength(k_RestDistance, k_OverExtend, k_WheelRadiusRear);
+            float expected = k_RestDistance + k_OverExtend + k_WheelRadiusRear;
             Assert.AreEqual(expected, result, k_Epsilon,
                 "Ray length should equal rest + overextend + wheelRadius");
         }
@@ -238,8 +239,8 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void RayLength_ZeroOverExtend_StillWorks()
         {
-            float result = SuspensionMath.ComputeRayLength(k_RestDistance, 0f, k_WheelRadius);
-            Assert.AreEqual(k_RestDistance + k_WheelRadius, result, k_Epsilon);
+            float result = SuspensionMath.ComputeRayLength(k_RestDistance, 0f, k_WheelRadiusRear);
+            Assert.AreEqual(k_RestDistance + k_WheelRadiusRear, result, k_Epsilon);
         }
 
         [Test]
@@ -507,8 +508,8 @@ namespace R8EOX.Tests.EditMode
             // v = omega * r, RPM = omega * 60 / (2 * pi)
             // RPM = (v / r) * 60 / (2 * pi)
             float speed = 5f;
-            float expectedRpm = (speed / k_WheelRadius) * 60f / (2f * Mathf.PI);
-            float rpm = GripMath.ComputeWheelRpm(speed, k_WheelRadius);
+            float expectedRpm = (speed / k_WheelRadiusRear) * 60f / (2f * Mathf.PI);
+            float rpm = GripMath.ComputeWheelRpm(speed, k_WheelRadiusRear);
             Assert.AreEqual(expectedRpm, rpm, 0.01f,
                 "RPM should follow omega = v / r converted to rev/min");
         }
@@ -516,7 +517,7 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void WheelRpm_ZeroSpeed_ZeroRpm()
         {
-            float rpm = GripMath.ComputeWheelRpm(0f, k_WheelRadius);
+            float rpm = GripMath.ComputeWheelRpm(0f, k_WheelRadiusRear);
             Assert.AreEqual(0f, rpm, k_Epsilon,
                 "Stationary wheel should have zero RPM");
         }
@@ -524,7 +525,7 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void WheelRpm_NegativeSpeed_NegativeRpm()
         {
-            float rpm = GripMath.ComputeWheelRpm(-3f, k_WheelRadius);
+            float rpm = GripMath.ComputeWheelRpm(-3f, k_WheelRadiusRear);
             Assert.Less(rpm, 0f,
                 "Reverse speed should produce negative RPM (direction matters)");
         }
