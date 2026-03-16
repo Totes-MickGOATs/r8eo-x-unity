@@ -9,12 +9,13 @@ R8EO-X is a realistic RC buggy racing simulator operating at **1/1 physical scal
 We are porting a proven physics implementation from a Godot 4.6.1 prototype (in `RCGameProject/`) that drives well and has been tuned over multiple iterations. The key question is which Unity physics approach to use.
 
 ### Scale Note
-The Godot prototype modelled a 1/10th scale RC buggy (mass 1.5 kg, wheel radius 0.166 m). The Unity production build uses values scaled ×10 to achieve physical consistency with Unity's engine proportions:
+The Godot prototype modelled a 1/10th scale RC buggy (mass 1.5 kg, wheel radius ~0.042 m). The Unity production build uses values scaled ×10 to achieve physical consistency with Unity's engine proportions:
 
 | Parameter | Godot Reference (1/10) | Unity Production (1/1 ×10) |
 |---|---|---|
 | Mass | 1.5 kg | 15 kg |
-| Wheel radius | 0.166 m | 1.66 m |
+| Wheel radius (front) | 0.0425 m (Proline Electron 2.2" front OD 85 mm) | 0.425 m |
+| Wheel radius (rear)  | 0.0420 m (Proline Electron 2.2" rear OD 84 mm)  | 0.420 m |
 | Wheelbase | 1.36 m | 13.6 m (wheel pivots ±6.8 m) |
 | Track width | 1.00 m | 10.0 m (wheel pivots ±5.0 m) |
 | Spring strength | 75 N/m | 75 N/m (unchanged — spring rate does not scale) |

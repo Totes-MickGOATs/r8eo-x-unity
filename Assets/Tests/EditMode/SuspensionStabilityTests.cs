@@ -17,7 +17,7 @@ namespace R8EOX.Tests.EditMode
         const float k_MaxSpringForce = 500f;
         const float k_DefaultDt = 0.008333f; // 120 Hz
         const float k_OverExtend = 0.8f;
-        const float k_WheelRadius = 1.66f;
+        const float k_WheelRadius = 0.420f; // metres (×10 scale, Proline Electron rear)
         const float k_MinSpringLen = 0.32f;
 
 

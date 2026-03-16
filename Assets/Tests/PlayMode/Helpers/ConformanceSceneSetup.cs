@@ -14,8 +14,10 @@ namespace R8EOX.Tests.PlayMode.Helpers
 
         /// <summary>Vehicle mass in kg (1/1 full scale RC buggy).</summary>
         public const float k_Mass = 15.0f;
-        /// <summary>Wheel radius in metres.</summary>
-        public const float k_WheelRadius = 1.66f;
+        /// <summary>Front wheel radius in metres (Proline Electron 2.2" front, OD 85 mm, 10× scale).</summary>
+        public const float k_WheelRadiusFront = 0.425f;
+        /// <summary>Rear wheel radius in metres (Proline Electron 2.2" rear, OD 84 mm, 10× scale).</summary>
+        public const float k_WheelRadiusRear  = 0.420f;
         /// <summary>Wheelbase (front-to-rear axle) in metres.</summary>
         public const float k_Wheelbase = 13.6f;
         /// <summary>Half-track width (center-to-wheel) in metres.</summary>

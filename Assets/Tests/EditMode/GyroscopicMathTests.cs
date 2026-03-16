@@ -15,8 +15,8 @@ namespace R8EOX.Tests.EditMode
 
         const float k_Epsilon = 0.0001f;
         const float k_WheelMoI = 0.120f; // kg*m^2, typical 1/1 (×10 RC) wheel
-        const float k_WheelRadius = 1.66f; // metres (×10 scale: 0.166 × 10)
-        const float k_SpinRate = 9.04f; // rad/s at ~15 m/s (v/r = 15/1.66)
+        const float k_WheelRadius = 0.420f; // metres (×10 scale, Proline Electron rear OD 84 mm)
+        const float k_SpinRate = 9.04f; // rad/s — arbitrary spin rate for torque tests (not derived from k_WheelRadius)
         const float k_DeltaTime = 0.02f; // 50 Hz fixed timestep
 
 
@@ -184,7 +184,7 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void ComputeWheelAngularVelocity_KnownSpeed_ReturnsCorrectRadPerSec()
         {
-            // ω = v / r = 15 / 1.66 ≈ 9.04 rad/s
+            // ω = v / r = 15 / 0.420 ≈ 35.71 rad/s
             float speed = 15f;
             float omega = GyroscopicMath.ComputeWheelAngularVelocity(speed, k_WheelRadius);
 

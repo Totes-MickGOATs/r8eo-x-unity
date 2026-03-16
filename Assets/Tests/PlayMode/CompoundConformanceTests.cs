@@ -25,7 +25,7 @@ namespace R8EOX.Tests.PlayMode
         // ---- Physics Constants (from adr-001-physics-model.md) ----
 
         const float k_Mass = ConformanceSceneSetup.k_Mass;                 // 1.5 kg
-        const float k_WheelRadius = ConformanceSceneSetup.k_WheelRadius;   // 0.166 m
+        const float k_WheelRadius = ConformanceSceneSetup.k_WheelRadiusRear;  // 0.420 m (rear drive axle)
         const float k_Wheelbase = ConformanceSceneSetup.k_Wheelbase;       // 0.28 m
         const float k_Gravity = ConformanceSceneSetup.k_Gravity;           // 9.81 m/s^2
         const float k_GripCoeff = ConformanceSceneSetup.k_GripCoeff;       // 0.7

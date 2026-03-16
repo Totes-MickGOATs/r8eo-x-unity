@@ -21,7 +21,7 @@ Object.DestroyImmediate(ground);
 ## Constants
 
 `ConformanceSceneSetup` exposes physics reference constants matching `adr-001-physics-model.md`:
-- `k_Mass` (1.5 kg), `k_WheelRadius` (0.166 m), `k_Wheelbase` (0.28 m)
+- `k_Mass` (15 kg), `k_WheelRadiusFront` (0.425 m), `k_WheelRadiusRear` (0.420 m), `k_Wheelbase` (13.6 m)
 - `k_Gravity` (9.81 m/s^2), `k_GripCoeff` (0.7)
 - `k_CarLayer` (8), `k_GroundLayer` (9)
 
