@@ -8,31 +8,6 @@ cd "$CLAUDE_PROJECT_DIR" || exit 0
 BRANCH=$(git branch --show-current 2>/dev/null)
 [[ -z "$BRANCH" ]] && exit 0
 
-# --- Worktree teardown contamination recovery ---
-# When isolation:"worktree" tears down, the Claude Code platform can switch
-# the main repo's HEAD to the subagent's feature branch. Detect and recover
-# IMMEDIATELY so the main agent never sees stale branch state.
-if [[ "$BRANCH" != "main" ]]; then
-    MAIN_WORKTREE=$(git worktree list --porcelain 2>/dev/null | head -1 | sed 's/^worktree //')
-    NORM_PROJECT=$(cd "$CLAUDE_PROJECT_DIR" 2>/dev/null && pwd -W 2>/dev/null || pwd)
-    NORM_WORKTREE=$(cd "$MAIN_WORKTREE" 2>/dev/null && pwd -W 2>/dev/null || echo "$MAIN_WORKTREE")
-    if [[ "$NORM_WORKTREE" == "$NORM_PROJECT" ]]; then
-        echo ""
-        echo "WORKTREE RECOVERY: Main repo was on '$BRANCH' — restoring to main..."
-        git checkout -f main 2>/dev/null
-        git restore --staged . 2>/dev/null
-        git checkout -- . 2>/dev/null
-        git clean -fd 2>/dev/null
-        BRANCH=$(git branch --show-current 2>/dev/null)
-        if [[ "$BRANCH" == "main" ]]; then
-            echo "WORKTREE RECOVERY: Restored to main, clean state."
-        else
-            echo "WORKTREE RECOVERY: FAILED — still on '$BRANCH'. Manual fix needed."
-        fi
-        exit 0
-    fi
-fi
-
 # Only check on feature branches (not main) — if we're on main, nothing to gate
 [[ "$BRANCH" == "main" ]] && exit 0
 

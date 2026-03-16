@@ -20,7 +20,7 @@ cd ../<project>-<task-name>
 
 This **always pulls the latest main from remote** before branching, so your feature branch starts from the true current state of main — not a stale local copy.
 
-If you're a Claude Code agent launched with `isolation: "worktree"`, the worktree is already created for you — skip this step. The `WorktreeCreate` hook automatically fetches `origin/main` and rebases your branch onto it, so your worktree starts from the latest remote main. If the hook reported a rebase conflict warning, resolve it manually with `git fetch origin main && git rebase origin/main`.
+If you're a Claude Code subagent, run `bash scripts/tools/safe-worktree-init.sh <task-name>` as your FIRST action — it fetches `origin/main`, creates the feature branch, and prints `WORKTREE_PATH=/absolute/path`. All subsequent work must be done in that worktree using absolute paths.
 
 ### 2. Develop on the Feature Branch
 
@@ -148,21 +148,40 @@ The PreToolUse hook is the primary guard for agents. Even if an agent tries `--n
 
 ## Agent Protocol
 
-### Subagents with `isolation: "worktree"`
+### Subagents (Self-Managed Worktree Pattern)
 
-When Claude Code spawns a subagent with `isolation: "worktree"`, the subagent gets its own worktree and feature branch automatically. The subagent is responsible for the full lifecycle:
+Subagents no longer use `isolation: "worktree"`. Instead, every subagent creates its own worktree as the first action:
 
-1. **Verify branch**: `git branch --show-current` — should show a feature branch, not `main`
-2. **Develop**: Write code, run tests, commit
-3. **Push**: `git push -u origin <branch>`
-4. **Create PR**: `gh pr create --base main`
-5. **Enable auto-merge**: `gh pr merge --auto --squash`
-6. **Watch CI**: `gh run watch` — wait for CI to complete, fix if it fails
-7. **Confirm merge**: Poll `gh pr view --json state -q .state` until it returns `MERGED`
-8. **Update local main**: `git fetch origin main && git update-ref refs/heads/main origin/main`
-9. **Report back**: Return a summary of changes made, files affected, and any downstream implications for subsequent tasks
+```bash
+# Step 1: Create worktree (ALWAYS first action)
+bash scripts/tools/safe-worktree-init.sh <task-name>
+# Output: WORKTREE_PATH=/absolute/path/to/worktree
 
-**Subagents must NOT exit until step 8 is complete.** The main agent relies on local main being current for subsequent dispatches.
+# Step 2: All subsequent work uses the worktree path
+cd /absolute/path/to/worktree && git branch --show-current  # Verify on feat/<task>
+```
+
+**Why self-managed?** When Claude Code tears down an `isolation: "worktree"` subagent, the platform switches the main repo's HEAD to the subagent's feature branch. The `SubagentStop` hook fires before teardown completes, so recovery can't reliably catch it. Subagents creating their own worktrees avoids this entirely — the main repo stays on `main`.
+
+**Critical rules for subagents:**
+1. **Run `safe-worktree-init.sh` as the FIRST action** — before any file reads, edits, or git commands
+2. **Use absolute paths for all operations** — `CLAUDE_PROJECT_DIR` points to main repo, not worktree
+3. **Prefix every Bash command** with `cd /worktree/path &&` — shell `cd` does not persist between calls
+4. **Never edit files in `CLAUDE_PROJECT_DIR`** — only work in the worktree
+
+Subagent lifecycle:
+1. Run `bash scripts/tools/safe-worktree-init.sh <task>` → capture `WORKTREE_PATH`
+2. Verify: `cd $WORKTREE_PATH && git branch --show-current` → shows `feat/<task>`
+3. Develop: Write code, run tests, commit (all in worktree)
+4. Push: `cd $WORKTREE_PATH && git push -u origin feat/<task>`
+5. Create PR: `gh pr create --base main`
+6. Enable auto-merge: `gh pr merge --auto --squash`
+7. Watch CI: `gh run watch` — wait for CI to complete, fix if it fails
+8. Confirm merge: Poll `gh pr view --json state -q .state` until it returns `MERGED`
+9. Update local main: `git -C $WORKTREE_PATH fetch origin main && git -C $WORKTREE_PATH update-ref refs/heads/main origin/main`
+10. Report back: Return a summary of changes made, files affected, and any downstream implications
+
+**Subagents must NOT exit until step 9 is complete.**
 
 ### Main Agent Responsibilities
 
@@ -180,7 +199,8 @@ The main agent (on main) should:
 - **NEVER** use `--no-verify` on git commit
 - **NEVER** leave a branch unmerged or CI failing
 - **NEVER** exit without watching CI through merge and updating local main
-- **ALWAYS** use `isolation: "worktree"` when spawning subagents that write code
+- **NEVER** use `isolation: "worktree"` — subagents call `safe-worktree-init.sh` themselves
+- **ALWAYS** provide a task name to subagents so they can create their own worktree
 
 ## Gotchas & Common Mistakes
 
@@ -270,9 +290,9 @@ The merge queue serializes merges — only one PR merges at a time. This prevent
 | Source | Location | Branch Pattern | Cleanup |
 |--------|----------|---------------|---------|
 | `just worktree-create foo` | `../<project>-foo/` | `feat/foo` | `just worktree-cleanup foo` |
-| Claude Code `isolation: "worktree"` | `.claude/worktrees/agent-<hash>/` | auto-generated | `just worktree-cleanup-all` |
+| `safe-worktree-init.sh foo` (subagent) | `../<project>-foo/` | `feat/foo` | `just worktree-cleanup foo` |
 
-`just worktree-cleanup-all` prunes both patterns.
+`just worktree-cleanup-all` prunes all orphaned worktrees.
 
 ## Emergency Procedures
 

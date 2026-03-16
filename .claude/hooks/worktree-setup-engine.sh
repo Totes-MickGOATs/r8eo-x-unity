@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Unity engine worktree setup — sourced by .claude/hooks/worktree-setup.sh
 # Creates junction/symlink to main repo's Library/ for fast import cache sharing
+# DEPRECATED: This file is sourced by worktree-setup.sh which only fires for isolation:"worktree".
+# Library junction logic has been moved to scripts/tools/safe-worktree-init.sh.
 
 MAIN_REPO="$(git rev-parse --show-toplevel 2>/dev/null)"
 if [ -z "$MAIN_REPO" ]; then
