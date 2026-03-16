@@ -21,6 +21,8 @@ namespace R8EOX.Vehicle
         // ---- Serialized Fields ----
 
         [Header("Gyroscopic Configuration")]
+        [Tooltip("Enable gyroscopic precession and reaction torques while airborne. Disable to let PhysX handle airborne tumble naturally.")]
+        [SerializeField] private bool _enableGyroscopicTorques = true;
         [Tooltip("Wheel inertia and scale factors. Create via Assets > Create > R8EOX > Wheel Inertia Config")]
         [SerializeField] private WheelInertiaConfig _inertiaConfig;
 
@@ -73,6 +75,7 @@ namespace R8EOX.Vehicle
         /// </summary>
         public void Apply(float dt, float throttle, float brake, float steer)
         {
+            if (!_enableGyroscopicTorques) return;
             if (_wheels == null || _wheels.Length == 0 || dt <= 0f) return;
 
             Vector3 bodyOmega = _rb.angularVelocity;

@@ -126,6 +126,8 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _tumbleFriction = 0.3f;
         [Tooltip("Hysteresis band in degrees to prevent threshold oscillation")]
         [SerializeField] private float _tumbleHysteresisDeg = 5f;
+        [Tooltip("Enable dynamic bounciness/friction blending when tumbling. Disable to let PhysX handle collision response naturally.")]
+        [SerializeField] private bool _enableDynamicPhysicsMaterial = true;
 
 
         // ---- Public Properties ----
@@ -568,6 +570,7 @@ namespace R8EOX.Vehicle
 
         private void UpdatePhysicsMaterial()
         {
+            if (!_enableDynamicPhysicsMaterial) return;
             if (_physMat == null) return;
             _physMat.bounciness = Mathf.Lerp(k_DefaultBounciness, _tumbleBounce, TumbleFactor);
             _physMat.dynamicFriction = Mathf.Lerp(0f, _tumbleFriction, TumbleFactor);
