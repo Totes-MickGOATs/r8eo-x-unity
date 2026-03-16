@@ -269,7 +269,9 @@ namespace R8EOX.Editor
                 {
                     // Sample the mask texture at this splatmap position
                     float u = (float)x / (alphaRes - 1);
-                    float v = (float)y / (alphaRes - 1);
+                    // Flip V so terrain y=0 (South) samples the top of the PNG, matching the
+                    // RAW heightmap convention where file row 0 (top of image) → terrain y=0.
+                    float v = 1f - (float)y / (alphaRes - 1);
                     Color pixel = maskTex.GetPixelBilinear(u, v);
 
                     // Mask value: 0 = base dirt only, 1 = top dirt fully visible
