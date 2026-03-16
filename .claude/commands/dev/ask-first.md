@@ -12,7 +12,7 @@ Mandatory pre-implementation workflow. Run this before starting any dev task.
 1. Read the full skill guide: `.agents/skills/ask-first/SKILL.md`
 2. Execute **Phase 1: Interrogate** — complete all 10 steps, write answers down
 3. If confidence < 3, STOP and ask the user for clarification before proceeding
-4. Execute **Phase 2: Test-First** — dispatch a separate agent to write black-box tests:
+4. Execute **Phase 2: Test-First** — dispatch a separate agent (`model: "sonnet"`) to write black-box tests:
    - Give it ONLY: public API signatures, gameplay mechanics, acceptance criteria, physics invariants
    - DO NOT give it: implementation code, internal architecture, your hypothesis
    - Minimum coverage: 1 positive + 1 negative per method, 1 integration per cross-class call, 1 E2E per feature

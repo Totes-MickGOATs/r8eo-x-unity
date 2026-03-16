@@ -90,6 +90,7 @@ just worktree-cleanup <task>         # 8. Clean up worktree, branches, and tags
 > - **NEVER use `--no-verify`** on git commit. The hook will block this too. Fix the underlying issue instead.
 > - **NEVER use `isolation: "worktree"`** — subagents call `safe-worktree-init.sh` themselves instead.
 > - **ALWAYS provide task name** to subagents so they can call `bash scripts/tools/safe-worktree-init.sh <task>` as first action.
+> - **ALWAYS set the `model` parameter** on every Agent tool call: `haiku` for Explore, `opus` for Plan, `sonnet` for general-purpose. Never omit it.
 > - **NEVER leave your branch unmerged or CI failing.** You own your branch from creation to merge. See Definition of Done below.
 
 Agents follow the same workflow: run safe-worktree-init.sh → develop in worktree → push → PR → label `ready-to-merge` → auto-merge serializes.

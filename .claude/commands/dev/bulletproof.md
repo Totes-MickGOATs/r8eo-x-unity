@@ -123,6 +123,8 @@ Before ANY code is written:
 
 Once requirements are confirmed, dispatch an implementation subagent with:
 
+- Model routing: set `model: "sonnet"` for implementation subagents, `model: "opus"` for Plan agents, `model: "haiku"` for Explore agents
+
 > **Multi-task plans:** If this bulletproof session covers multiple sequential tasks, follow the Sequential Coordination protocol in `.agents/skills/swarm-development/SKILL.md` — dispatch one subagent per task with in-flight memory bridges between each. Do not dispatch all tasks to a single subagent.
 
 - The confirmed acceptance criteria (copy them verbatim — no paraphrasing that could drift)
