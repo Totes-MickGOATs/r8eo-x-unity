@@ -14,12 +14,12 @@ namespace R8EOX.Tests.EditMode
     /// </summary>
     public class SphereCastTests
     {
-        // ---- Expected value range for 1/10-scale tire contact patch ----
+        // ---- Expected value range for full-scale tire contact patch ----
 
         /// <summary>Minimum acceptable sphere cast radius (m).</summary>
-        const float k_MinRadius = 0.010f;
+        const float k_MinRadius = 0.10f;
         /// <summary>Maximum acceptable sphere cast radius (m).</summary>
-        const float k_MaxRadius = 0.020f;
+        const float k_MaxRadius = 0.20f;
 
         [Test]
         public void RaycastWheel_SphereCastRadius_IsAccessibleAsPublicProperty()
@@ -29,7 +29,7 @@ namespace R8EOX.Tests.EditMode
             // That compile failure is the RED state for this test.
             float radius = RaycastWheel.SphereCastRadius;
 
-            // Value must be within the expected range for a 1/10-scale tire contact patch
+            // Value must be within the expected range for a full-scale tire contact patch
             Assert.GreaterOrEqual(radius, k_MinRadius,
                 $"SphereCastRadius ({radius}m) must be >= {k_MinRadius}m " +
                 "(too small: would behave like a point raycast, no snag benefit).");
