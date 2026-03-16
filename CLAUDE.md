@@ -6,12 +6,12 @@ This file provides guidance to Claude Code when working with this repository.
 
 > **MANDATORY PREREQUISITE:** You must be on a feature branch before writing, editing, or creating any file.
 >
-> **If you are a subagent spawned with `isolation: "worktree"`:** You are already on a feature branch. Verify with `git branch --show-current` — it should show `feat/...` or `.claude/...`. Proceed to implementation.
+> **If you are a subagent:** Run `bash scripts/tools/safe-worktree-init.sh <task>` as your FIRST action. It prints `WORKTREE_PATH=/absolute/path`. Work exclusively in that worktree using absolute paths (prefix every `cd` and file operation with the worktree path). Never edit files in `$CLAUDE_PROJECT_DIR` (the main repo).
 >
-> **If you are the main agent or were NOT spawned with `isolation: "worktree"`:**
+> **If you are the main agent:**
 > 1. **Do NOT edit any files yet.** You are on `main` and commits will be blocked.
-> 2. **Dispatch a subagent with `isolation: "worktree"`** to do the implementation work.
-> 3. The subagent handles: code changes → commit → push → PR → CI green → label `ready-to-merge`.
+> 2. **Dispatch a subagent WITHOUT `isolation: "worktree"`** — the subagent calls `safe-worktree-init.sh` itself.
+> 3. The subagent handles: worktree setup → code changes → commit → push → PR → CI green → label `ready-to-merge`.
 > 4. You verify the PR merged successfully, then run `just worktree-cleanup <task>`.
 >
 > **Why this matters:** Three enforcement layers block main branch commits (PreToolUse hook, git pre-commit hook, GitHub branch protection). If you edit files on main, you'll waste work that can't be committed.
@@ -83,15 +83,16 @@ just worktree-cleanup <task>         # 8. Clean up worktree, branches, and tags
 8. **Mark done:** `just worktree-mark-done <task>` (transitions `wt/active` → `wt/done` tag, requires merged PR)
 9. **Cleanup:** `just worktree-cleanup <task>` or `just worktree-sync` for batch cleanup. Cleanup is blocked if `wt/active` tag exists (override with `FORCE=1`)
 
-### Agent Protocol (Claude Code agents with `isolation: "worktree"`)
+### Agent Protocol (Self-Managed Worktree Pattern)
 
 > **HARD RULES FOR AGENTS:**
 > - **NEVER commit on the `main` branch.** A PreToolUse hook will block you. Work on your feature branch.
 > - **NEVER use `--no-verify`** on git commit. The hook will block this too. Fix the underlying issue instead.
-> - **ALWAYS use `isolation: "worktree"`** when spawning subagents that write code.
+> - **NEVER use `isolation: "worktree"`** — subagents call `safe-worktree-init.sh` themselves instead.
+> - **ALWAYS provide task name** to subagents so they can call `bash scripts/tools/safe-worktree-init.sh <task>` as first action.
 > - **NEVER leave your branch unmerged or CI failing.** You own your branch from creation to merge. See Definition of Done below.
 
-Agents follow the same workflow: develop in worktree → push → PR → label `ready-to-merge` → auto-merge serializes. The worktree is created automatically by Claude Code — start at step 2.
+Agents follow the same workflow: run safe-worktree-init.sh → develop in worktree → push → PR → label `ready-to-merge` → auto-merge serializes.
 
 ### Sequential Task Coordination
 
@@ -107,7 +108,7 @@ When the main agent decomposes work into multiple tasks:
 Freshness is enforced automatically by hooks — manual steps are belt-and-suspenders:
 
 - **SessionStart hook** fetches all remote refs and updates local `main` to match `origin/main` (every session, every agent).
-- **WorktreeCreate hook** fetches `origin/main` and rebases the worktree branch onto it (every `isolation: "worktree"` subagent).
+- **safe-worktree-init.sh** fetches `origin/main` and creates worktree branch from it (every subagent that calls the script as first action).
 - **Main agent (manual):** `git fetch origin && git pull --ff-only origin main` before dispatching subagents.
 - **Subagents (manual):** `git fetch origin && git rebase origin/main` before pushing if the worktree has been alive for a while. Resolve conflicts before push.
 

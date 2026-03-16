@@ -29,13 +29,13 @@ if [ "$BRANCH" = "main" ]; then
     echo "" >&2
     echo "ALL code changes must go through feature branches + PRs." >&2
     echo "" >&2
-    echo "If you are a subagent (isolation: \"worktree\"), you should" >&2
-    echo "already be on a feat/ branch. Verify:" >&2
-    echo "  git branch --show-current" >&2
+    echo "If you are a subagent, you should be in a worktree on a feat/ branch." >&2
+    echo "Run safe-worktree-init.sh as your FIRST action, then work only in the worktree." >&2
+    echo "  bash scripts/tools/safe-worktree-init.sh <task-name>" >&2
     echo "" >&2
     echo "If you are the main agent or on main by mistake:" >&2
     echo "  1. Do NOT edit files on main — dispatch a subagent instead" >&2
-    echo "  2. Use: Agent(prompt=..., isolation=\"worktree\")" >&2
+    echo "  2. Subagent runs: bash scripts/tools/safe-worktree-init.sh <task-name>" >&2
     echo "  3. Or manually: just worktree-create <task-name>" >&2
     echo "" >&2
     echo "Full guide: .agents/skills/branch-workflow/SKILL.md" >&2

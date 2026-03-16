@@ -1,4 +1,8 @@
 #!/bin/bash
+# DEPRECATED: This hook fires for isolation:"worktree" subagents, which are no longer used.
+# Subagents now call scripts/tools/safe-worktree-init.sh directly.
+# The Library junction logic has been moved to safe-worktree-init.sh.
+# This file is retained for backwards compatibility in case isolation:"worktree" is used by old sessions.
 # WorktreeCreate hook: auto-setup new worktrees
 # Runs AFTER Claude Code creates a worktree. Fetches latest remote state
 # and rebases the worktree branch onto origin/main so agents never start
