@@ -7,6 +7,7 @@ Unity scenes (.unity files). Scenes are binary-ish YAML — always use Force Tex
 | File | Purpose |
 |------|---------|
 | `TestTrack.unity` | Primary test scene with flat terrain, vehicle, and camera |
+| `OutpostTrack.unity` | Outpost-themed racing track scene |
 
 ## Conventions
 
