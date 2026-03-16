@@ -16,15 +16,15 @@ namespace R8EOX.Vehicle
         const float k_MinSpeedForGrip = 0.1f;
         const float k_StaticFrictionSpeed = 0.5f;
         const float k_StaticFrictionTraction = 5.0f;
-        const float k_DroopSpeed = 80f;
+        const float k_DroopSpeed = 200f;
         const float k_RpmConversion = 60f / (2f * Mathf.PI);
         /// <summary>
         /// Sphere radius used in SphereCast ground detection.
         /// Averages contact normals over the tire contact patch to smooth
         /// discontinuous normals at terrain triangle edges (anti-snag).
-        /// Value tuned for 1/10 scale tire contact patch (approx. 15mm).
+        /// Value tuned for 1/1 scale tire contact patch (approx. 150mm).
         /// </summary>
-        private const float k_SphereCastRadius = 0.015f;
+        private const float k_SphereCastRadius = 0.15f;
 
         /// <summary>Public accessor for the SphereCast radius. Used by tests to validate the constant.</summary>
         public static float SphereCastRadius => k_SphereCastRadius;
@@ -34,17 +34,17 @@ namespace R8EOX.Vehicle
 
         [Header("Suspension")]
         [Tooltip("Suspension rest distance in metres")]
-        [SerializeField] private float _restDistance = 0.80f;
+        [SerializeField] private float _restDistance = 2.0f;
         [Tooltip("Extra droop extension when airborne in metres")]
-        [SerializeField] private float _overExtend = 0.32f;
+        [SerializeField] private float _overExtend = 0.8f;
         [Tooltip("Maximum suspension force clamp in Newtons")]
         [SerializeField] private float _maxSpringForce = 500f;
         [Tooltip("Bump stop minimum spring length in metres")]
-        [SerializeField] private float _minSpringLen = 0.128f;
+        [SerializeField] private float _minSpringLen = 0.32f;
 
         [Header("Wheel")]
-        [Tooltip("Tire radius in metres (1/10th scale)")]
-        [SerializeField] private float _wheelRadius = 0.664f;
+        [Tooltip("Tire radius in metres (1/1 scale)")]
+        [SerializeField] private float _wheelRadius = 1.66f;
 
         [Header("Motor/Steer")]
         [Tooltip("Whether this wheel receives motor force")]
@@ -59,7 +59,7 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _zBrakeTraction = 0.5f;
         [Tooltip("Grip curve mapping slip ratio to grip factor")]
         [SerializeField] private AnimationCurve _gripCurve = new AnimationCurve(
-            new Keyframe(0f, 0.3f),
+            new Keyframe(0f, 0f), // Godot baseline — candidate for tuning (audit C1 recommended 0.3)
             new Keyframe(0.15f, 0.8f),
             new Keyframe(0.4f, 1.0f),
             new Keyframe(1.0f, 0.7f)
@@ -76,8 +76,8 @@ namespace R8EOX.Vehicle
 
         // ---- Public Properties (set by RCCar) ----
 
-        public float SpringStrength { get; set; } = 187.5f;
-        public float SpringDamping { get; set; } = 10.625f;
+        public float SpringStrength { get; set; } = 75.0f;
+        public float SpringDamping { get; set; } = 4.25f;
         public float GripCoeff { get; set; } = 0.7f;
         public LayerMask GroundMask { get => _groundMask; set => _groundMask = value; }
         public bool ShowDebug { get => _showDebug; set => _showDebug = value; }

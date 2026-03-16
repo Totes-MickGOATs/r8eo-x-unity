@@ -29,7 +29,7 @@ namespace R8EOX.Vehicle
 
         // ---- Fallback Defaults (used when no config asset assigned) ----
 
-        const float k_DefaultWheelMoI = 0.000120f;
+        const float k_DefaultWheelMoI = 0.120f;
         const float k_DefaultGyroScale = 3.0f;
         const float k_DefaultReactionScale = 80.0f;
 
