@@ -2,7 +2,7 @@
 
 ## When to Use
 
-Before dispatching any subagent with `isolation: "worktree"`.
+Before dispatching any subagent that will call `scripts/tools/safe-worktree-init.sh` to create a worktree.
 
 ## Prompt Quality Checklist
 
