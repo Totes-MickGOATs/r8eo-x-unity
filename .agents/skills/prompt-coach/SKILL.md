@@ -14,6 +14,7 @@ Before dispatching any subagent with `isolation: "worktree"`.
 - [ ] Branch workflow: Reminds about worktree/branch rules?
 - [ ] Test expectations: Specifies TDD (red-green-commit)?
 - [ ] Error recovery: Says what to do if compilation fails or tests break?
+- [ ] Model routing: Correct model set for agent type (Explore=haiku, Plan=opus, general-purpose=sonnet)?
 
 ## Anti-Patterns
 
@@ -22,6 +23,7 @@ Before dispatching any subagent with `isolation: "worktree"`.
 - No acceptance criteria (agent doesn't know when to stop)
 - Assuming context (agent starts fresh)
 - Kitchen-sink prompts (too many unrelated tasks)
+- Missing model param (defaults to inherited model, wasting cost or losing quality)
 
 ## Prompt Template
 
