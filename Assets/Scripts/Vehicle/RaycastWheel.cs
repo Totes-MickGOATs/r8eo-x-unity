@@ -34,13 +34,13 @@ namespace R8EOX.Vehicle
 
         [Header("Suspension")]
         [Tooltip("Suspension rest distance in metres")]
-        [SerializeField] private float _restDistance = 2.0f;
+        [SerializeField] private float _restDistance = 0.25f;
         [Tooltip("Extra droop extension when airborne in metres")]
-        [SerializeField] private float _overExtend = 0.8f;
+        [SerializeField] private float _overExtend = 0.24f;
         [Tooltip("Maximum suspension force clamp in Newtons")]
         [SerializeField] private float _maxSpringForce = 500f;
         [Tooltip("Bump stop minimum spring length in metres")]
-        [SerializeField] private float _minSpringLen = 0.32f;
+        [SerializeField] private float _minSpringLen = 0.12f;
 
         [Header("Wheel")]
         [Tooltip("Tire radius in metres (1/1 scale)")]
@@ -76,8 +76,8 @@ namespace R8EOX.Vehicle
 
         // ---- Public Properties (set by RCCar) ----
 
-        public float SpringStrength { get; set; } = 75.0f;
-        public float SpringDamping { get; set; } = 4.25f;
+        public float SpringStrength { get; set; } = 750.0f;
+        public float SpringDamping { get; set; } = 42.5f;
         public float GripCoeff { get; set; } = 0.7f;
         public LayerMask GroundMask { get => _groundMask; set => _groundMask = value; }
         public bool ShowDebug { get => _showDebug; set => _showDebug = value; }
