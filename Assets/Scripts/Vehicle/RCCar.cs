@@ -111,7 +111,7 @@ namespace R8EOX.Vehicle
 
         [Header("Centre of Mass")]
         [Tooltip("Centre of mass offset")]
-        [SerializeField] private Vector3 _comGround = new Vector3(0f, -2.0f, 0f);
+        [SerializeField] private Vector3 _comGround = new Vector3(0f, -1.4f, 0f);
 
         [Header("Crash Physics")]
         [Tooltip("Tilt angle in degrees where tumble blending begins")]

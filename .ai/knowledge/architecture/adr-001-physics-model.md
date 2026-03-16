@@ -22,6 +22,7 @@ The Godot prototype modelled a 1/10th scale RC buggy (mass 1.5 kg, wheel radius 
 | Spring damping | 4.25 N·s/m | 4.25 N·s/m (unchanged) |
 | Rest distance | 0.20 m | 2.0 m |
 | Wheel MoI | 0.000120 kg·m² | 0.120 kg·m² |
+| CoM ground offset (Y) | −0.20 m (Godot, CoM ≈5 cm above ground) | −1.40 m (≈0.53 m above ground after wheel radius correction) |
 
 Spring rate and damping are left at Godot values because they already produce the desired suspension feel at the Unity scale; rescaling them by 10× would over-stiffen the ride.
 
