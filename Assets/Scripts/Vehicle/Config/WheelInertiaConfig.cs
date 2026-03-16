@@ -11,8 +11,8 @@ namespace R8EOX.Vehicle.Config
     [CreateAssetMenu(menuName = "R8EOX/Wheel Inertia Config")]
     public class WheelInertiaConfig : ScriptableObject
     {
-        [Tooltip("Moment of inertia per wheel (kg*m^2). Typical 1/10 RC: 0.000120")]
-        [SerializeField] private float _wheelMoI = 0.000120f;
+        [Tooltip("Moment of inertia per wheel (kg*m^2). Typical 1/1 (10x RC): 0.120")]
+        [SerializeField] private float _wheelMoI = 0.120f;
 
         [Tooltip("Game-feel multiplier for gyroscopic effect. 1.0 = physically accurate.")]
         [SerializeField] private float _gyroScale = 3.0f;
