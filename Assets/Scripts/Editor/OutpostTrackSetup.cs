@@ -25,14 +25,14 @@ namespace R8EOX.Editor
         const string k_TerrainDataAsset = k_DataPath + "/OutpostTerrainData.asset";
 
         const int k_HeightmapRes = 2049; // 2^11 + 1
-        const float k_TerrainWidth = 100f;  // metres
-        const float k_TerrainLength = 100f; // metres
-        const float k_TerrainHeight = 2f;   // height scale in metres (2m max over 100m footprint)
+        const float k_TerrainWidth = 500f;  // metres
+        const float k_TerrainLength = 500f; // metres
+        const float k_TerrainHeight = 10f;  // height scale in metres (10m max over 500m footprint)
         const int k_DetailRes = 1024;
         const int k_AlphamapRes = 2048; // Resolution for splatmap blending
         const int k_BaseMapRes = 1024;
 
-        const float k_DirtTileSize = 5f; // Repeating dirt texture tile size in metres
+        const float k_DirtTileSize = 25f; // Repeating dirt texture tile size in metres
 
         const string k_TerrainMaterialPath = k_DataPath + "/TerrainMaterial.mat";
 

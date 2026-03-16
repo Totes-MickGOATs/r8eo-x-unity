@@ -105,9 +105,9 @@ namespace R8EOX.Tests.EditMode
 
             var terrain = Object.FindObjectOfType<Terrain>();
             Assert.IsNotNull(terrain, "Terrain must exist");
-            Assert.AreEqual(100f, terrain.terrainData.size.x, 1e-4f, "Terrain X should be 100m");
-            Assert.AreEqual(2f,   terrain.terrainData.size.y, 1e-4f, "Terrain Y should be 2m");
-            Assert.AreEqual(100f, terrain.terrainData.size.z, 1e-4f, "Terrain Z should be 100m");
+            Assert.AreEqual(500f, terrain.terrainData.size.x, 1e-4f, "Terrain X should be 500m");
+            Assert.AreEqual(10f,  terrain.terrainData.size.y, 1e-4f, "Terrain Y should be 10m");
+            Assert.AreEqual(500f, terrain.terrainData.size.z, 1e-4f, "Terrain Z should be 500m");
         }
     }
 }
