@@ -4,9 +4,25 @@
 Accepted
 
 ## Context
-R8EO-X is a realistic 1/10th scale RC buggy racing simulator. The physics model is the core of the game — it must feel authentic to real RC racing while being computationally efficient and fully controllable by the developer.
+R8EO-X is a realistic RC buggy racing simulator operating at **1/1 physical scale** — the Unity scene uses values ×10 larger than the Godot 1/10th scale reference prototype. This scaling was done to align Unity's collision/physics/visual proportions with the Godot reference while preserving the underlying dynamics.
 
 We are porting a proven physics implementation from a Godot 4.6.1 prototype (in `RCGameProject/`) that drives well and has been tuned over multiple iterations. The key question is which Unity physics approach to use.
+
+### Scale Note
+The Godot prototype modelled a 1/10th scale RC buggy (mass 1.5 kg, wheel radius 0.166 m). The Unity production build uses values scaled ×10 to achieve physical consistency with Unity's engine proportions:
+
+| Parameter | Godot Reference (1/10) | Unity Production (1/1 ×10) |
+|---|---|---|
+| Mass | 1.5 kg | 15 kg |
+| Wheel radius | 0.166 m | 1.66 m |
+| Wheelbase | 1.36 m | 13.6 m (wheel pivots ±6.8 m) |
+| Track width | 1.00 m | 10.0 m (wheel pivots ±5.0 m) |
+| Spring strength | 75 N/m | 75 N/m (unchanged — spring rate does not scale) |
+| Spring damping | 4.25 N·s/m | 4.25 N·s/m (unchanged) |
+| Rest distance | 0.20 m | 2.0 m |
+| Wheel MoI | 0.000120 kg·m² | 0.120 kg·m² |
+
+Spring rate and damping are left at Godot values because they already produce the desired suspension feel at the Unity scale; rescaling them by 10× would over-stiffen the ride.
 
 ### Options Considered
 
@@ -15,7 +31,7 @@ We are porting a proven physics implementation from a Godot 4.6.1 prototype (in 
 3. **Third-party asset** (e.g., Edy's Vehicle Physics, NWH Vehicle Physics)
 
 ### Why Not WheelCollider?
-- Designed for full-size cars, not 1/10th scale RC vehicles (mass: 1.5 kg)
+- Designed for full-size cars, not RC-scale vehicles (mass: 15 kg at 1/1 production scale)
 - Limited control over suspension behavior — can't implement our specific Hooke's law + damping model
 - Grip model uses simplified Pacejka curves — we need direct curve-sampled slip ratios
 - No support for RC-specific behaviors: reverse ESC state machine, tumble detection, airborne gyro stabilization
