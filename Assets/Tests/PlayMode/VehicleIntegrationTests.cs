@@ -24,7 +24,7 @@ namespace R8EOX.Tests.PlayMode
         // ---- Constants ----
         const int k_SettleFrames = 120; // 1 second at 120 Hz
         const int k_DriveFrames = 60;
-        const float k_RestDistance = 0.14f; // measured actual: ~0.142 m; original 0.20 predated current spring/mass tuning
+        const float k_RestDistance = 1.51f; // equilibrium spring length: restDistance(2.0) - sag(mg/4k = 15×9.81/4×75 = 0.49) = 1.51 m
         const float k_RestTolerance = 0.05f;
         const int k_CarLayer = 8;
         const int k_GroundLayer = 9;
