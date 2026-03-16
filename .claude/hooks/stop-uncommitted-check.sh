@@ -33,6 +33,31 @@ if [[ "$BRANCH" != "main" ]]; then
     fi
 fi
 
+# --- Safety net: detect staged changes on main ---
+# Staged changes on main are almost always contamination from a subagent worktree teardown
+# (the platform stages reversions of committed work without switching the branch).
+# Warn loudly and auto-clear them.
+if [[ "$BRANCH" == "main" ]]; then
+    STAGED_ON_MAIN=$(git diff --cached --name-only 2>/dev/null)
+    if [ -n "$STAGED_ON_MAIN" ]; then
+        STAGED_COUNT=$(echo "$STAGED_ON_MAIN" | wc -l)
+        echo ""
+        echo "WARNING: Main repo has $STAGED_COUNT staged file(s) — likely worktree teardown contamination."
+        echo "  Staged files:"
+        echo "$STAGED_ON_MAIN" | sed 's/^/    /'
+        echo "  Auto-clearing staged changes (restoring to HEAD)..."
+        git restore --staged . 2>/dev/null
+        git restore . 2>/dev/null
+        STILL_STAGED=$(git diff --cached --name-only 2>/dev/null)
+        if [ -z "$STILL_STAGED" ]; then
+            echo "  Cleared: staging area is clean."
+        else
+            echo "  ERROR: Could not clear staged changes. Manual fix needed:"
+            echo "    git restore --staged . && git restore ."
+        fi
+    fi
+fi
+
 [[ "$BRANCH" == "main" ]] && exit 0
 
 # --- Uncommitted changes check (only on feature branches) ---
