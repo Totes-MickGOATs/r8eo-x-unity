@@ -196,7 +196,7 @@ Summarize your approach in 3-5 bullet points, incorporating lessons from steps 1
 
 ### 2.1 Dispatch the Test-Writing Agent
 
-Spawn a dedicated test-writing agent (using `isolation: "worktree"` or as a research-only subagent that returns test code for you to commit). Provide it with:
+Spawn a dedicated test-writing agent (as a research-only subagent that returns test code for you to commit, or using `bash scripts/tools/safe-worktree-init.sh <task>` if it needs to commit directly). Provide it with:
 
 **GIVE the test agent:**
 - Public API signatures only: `ClassName.MethodName(param: Type) -> ReturnType`

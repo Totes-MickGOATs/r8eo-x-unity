@@ -348,7 +348,7 @@ This skill integrates with the project's existing workflow:
 ### The Protocol
 
 1. **Plan:** Decompose the work into atomic, independently-mergeable tasks. Each task should produce a shippable PR on its own.
-2. **Dispatch:** Send one subagent at a time with `isolation: "worktree"`. Provide it with any in-flight context from previous tasks.
+2. **Dispatch:** Send one subagent at a time — **without** `isolation: "worktree"`. The subagent calls `bash scripts/tools/safe-worktree-init.sh <task>` as its first action. Provide it with any in-flight context from previous tasks.
 3. **Report:** The subagent completes the task, watches CI through merge, updates local main, and reports back with a summary of changes made, files affected, and downstream implications.
 4. **Memory Bridge:** The main agent creates or updates `project_inflight_<task>.md` in memory with: branch name, affected files/systems, and what downstream agents should watch for.
 5. **Next Task:** Dispatch the next subagent, providing it with in-flight awareness context so it can peek at relevant branches or anticipate changes landing in main.
@@ -476,7 +476,7 @@ If ANY step fails verification, fall back to Sequential Coordination Mode.
 ### Parallel Dispatch Protocol
 
 1. Main agent performs the independence verification checklist (above)
-2. Dispatch all subagents simultaneously with `isolation: "worktree"` and explicit `model` params — each gets its own worktree and branch
+2. Dispatch all subagents simultaneously — **without** `isolation: "worktree"`, with explicit `model` params — each calls `safe-worktree-init.sh` as first action to get its own worktree and branch
 3. Each subagent follows the standard branch workflow independently (develop, commit, push, PR, CI, auto-merge)
 4. NO in-flight memory files needed — tasks are independent by definition, so there is no cross-task context to share
 5. Main agent monitors all PRs and CI runs concurrently
