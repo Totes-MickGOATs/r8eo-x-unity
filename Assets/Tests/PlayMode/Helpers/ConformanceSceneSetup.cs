@@ -12,14 +12,14 @@ namespace R8EOX.Tests.PlayMode.Helpers
     {
         // ---- RC Car Reference Constants ----
 
-        /// <summary>Vehicle mass in kg (1/10 scale RC buggy).</summary>
-        public const float k_Mass = 1.5f;
+        /// <summary>Vehicle mass in kg (1/1 full scale RC buggy).</summary>
+        public const float k_Mass = 15.0f;
         /// <summary>Wheel radius in metres.</summary>
-        public const float k_WheelRadius = 0.166f;
+        public const float k_WheelRadius = 1.66f;
         /// <summary>Wheelbase (front-to-rear axle) in metres.</summary>
-        public const float k_Wheelbase = 0.28f;
+        public const float k_Wheelbase = 13.6f;
         /// <summary>Half-track width (center-to-wheel) in metres.</summary>
-        public const float k_HalfTrack = 0.15f;
+        public const float k_HalfTrack = 5.0f;
         /// <summary>Gravity magnitude in m/s^2.</summary>
         public const float k_Gravity = 9.81f;
         /// <summary>Default grip coefficient.</summary>
