@@ -16,8 +16,8 @@ namespace R8EOX.Tests.EditMode
     {
         // ---- Realistic RC car constants (1/10th scale) ----
         const float k_Mass = 1.5f;           // kg
-        const float k_WheelRadiusRearFront = 0.0425f;  // m  (Proline Electron front, 1:10 scale)
-        const float k_WheelRadiusRearRear  = 0.0420f;  // m  (Proline Electron rear, 1:10 scale)
+        const float k_WheelRadiusFront = 0.0425f;  // m  (Proline Electron front, 1:10 scale)
+        const float k_WheelRadiusRear  = 0.0420f;  // m  (Proline Electron rear, 1:10 scale)
         const float k_RestDistance = 0.20f;   // m
         const float k_MinSpringLen = 0.032f;  // m (bump stop)
         const float k_SpringK = 75f;         // N/m
