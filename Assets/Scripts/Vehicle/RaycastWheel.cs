@@ -43,8 +43,8 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _minSpringLen = 0.128f;
 
         [Header("Wheel")]
-        [Tooltip("Tire radius in metres (1/10th scale)")]
-        [SerializeField] private float _wheelRadius = 0.664f;
+        [Tooltip("Tire radius in metres (10x real 1/10 RC car: 0.055m × 10 = 0.55m)")]
+        [SerializeField] private float _wheelRadius = 0.55f;
 
         [Header("Motor/Steer")]
         [Tooltip("Whether this wheel receives motor force")]
