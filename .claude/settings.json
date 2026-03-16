@@ -73,7 +73,8 @@
       "mcp__UnityMCP__set_active_instance",
       "mcp__UnityMCP__debug_request_context",
       "mcp__ide__getDiagnostics"
-    ]
+    ],
+      "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PreToolUse": [
@@ -187,5 +188,6 @@
     "type": "command",
     "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/statusline.sh\"",
     "padding": 0
-  }
+  },
+    "model": "opusplan"
 }
