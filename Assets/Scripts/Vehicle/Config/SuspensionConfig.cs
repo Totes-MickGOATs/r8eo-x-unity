@@ -16,12 +16,12 @@ namespace R8EOX.Vehicle.Config
         [SerializeField] private float _springDamping = 4.25f;
 
         [Header("Travel")]
-        [Tooltip("Suspension rest distance in metres")]
-        [SerializeField] private float _restDistance = 0.20f;
-        [Tooltip("Extra droop extension when airborne in metres")]
-        [SerializeField] private float _overExtend = 0.08f;
-        [Tooltip("Bump stop minimum spring length in metres")]
-        [SerializeField] private float _minSpringLen = 0.032f;
+        [Tooltip("Suspension rest distance in metres (×10 scale)")]
+        [SerializeField] private float _restDistance = 2.0f;
+        [Tooltip("Extra droop extension when airborne in metres (×10 scale)")]
+        [SerializeField] private float _overExtend = 0.8f;
+        [Tooltip("Bump stop minimum spring length in metres (×10 scale)")]
+        [SerializeField] private float _minSpringLen = 0.32f;
         [Tooltip("Maximum suspension force clamp in Newtons")]
         [SerializeField] private float _maxSpringForce = 50f;
 

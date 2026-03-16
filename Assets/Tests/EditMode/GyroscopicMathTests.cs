@@ -14,9 +14,9 @@ namespace R8EOX.Tests.EditMode
         // ---- Constants ----
 
         const float k_Epsilon = 0.0001f;
-        const float k_WheelMoI = 0.000120f; // kg*m^2, typical 1/10 RC wheel
-        const float k_WheelRadius = 0.053f; // metres
-        const float k_SpinRate = 283f; // rad/s at ~15 m/s
+        const float k_WheelMoI = 0.120f; // kg*m^2, typical 1/1 (×10 RC) wheel
+        const float k_WheelRadius = 1.66f; // metres (×10 scale: 0.166 × 10)
+        const float k_SpinRate = 9.04f; // rad/s at ~15 m/s (v/r = 15/1.66)
         const float k_DeltaTime = 0.02f; // 50 Hz fixed timestep
 
 
@@ -118,7 +118,7 @@ namespace R8EOX.Tests.EditMode
             Vector3 torque = GyroscopicMath.ComputeReactionTorque(
                 spinAxis, k_WheelMoI, currentSpin, previousSpin, k_DeltaTime);
 
-            // Δω = 50, Δω/Δt = 2500. τ = -(1,0,0) * 0.000120 * 2500 = (-0.3, 0, 0)
+            // Δω = 50, Δω/Δt = 2500. τ = -(1,0,0) * 0.120 * 2500 = (-300, 0, 0)
             // Torque should oppose spin-up: negative X component
             Assert.Less(torque.x, 0f, "Reaction should oppose spin increase (negative X)");
             Assert.AreEqual(0f, torque.y, k_Epsilon);
@@ -184,7 +184,7 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void ComputeWheelAngularVelocity_KnownSpeed_ReturnsCorrectRadPerSec()
         {
-            // ω = v / r = 15 / 0.053 ≈ 283.02 rad/s
+            // ω = v / r = 15 / 1.66 ≈ 9.04 rad/s
             float speed = 15f;
             float omega = GyroscopicMath.ComputeWheelAngularVelocity(speed, k_WheelRadius);
 
