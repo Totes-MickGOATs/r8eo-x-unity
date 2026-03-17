@@ -308,9 +308,9 @@ namespace R8EOX.Tests.PlayMode
             Assert.Greater(groundedWheels, 0, "Regression: At least one wheel must be on flat ground after settling.");
 
             avgSpringLen /= groundedWheels;
-            // Measured settled spring length ~1.51m — lower than the serialized _restDistance (2.0m)
-            // due to spring strength/mass/gravity equilibrium (sag = mg/4k = 0.49m). Matches VehicleIntegrationTests constant.
-            const float k_ExpectedRestLen = 1.51f;
+            // Measured settled spring length ~0.201m — lower than the serialized _restDistance (0.25m)
+            // due to spring strength/mass/gravity equilibrium (sag = mg/4k = 0.049m). Matches VehicleIntegrationTests constant.
+            const float k_ExpectedRestLen = 0.201f;
             const float k_RestTolerance = 0.05f;
             Assert.AreEqual(k_ExpectedRestLen, avgSpringLen, k_RestTolerance,
                 $"Regression: Spring length after settling should be near {k_ExpectedRestLen}m (equilibrium). " +

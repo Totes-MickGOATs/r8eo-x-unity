@@ -100,9 +100,9 @@ namespace R8EOX.Vehicle
 
         [Header("Suspension")]
         [Tooltip("Spring stiffness in N/m (distributed across all wheels)")]
-        [SerializeField] private float _springStrength = 75.0f;
+        [SerializeField] private float _springStrength = 750.0f;
         [Tooltip("Damping coefficient")]
-        [SerializeField] private float _springDamping = 4.25f;
+        [SerializeField] private float _springDamping = 42.5f;
 
         [Header("Traction")]
         [Tooltip("Global grip multiplier (0-1)")]
@@ -111,7 +111,7 @@ namespace R8EOX.Vehicle
 
         [Header("Centre of Mass")]
         [Tooltip("Centre of mass offset")]
-        [SerializeField] private Vector3 _comGround = new Vector3(0f, -1.4f, 0f);
+        [SerializeField] private Vector3 _comGround = new Vector3(0f, -0.12f, 0f);
 
         [Header("Crash Physics")]
         [Tooltip("Tilt angle in degrees where tumble blending begins")]

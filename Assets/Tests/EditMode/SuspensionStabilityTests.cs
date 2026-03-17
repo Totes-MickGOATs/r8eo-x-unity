@@ -11,14 +11,14 @@ namespace R8EOX.Tests.EditMode
     public class SuspensionStabilityTests
     {
         // ---- Constants matching production defaults (1/1 full scale) ----
-        const float k_RestDistance = 2.0f;
-        const float k_SpringStrength = 75.0f;
-        const float k_SpringDamping = 10.625f;
+        const float k_RestDistance = 0.25f;
+        const float k_SpringStrength = 750.0f;
+        const float k_SpringDamping = 106.25f;
         const float k_MaxSpringForce = 500f;
         const float k_DefaultDt = 0.008333f; // 120 Hz
-        const float k_OverExtend = 0.8f;
+        const float k_OverExtend = 0.24f;
         const float k_WheelRadius = 0.420f; // metres (×10 scale, Proline Electron rear)
-        const float k_MinSpringLen = 0.32f;
+        const float k_MinSpringLen = 0.12f;
 
 
         // ---- M7: Airborne-to-ground damping spike ----
@@ -26,18 +26,18 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void LandingFrame_DampingForce_DoesNotExceedTwoTimesSteadyState()
         {
-            // Steady state: spring at rest on flat ground, typical compression ~1.5m
-            float steadySpringLen = 1.5f;
+            // Steady state: spring at rest on flat ground near equilibrium (~0.20m)
+            float steadySpringLen = 0.20f;
             float steadyForce = SuspensionMath.ComputeSuspensionForceWithDamping(
                 k_SpringStrength, k_SpringDamping,
                 k_RestDistance, steadySpringLen, steadySpringLen, k_DefaultDt);
 
             // Simulate landing: prevSpringLen is full droop (airborne), current is ground contact
-            float airborneLen = k_RestDistance + k_OverExtend; // 2.8m full droop
+            float airborneLen = k_RestDistance + k_OverExtend; // 0.49m full droop
             float landingSpringLen = steadySpringLen;
 
             // WITHOUT the fix, this would produce a huge damping spike:
-            // damping = 10.625 * (2.8 - 1.5) / 0.008333 = ~1657 N
+            // damping = 106.25 * (0.49 - 0.20) / 0.008333 = ~3697 N
             // WITH the fix (SanitizePrevSpringLenForLanding), prevSpringLen = springLen,
             // so damping = 0 and force = spring component only.
             float sanitizedPrev = SuspensionMath.SanitizePrevSpringLenForLanding(
@@ -83,7 +83,7 @@ namespace R8EOX.Tests.EditMode
         {
             // Simulate multiple frames after landing from a small height
             // The suspension should settle, not bounce
-            float springLen = 1.8f; // Slightly compressed from landing
+            float springLen = 0.22f; // Slightly extended from equilibrium (~0.201m)
             float prevLen = springLen; // Sanitized by landing fix
 
             // Simulate 20 frames of suspension settling
@@ -120,7 +120,7 @@ namespace R8EOX.Tests.EditMode
         public void OscillationAmplitude_DecreasesMonotonically()
         {
             // Simulate suspension from a compressed state and verify oscillation decays
-            float springLen = 1.0f; // Start compressed
+            float springLen = 0.12f; // Start at bump stop (fully compressed)
             float prevLen = springLen;
 
             // Track peaks and troughs to measure amplitude
@@ -173,19 +173,19 @@ namespace R8EOX.Tests.EditMode
         public void SuspensionForce_AtFullDroop_WithDampingSpike_QuantifiesIssue()
         {
             // Document the exact magnitude of the M7 bug
-            // Before fix: landing from airborne with prevSpringLen = 2.8m, springLen = 1.5m
-            // produces damping = 10.625 * (2.8 - 1.5) / 0.008333 = ~1657 N
-            float airborneLen = k_RestDistance + k_OverExtend; // 2.8
-            float groundLen = 1.5f;
+            // Before fix: landing from airborne with prevSpringLen = 0.49m, springLen = 0.20m
+            // produces damping = 106.25 * (0.49 - 0.20) / 0.008333 = ~3697 N
+            float airborneLen = k_RestDistance + k_OverExtend; // 0.49m full droop
+            float groundLen = 0.20f;
 
             float unsanitizedForce = SuspensionMath.ComputeSuspensionForceWithDamping(
                 k_SpringStrength, k_SpringDamping,
                 k_RestDistance, groundLen, airborneLen, k_DefaultDt);
 
             // The unsanitized force includes the damping spike
-            // Spring: 75 * (2.0 - 1.5) = 37.5
-            // Damping: 10.625 * (2.8 - 1.5) / 0.008333 = ~1657
-            // Total: ~1694 N
+            // Spring: 750 * (0.25 - 0.20) = 37.5
+            // Damping: 106.25 * (0.49 - 0.20) / 0.008333 = ~3697
+            // Total: ~3735 N
             Assert.Greater(unsanitizedForce, 500f,
                 "Without fix, landing damping spike should exceed 500N (confirming the bug exists).");
 

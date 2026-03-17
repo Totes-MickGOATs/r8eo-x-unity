@@ -18,13 +18,15 @@ The Godot prototype modelled a 1/10th scale RC buggy (mass 1.5 kg, wheel radius 
 | Wheel radius (rear)  | 0.0420 m (Proline Electron 2.2" rear OD 84 mm)  | 0.420 m |
 | Wheelbase | 1.36 m | 13.6 m (wheel pivots ±6.8 m) |
 | Track width | 1.00 m | 10.0 m (wheel pivots ±5.0 m) |
-| Spring strength | 75 N/m | 75 N/m (unchanged — spring rate does not scale) |
-| Spring damping | 4.25 N·s/m | 4.25 N·s/m (unchanged) |
-| Rest distance | 0.20 m | 2.0 m |
+| Spring strength (k)   | 75 N/m  | **750 N/m** (×10 — maintains same relative sag at ×10 mass) |
+| Spring damping        | 4.25 N·s/m | **42.5 N·s/m** (×10) |
+| Rest distance         | 0.20 m  | **0.25 m** (springLen_eq 0.201 + sag 0.049) |
+| Over-extend (droop)   | 0.08 m  | **0.24 m** (B6.4 droop 28.5mm ×10 − sag) |
+| Min spring len (bump) | 0.032 m | **0.12 m** (springLen_eq − 0.075m bump compression) |
 | Wheel MoI | 0.000120 kg·m² | 0.120 kg·m² |
-| CoM ground offset (Y) | −0.20 m (Godot, CoM ≈5 cm above ground) | −1.40 m (≈0.53 m above ground after wheel radius correction) |
+| CoM ground offset (Y) | −0.20 m (Godot, CoM ≈5 cm above ground) | **−0.12 m** (CoM 0.50m above ground at 10× scale) |
 
-Spring rate and damping are left at Godot values because they already produce the desired suspension feel at the Unity scale; rescaling them by 10× would over-stiffen the ride.
+Spring rate and damping are now ×10 scaled to match wheel radius correction. Previous value (75 N/m) produced 10× excess sag once wheel radius was corrected to real RC dimensions. With k=750 N/m: sag = 15×9.81/(4×750) = 0.049 m — same relative sag ratio as Godot.
 
 ### Options Considered
 
