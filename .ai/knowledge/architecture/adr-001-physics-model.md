@@ -18,15 +18,17 @@ The Godot prototype modelled a 1/10th scale RC buggy (mass 1.5 kg, wheel radius 
 | Wheel radius (rear)  | 0.0420 m (Proline Electron 2.2" rear OD 84 mm)  | 0.420 m |
 | Wheelbase | 1.36 m | 13.6 m (wheel pivots ±6.8 m) |
 | Track width | 1.00 m | 10.0 m (wheel pivots ±5.0 m) |
-| Spring strength (k)   | 75 N/m  | **750 N/m** (×10 — maintains same relative sag at ×10 mass) |
-| Spring damping        | 4.25 N·s/m | **42.5 N·s/m** (×10) |
-| Rest distance         | 0.20 m  | **0.25 m** (springLen_eq 0.201 + sag 0.049) |
+| Spring strength — front | 75 N/m  | **700 N/m** (B6.4 red spring, 4.0 lbs/in) |
+| Spring strength — rear  | 75 N/m  | **350 N/m** (B6.4 gray spring, 2.0 lbs/in) |
+| Spring damping — front  | 4.25 N·s/m | **41 N·s/m** (c_crit × 0.40 at k=700, m_wheel=3.75 kg) |
+| Spring damping — rear   | 4.25 N·s/m | **29 N·s/m** (c_crit × 0.40 at k=350, m_wheel=3.75 kg) |
+| Rest distance         | 0.20 m  | **0.25 m** (springLen_eq: front 0.208 m, rear 0.124 m) |
 | Over-extend (droop)   | 0.08 m  | **0.24 m** (B6.4 droop 28.5mm ×10 − sag) |
 | Min spring len (bump) | 0.032 m | **0.12 m** (springLen_eq − 0.075m bump compression) |
 | Wheel MoI | 0.000120 kg·m² | 0.120 kg·m² |
 | CoM ground offset (Y) | −0.20 m (Godot, CoM ≈5 cm above ground) | **−0.12 m** (CoM 0.50m above ground at 10× scale) |
 
-Spring rate and damping are now ×10 scaled to match wheel radius correction. Previous value (75 N/m) produced 10× excess sag once wheel radius was corrected to real RC dimensions. With k=750 N/m: sag = 15×9.81/(4×750) = 0.049 m — same relative sag ratio as Godot.
+Spring rates are now per-axle based on real Team Associated B6.4 spring specs. Front axle uses red spring (4.0 lbs/in = 700 N/m), rear uses gray spring (2.0 lbs/in = 350 N/m). Weight split is 40% front / 60% rear (rear-drive 2WD buggy). Equilibrium sag: front = 0.4×15×9.81/(2×700) = 0.042 m → springLen_eq 0.208 m; rear = 0.6×15×9.81/(2×350) = 0.126 m → springLen_eq 0.124 m.
 
 ### Options Considered
 

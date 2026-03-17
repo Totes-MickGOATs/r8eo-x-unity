@@ -181,8 +181,8 @@ namespace R8EOX.Debug
             _steeringSpeed = _car.SteeringSpeed;
             _steeringSpeedLimit = _car.SteeringSpeedLimit;
             _steeringHighSpeedFactor = _car.SteeringHighSpeedFactor;
-            _springStrength = _car.SpringStrength;
-            _springDamping = _car.SpringDamping;
+            _springStrength = _car.FrontSpringStrength;
+            _springDamping = _car.FrontSpringDamping;
             _gripCoeff = _car.GripCoeff;
             _comGroundY = _car.ComGroundY;
             _tumbleEngageDeg = _car.TumbleEngageDeg;

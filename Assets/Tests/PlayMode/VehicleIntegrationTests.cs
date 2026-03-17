@@ -24,8 +24,9 @@ namespace R8EOX.Tests.PlayMode
         // ---- Constants ----
         const int k_SettleFrames = 120; // 1 second at 120 Hz
         const int k_DriveFrames = 60;
-        const float k_RestDistance = 0.201f; // equilibrium spring length: restDistance(0.25) - sag(mg/4k = 15×9.81/4×750 = 0.049) = 0.201 m
-        const float k_RestTolerance = 0.05f;
+        const float k_FrontRestLen = 0.208f;  // restDist(0.25) - sag(0.4×15×9.81/2/700=0.042) = 0.208 m (B6.4 red spring)
+        const float k_RearRestLen  = 0.124f;  // restDist(0.25) - sag(0.6×15×9.81/2/350=0.126) = 0.124 m (B6.4 gray spring)
+        const float k_RestTolerance = 0.06f;
         const int k_CarLayer = 8;
         const int k_GroundLayer = 9;
 
@@ -185,9 +186,12 @@ namespace R8EOX.Tests.PlayMode
             {
                 if (w.IsOnGround)
                 {
-                    Assert.AreEqual(k_RestDistance, w.LastSpringLen, k_RestTolerance,
-                        $"Wheel {w.name} spring length {w.LastSpringLen:F3}m should be near " +
-                        $"rest distance {k_RestDistance}m (+/-{k_RestTolerance}m). " +
+                    bool isFront = w.transform.localPosition.z > 0f;
+                    float expectedRest = isFront ? k_FrontRestLen : k_RearRestLen;
+                    string axle = isFront ? "front" : "rear";
+                    Assert.AreEqual(expectedRest, w.LastSpringLen, k_RestTolerance,
+                        $"Wheel {w.name} ({axle}) spring length {w.LastSpringLen:F3}m should be near " +
+                        $"rest distance {expectedRest}m (+/-{k_RestTolerance}m). " +
                         "If too compressed or extended, suspension tuning or mass may be off");
                 }
             }
