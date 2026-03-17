@@ -133,8 +133,55 @@ namespace R8EOX.Tests.EditMode
 
             car.SetSuspension(100f, 5f);
 
-            Assert.AreEqual(100f, car.SpringStrength, k_Epsilon);
-            Assert.AreEqual(5f, car.SpringDamping, k_Epsilon);
+            Assert.AreEqual(100f, car.FrontSpringStrength, k_Epsilon);
+            Assert.AreEqual(5f, car.FrontSpringDamping, k_Epsilon);
+            Assert.AreEqual(100f, car.RearSpringStrength, k_Epsilon);
+            Assert.AreEqual(5f, car.RearSpringDamping, k_Epsilon);
+
+            DestroyTestCar(car);
+        }
+
+
+        // ---- SetAxleSuspension Tests ----
+
+        [Test]
+        public void SetAxleSuspension_UpdatesPerAxleProperties()
+        {
+            var car = CreateTestCar();
+            InitialiseCar(car);
+
+            car.SetAxleSuspension(700f, 41f, 350f, 29f);
+
+            Assert.AreEqual(700f, car.FrontSpringStrength, k_Epsilon);
+            Assert.AreEqual(41f, car.FrontSpringDamping, k_Epsilon);
+            Assert.AreEqual(350f, car.RearSpringStrength, k_Epsilon);
+            Assert.AreEqual(29f, car.RearSpringDamping, k_Epsilon);
+
+            DestroyTestCar(car);
+        }
+
+        [Test]
+        public void SetAxleSuspension_PushesCorrectValuesToFrontAndRearWheels()
+        {
+            var car = CreateTestCar();
+            InitialiseCar(car);
+
+            car.SetAxleSuspension(700f, 41f, 350f, 29f);
+
+            var wheels = car.GetAllWheels();
+            Assert.IsNotNull(wheels);
+            Assert.Greater(wheels.Length, 0);
+
+            foreach (var w in wheels)
+            {
+                bool isFront = w.transform.localPosition.z > 0f;
+                float expectedK = isFront ? 700f : 350f;
+                float expectedDamp = isFront ? 41f : 29f;
+                Assert.AreEqual(expectedK, w.SpringStrength, k_Epsilon,
+                    $"Wheel {w.name} spring strength should be {expectedK} for {(isFront ? "front" : "rear")} axle");
+                Assert.AreEqual(expectedDamp, w.SpringDamping, k_Epsilon,
+                    $"Wheel {w.name} damping should be {expectedDamp} for {(isFront ? "front" : "rear")} axle");
+            }
 
             DestroyTestCar(car);
         }

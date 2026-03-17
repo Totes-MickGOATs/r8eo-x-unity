@@ -98,11 +98,17 @@ namespace R8EOX.Vehicle
         [Range(0f, 1f)]
         [SerializeField] private float _steeringHighSpeedFactor = 0.4f;
 
-        [Header("Suspension")]
-        [Tooltip("Spring stiffness in N/m (distributed across all wheels)")]
-        [SerializeField] private float _springStrength = 750.0f;
-        [Tooltip("Damping coefficient")]
-        [SerializeField] private float _springDamping = 42.5f;
+        [Header("Suspension — Front")]
+        [Tooltip("Front axle spring stiffness in N/m (B6.4 red spring = 4.0 lbs/in = 700 N/m)")]
+        [SerializeField] private float _frontSpringStrength = 700.0f;
+        [Tooltip("Front axle damping coefficient in N·s/m")]
+        [SerializeField] private float _frontSpringDamping = 41.0f;
+
+        [Header("Suspension — Rear")]
+        [Tooltip("Rear axle spring stiffness in N/m (B6.4 gray spring = 2.0 lbs/in = 350 N/m)")]
+        [SerializeField] private float _rearSpringStrength = 350.0f;
+        [Tooltip("Rear axle damping coefficient in N·s/m")]
+        [SerializeField] private float _rearSpringDamping = 29.0f;
 
         [Header("Traction")]
         [Tooltip("Global grip multiplier (0-1)")]
@@ -167,10 +173,14 @@ namespace R8EOX.Vehicle
         public float SteeringSpeedLimit => _steeringSpeedLimit;
         /// <summary>Current steering high speed factor (0-1).</summary>
         public float SteeringHighSpeedFactor => _steeringHighSpeedFactor;
-        /// <summary>Current spring strength in N/m.</summary>
-        public float SpringStrength => _springStrength;
-        /// <summary>Current spring damping coefficient.</summary>
-        public float SpringDamping => _springDamping;
+        /// <summary>Front axle spring strength in N/m.</summary>
+        public float FrontSpringStrength => _frontSpringStrength;
+        /// <summary>Front axle spring damping coefficient in N·s/m.</summary>
+        public float FrontSpringDamping => _frontSpringDamping;
+        /// <summary>Rear axle spring strength in N/m.</summary>
+        public float RearSpringStrength => _rearSpringStrength;
+        /// <summary>Rear axle spring damping coefficient in N·s/m.</summary>
+        public float RearSpringDamping => _rearSpringDamping;
         /// <summary>Current grip coefficient (0-1).</summary>
         public float GripCoeff => _gripCoeff;
         /// <summary>Centre of mass Y offset when grounded.</summary>
@@ -229,7 +239,7 @@ namespace R8EOX.Vehicle
             ConfigureWheels();
 
             Debug.Log($"[RCCar] Motor={_motorPreset} engine={_engineForceMax}N max={_maxSpeed}m/s " +
-                      $"mass={_rb.mass}kg spring={_springStrength} damp={_springDamping} grip={_gripCoeff}");
+                      $"mass={_rb.mass}kg frontSpring={_frontSpringStrength} rearSpring={_rearSpringStrength} grip={_gripCoeff}");
         }
 
         void Update()
@@ -338,13 +348,18 @@ namespace R8EOX.Vehicle
             return _allWheels;
         }
 
-        /// <summary>Pushes current suspension settings to all wheels.</summary>
+        /// <summary>Pushes current suspension settings to all wheels (per-axle).</summary>
         public void ApplySuspensionSettings()
         {
-            foreach (var w in _allWheels)
+            foreach (var w in _frontWheels)
             {
-                w.SpringStrength = _springStrength;
-                w.SpringDamping = _springDamping;
+                w.SpringStrength = _frontSpringStrength;
+                w.SpringDamping = _frontSpringDamping;
+            }
+            foreach (var w in _rearWheels)
+            {
+                w.SpringStrength = _rearSpringStrength;
+                w.SpringDamping = _rearSpringDamping;
             }
         }
 
@@ -383,11 +398,24 @@ namespace R8EOX.Vehicle
             _steeringHighSpeedFactor = highSpeedFactor;
         }
 
-        /// <summary>Sets suspension spring and damping, then pushes to all wheels.</summary>
+        /// <summary>Sets the same spring/damping on all wheels (uniform). For per-axle use SetAxleSuspension.</summary>
         public void SetSuspension(float springStrength, float damping)
         {
-            _springStrength = springStrength;
-            _springDamping = damping;
+            _frontSpringStrength = springStrength;
+            _frontSpringDamping = damping;
+            _rearSpringStrength = springStrength;
+            _rearSpringDamping = damping;
+            if (_allWheels != null)
+                ApplySuspensionSettings();
+        }
+
+        /// <summary>Sets per-axle spring and damping values independently.</summary>
+        public void SetAxleSuspension(float frontK, float frontDamp, float rearK, float rearDamp)
+        {
+            _frontSpringStrength = frontK;
+            _frontSpringDamping = frontDamp;
+            _rearSpringStrength = rearK;
+            _rearSpringDamping = rearDamp;
             if (_allWheels != null)
                 ApplySuspensionSettings();
         }
