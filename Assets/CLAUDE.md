@@ -25,7 +25,7 @@ Each script subdirectory has its own `.asmdef` to enforce dependency boundaries:
 - `R8EOX.Core` — shared types, no dependencies on other game assemblies
 - `R8EOX.Vehicle` — references Core
 - `R8EOX.Input` — references Core
-- `R8EOX.Camera` — references Vehicle
+- `R8EOX.Camera` — references Unity.InputSystem
 - `R8EOX.Debug` — references Vehicle
 - `R8EOX.Track` — references Core
 - `R8EOX.Editor` — editor-only platform

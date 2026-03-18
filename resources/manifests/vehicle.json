@@ -46,13 +46,15 @@
       "MotorPresetRegistryTests",
       "WheelManagerTests",
       "AirborneDetectorTests",
-      "SteeringRampTests"
+      "SteeringRampTests",
+      "SphereCastTests"
     ],
     "playmode": [
       "VehicleSettlingTests",
       "VehicleWheelTests",
       "VehicleDriveTests",
-      "CompoundConformanceTests"
+      "CompoundConformanceTests",
+      "TerrainSnagTests"
     ]
   }
 }
