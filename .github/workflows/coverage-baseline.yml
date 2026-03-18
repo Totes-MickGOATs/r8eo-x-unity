@@ -4,9 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'tests/test_*.gd'
-      - 'tests/test_*.cs'
-      - 'tests/test_*.cpp'
+      - 'Assets/Tests/**/*.cs'
       - 'scripts/tools/test_coverage_report.py'
 
 jobs:

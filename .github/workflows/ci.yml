@@ -249,6 +249,10 @@ jobs:
 
             core.warning(`File conflicts detected with ${conflicts.length} other PR(s)`);
 
+  # ── Unity C# lint and .meta file validation ──
+  unity-lint:
+    uses: ./.github/workflows/ci-lint-unity.yml
+
   # ── Auto-label PRs based on CI results ──
   auto-label:
     name: Auto-Label PR
