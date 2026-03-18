@@ -15,7 +15,12 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 
 | File | Role |
 |------|------|
-| `safe-worktree-init.sh` | Initialise a safe worktree for a task (called by subagents) |
+| `safe-worktree-init.sh` | Create a single feature branch + worktree from origin/main |
+| `safe-worktree-init-batch.sh` | Batch create multiple worktrees with a single git fetch |
+| `stream-status.sh` | Dashboard: commit count, push status, and PR state for all active streams |
+| `conflict-forecast.sh` | Detect files touched by multiple active worktree branches |
+| `syntax-check-csharp.sh` | Lightweight pre-commit C# checks: balanced braces, namespace, line limit |
+| `check_line_limit.sh` | CI enforcement: fail if any .cs file exceeds 200 lines |
 | `worktree-audit.sh` | Detect ghost `wt/active/*` tags with no matching local branch |
 
 ## Notes
