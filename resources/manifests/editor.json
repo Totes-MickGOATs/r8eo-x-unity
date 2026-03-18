@@ -4,6 +4,9 @@
   "status": "ACTIVE",
   "files": [
     "Assets/Scripts/Editor/SceneSetup.cs",
+    "Assets/Scripts/Editor/Builders/PhysicsConfigurator.cs",
+    "Assets/Scripts/Editor/Builders/RCBuggyBuilder.cs",
+    "Assets/Scripts/Editor/Builders/TestTrackBuilder.cs",
     "Assets/Scripts/Editor/OutpostTrackSetup.cs",
     "Assets/Scripts/Editor/TerrainDebug.cs",
     "Assets/Scripts/Editor/TerrainSpawnCheck.cs",
