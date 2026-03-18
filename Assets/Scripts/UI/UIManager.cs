@@ -52,7 +52,7 @@ namespace R8EOX.UI
 
             if (_navigator != null)
             {
-                _navigator.OnScreenPushed += HandleScreenPushed;
+                _navigator.OnScreenPushed += ShowScreen;
             }
         }
 
@@ -65,7 +65,7 @@ namespace R8EOX.UI
 
             if (_navigator != null)
             {
-                _navigator.OnScreenPushed -= HandleScreenPushed;
+                _navigator.OnScreenPushed -= ShowScreen;
             }
         }
 
@@ -118,8 +118,7 @@ namespace R8EOX.UI
                 return;
             }
 
-            var overlay = _overlayStack.Pop();
-            StartCoroutine(PopOverlayRoutine(overlay));
+            StartCoroutine(PopOverlayRoutine(_overlayStack.Pop()));
         }
 
         /// <summary>Clear all overlays.</summary>
@@ -127,29 +126,27 @@ namespace R8EOX.UI
         {
             while (_overlayStack.Count > 0)
             {
-                var overlay = _overlayStack.Pop();
-                overlay.Exit();
-                if (overlay is MonoBehaviour mb)
-                {
-                    Destroy(mb.gameObject);
-                }
+                ExitAndDestroy(_overlayStack.Pop());
+            }
+        }
+
+        private static void ExitAndDestroy(IScreen screen)
+        {
+            screen.Exit();
+            if (screen is MonoBehaviour mb)
+            {
+                Destroy(mb.gameObject);
             }
         }
 
         private IEnumerator TransitionToScreen(GameObject prefab, string screenId, object data)
         {
-            // Animate out current screen
             if (_activeScreen != null)
             {
                 yield return _activeScreen.AnimateOut();
-                _activeScreen.Exit();
-                if (_activeScreen is MonoBehaviour mb)
-                {
-                    Destroy(mb.gameObject);
-                }
+                ExitAndDestroy(_activeScreen);
             }
 
-            // Instantiate and animate in new screen
             var instance = Instantiate(prefab, _menuLayer);
             var screen = instance.GetComponent<IScreen>();
             if (screen == null)
@@ -167,29 +164,18 @@ namespace R8EOX.UI
         private IEnumerator PopOverlayRoutine(IScreen overlay)
         {
             yield return overlay.AnimateOut();
-            overlay.Exit();
-            if (overlay is MonoBehaviour mb)
-            {
-                Destroy(mb.gameObject);
-            }
+            ExitAndDestroy(overlay);
         }
 
         private void HandleStateChanged(GameState previous, GameState current)
         {
-            // When transitioning to menu states, show appropriate screens
-            // When transitioning to Playing, hide menus
             switch (current)
             {
                 case GameState.Playing:
                     ClearOverlays();
                     if (_activeScreen != null)
                     {
-                        _activeScreen.Exit();
-                        if (_activeScreen is MonoBehaviour mb)
-                        {
-                            Destroy(mb.gameObject);
-                        }
-
+                        ExitAndDestroy(_activeScreen);
                         _activeScreen = null;
                     }
 
@@ -198,11 +184,6 @@ namespace R8EOX.UI
                     PushOverlay(ScreenId.Pause);
                     break;
             }
-        }
-
-        private void HandleScreenPushed(string screenId)
-        {
-            ShowScreen(screenId);
         }
     }
 }
