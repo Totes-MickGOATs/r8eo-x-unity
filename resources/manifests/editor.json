@@ -14,7 +14,11 @@
     "Assets/Scripts/Editor/DrivetrainEditor.cs",
     "Assets/Scripts/Editor/R8EOX.Editor.asmdef",
     "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr",
-    "Assets/Scripts/Editor/AddBuggyMaterials.cs"
+    "Assets/Scripts/Editor/AddBuggyMaterials.cs",
+    "Assets/Scripts/Editor/Builders/TerrainBuilder.cs",
+    "Assets/Scripts/Editor/Builders/EnvironmentBuilder.cs",
+    "Assets/Scripts/Editor/Builders/AssetHelper.cs",
+    "Assets/Scripts/Editor/Builders/TerrainLayerBuilder.cs"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],
   "replaced_by": "",
