@@ -39,7 +39,9 @@
       "TuningApiTests"
     ],
     "playmode": [
-      "VehicleIntegrationTests",
+      "VehicleSettlingTests",
+      "VehicleWheelTests",
+      "VehicleDriveTests",
       "CompoundConformanceTests"
     ]
   }
