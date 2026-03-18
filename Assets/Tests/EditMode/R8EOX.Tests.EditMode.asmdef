@@ -9,6 +9,7 @@
         "R8EOX.GameFlow",
         "R8EOX.UI",
         "R8EOX.Shared",
+        "R8EOX.Camera",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework"
     ],
