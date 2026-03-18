@@ -55,3 +55,21 @@ lint:
 # Check all .cs files are within the 200-line hard limit
 line-limit:
     bash scripts/tools/check_line_limit.sh
+
+# --- Multi-Agent Workflow ---
+
+# Show status of all active worktree branches
+stream-status:
+    bash scripts/tools/stream-status.sh
+
+# Detect files touched by multiple active branches
+conflict-forecast:
+    bash scripts/tools/conflict-forecast.sh
+
+# Create multiple worktrees in one batch (single fetch)
+worktree-batch +tasks:
+    bash scripts/tools/safe-worktree-init-batch.sh {{tasks}}
+
+# Lightweight C# syntax checks (staged files or --all)
+syntax-check *args:
+    bash scripts/tools/syntax-check-csharp.sh {{args}}
