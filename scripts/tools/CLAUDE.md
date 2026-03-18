@@ -11,10 +11,18 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 | `resolve_module_tests.py` | Resolve which test classes to run given a list of changed files (module-based test gating) |
 | `test_coverage_report.py` | Track per-category test coverage with baseline comparison |
 
+## Shell Scripts
+
+| File | Role |
+|------|------|
+| `safe-worktree-init.sh` | Initialise a safe worktree for a task (called by subagents) |
+| `worktree-audit.sh` | Detect ghost `wt/active/*` tags with no matching local branch |
+
 ## Notes
 
 - Python scripts use `uv` package manager (`.venv/` at project root)
 - Run: `uv run python scripts/tools/<script>.py`
+- Shell scripts: `bash scripts/tools/<script>.sh` or via `just` recipe
 
 ## Adding New Scripts
 
