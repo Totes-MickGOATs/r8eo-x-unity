@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Mono.Data.Sqlite;
 
 namespace R8EOX.Debug.Audit
 {
@@ -10,21 +9,11 @@ namespace R8EOX.Debug.Audit
     /// Records physics conformance check results to the audit database.
     /// Call <see cref="BeginRun"/> before recording, <see cref="Record"/> for each check,
     /// and <see cref="EndRun"/> to flush and summarise.
+    /// Query helpers and <see cref="ConformanceQuery.CategorySummary"/> live in
+    /// <see cref="ConformanceQuery"/>.
     /// </summary>
     public static class ConformanceRecorder
     {
-        // ---- Nested Types ----
-
-        /// <summary>Summary of pass rates grouped by category from a single run.</summary>
-        public struct CategorySummary
-        {
-            public string Category;
-            public int Passed;
-            public int Total;
-            public string WorstTier;
-        }
-
-
         // ---- Private Fields ----
 
         private static string _runId;
@@ -32,7 +21,6 @@ namespace R8EOX.Debug.Audit
         private static string _branch;
         private static readonly List<PendingRecord> _pendingRecords = new List<PendingRecord>();
         private static readonly object _lock = new object();
-
 
         // ---- Private Structs ----
 
@@ -48,7 +36,6 @@ namespace R8EOX.Debug.Audit
             public bool Passed;
             public string Metadata;
         }
-
 
         // ---- Public API ----
 
@@ -83,7 +70,7 @@ namespace R8EOX.Debug.Audit
             double actual,
             string metadata = null)
         {
-            double tolerance = ComputeTolerance(expected, actual);
+            double tolerance = ConformanceQuery.ComputeTolerance(expected, actual);
             string tier = AuditConstants.ComputeTier(tolerance);
             bool passed = tolerance < AuditConstants.k_TierPoor;
 
@@ -91,15 +78,15 @@ namespace R8EOX.Debug.Audit
             {
                 _pendingRecords.Add(new PendingRecord
                 {
-                    Category = category,
-                    CheckId = checkId,
+                    Category  = category,
+                    CheckId   = checkId,
                     CheckName = checkName,
-                    Expected = expected,
-                    Actual = actual,
+                    Expected  = expected,
+                    Actual    = actual,
                     Tolerance = tolerance,
-                    Tier = tier,
-                    Passed = passed,
-                    Metadata = metadata
+                    Tier      = tier,
+                    Passed    = passed,
+                    Metadata  = metadata
                 });
             }
         }
@@ -120,68 +107,14 @@ namespace R8EOX.Debug.Audit
             }
         }
 
-        /// <summary>
-        /// Returns category-level pass rates from the most recent conformance run.
-        /// </summary>
-        public static List<CategorySummary> GetLatestRunSummary()
-        {
-            var summaries = new List<CategorySummary>();
-
-            const string sql = @"
-SELECT category,
-       SUM(passed) as passed_count,
-       COUNT(*) as total_count,
-       MIN(CASE
-           WHEN tier = 'Broken' THEN 1
-           WHEN tier = 'Poor' THEN 2
-           WHEN tier = 'Noticeable' THEN 3
-           WHEN tier = 'Good' THEN 4
-           WHEN tier = 'Excellent' THEN 5
-           ELSE 6 END) as worst_tier_rank,
-       tier
-FROM conformance_runs
-WHERE run_id = (SELECT run_id FROM conformance_runs ORDER BY id DESC LIMIT 1)
-GROUP BY category
-ORDER BY category";
-
-            using (var reader = AuditDb.ExecuteReader(sql))
-            {
-                while (reader.Read())
-                {
-                    summaries.Add(new CategorySummary
-                    {
-                        Category = reader.GetString(0),
-                        Passed = reader.GetInt32(1),
-                        Total = reader.GetInt32(2),
-                        WorstTier = reader.GetString(4)
-                    });
-                }
-            }
-
-            return summaries;
-        }
-
 
         // ---- Private Helpers ----
-
-        /// <summary>
-        /// Computes tolerance as |actual - expected| / |expected|.
-        /// Returns 0 when expected is 0 and actual is also 0; returns 1.0 when expected is 0 but actual is not.
-        /// </summary>
-        private static double ComputeTolerance(double expected, double actual)
-        {
-            if (Math.Abs(expected) < double.Epsilon)
-                return Math.Abs(actual) < double.Epsilon ? 0.0 : 1.0;
-
-            return Math.Abs(actual - expected) / Math.Abs(expected);
-        }
 
         private static void FlushToDatabase()
         {
             var conn = AuditDb.GetConnection();
-            string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-
-            const string insertSql = @"
+            string ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            const string sql = @"
 INSERT INTO conformance_runs
     (run_id, timestamp, git_sha, branch, category, check_id, check_name,
      expected, actual, tolerance, tier, passed, metadata)
@@ -191,29 +124,27 @@ VALUES
 
             using (var transaction = conn.BeginTransaction())
             {
-                foreach (var record in _pendingRecords)
+                foreach (var r in _pendingRecords)
                 {
                     using (var cmd = conn.CreateCommand())
                     {
                         cmd.Transaction = transaction;
-                        cmd.CommandText = insertSql;
-                        cmd.Parameters.AddWithValue("@run_id", _runId);
-                        cmd.Parameters.AddWithValue("@timestamp", timestamp);
-                        cmd.Parameters.AddWithValue("@git_sha", _gitSha ?? "unknown");
-                        cmd.Parameters.AddWithValue("@branch", _branch ?? "unknown");
-                        cmd.Parameters.AddWithValue("@category", record.Category);
-                        cmd.Parameters.AddWithValue("@check_id", record.CheckId);
-                        cmd.Parameters.AddWithValue("@check_name", record.CheckName);
-                        cmd.Parameters.AddWithValue("@expected", record.Expected);
-                        cmd.Parameters.AddWithValue("@actual", record.Actual);
-                        cmd.Parameters.AddWithValue("@tolerance", record.Tolerance);
-                        cmd.Parameters.AddWithValue("@tier", record.Tier);
-                        cmd.Parameters.AddWithValue("@passed", record.Passed ? 1 : 0);
-                        cmd.Parameters.AddWithValue("@metadata",
-                            (object)record.Metadata ?? DBNull.Value);
+                        cmd.CommandText = sql;
+                        cmd.Parameters.AddWithValue("@run_id",     _runId);
+                        cmd.Parameters.AddWithValue("@timestamp",  ts);
+                        cmd.Parameters.AddWithValue("@git_sha",    _gitSha ?? "unknown");
+                        cmd.Parameters.AddWithValue("@branch",     _branch ?? "unknown");
+                        cmd.Parameters.AddWithValue("@category",   r.Category);
+                        cmd.Parameters.AddWithValue("@check_id",   r.CheckId);
+                        cmd.Parameters.AddWithValue("@check_name", r.CheckName);
+                        cmd.Parameters.AddWithValue("@expected",   r.Expected);
+                        cmd.Parameters.AddWithValue("@actual",     r.Actual);
+                        cmd.Parameters.AddWithValue("@tolerance",  r.Tolerance);
+                        cmd.Parameters.AddWithValue("@tier",       r.Tier);
+                        cmd.Parameters.AddWithValue("@passed",     r.Passed ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@metadata",   (object)r.Metadata ?? DBNull.Value);
                     }
                 }
-
                 transaction.Commit();
             }
         }
@@ -221,7 +152,7 @@ VALUES
         private static void LogSummary()
         {
             int passed = 0;
-            int total = _pendingRecords.Count;
+            int total  = _pendingRecords.Count;
             int worstRank = 5;
             string worstTier = AuditConstants.k_Excellent;
 
@@ -230,7 +161,7 @@ VALUES
                 if (record.Passed)
                     passed++;
 
-                int rank = TierToRank(record.Tier);
+                int rank = ConformanceQuery.TierToRank(record.Tier);
                 if (rank < worstRank)
                 {
                     worstRank = rank;
@@ -238,35 +169,17 @@ VALUES
                 }
             }
 
-            UnityEngine.Debug.Log(
-                $"[conformance] Run {_runId[..AuditConstants.k_HashLength]}: " +
-                $"{passed}/{total} passed, worst tier: {worstTier}");
-        }
-
-        private static int TierToRank(string tier)
-        {
-            if (tier == AuditConstants.k_Broken) return 1;
-            if (tier == AuditConstants.k_Poor) return 2;
-            if (tier == AuditConstants.k_Noticeable) return 3;
-            if (tier == AuditConstants.k_Good) return 4;
-            return 5;
+            UnityEngine.Debug.Log($"[conformance] Run {_runId[..AuditConstants.k_HashLength]}: {passed}/{total} passed, worst tier: {worstTier}");
         }
 
         private static string CaptureGitOutput(string arguments)
         {
             try
             {
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "git",
-                        Arguments = arguments,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
+                var process = new Process { StartInfo = new ProcessStartInfo {
+                    FileName = "git", Arguments = arguments,
+                    RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true
+                } };
                 process.Start();
                 string output = process.StandardOutput.ReadToEnd().Trim();
                 process.WaitForExit();

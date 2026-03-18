@@ -8,7 +8,14 @@
     "Assets/Scripts/Debug/ContractDebugger.cs",
     "Assets/Scripts/Debug/WheelTerrainDiagnostics.cs",
     "Assets/Scripts/Debug/DebugBootstrap.cs",
-    "Assets/Scripts/Debug/R8EOX.Debug.asmdef"
+    "Assets/Scripts/Debug/R8EOX.Debug.asmdef",
+    "Assets/Scripts/Debug/Audit/AuditConstants.cs",
+    "Assets/Scripts/Debug/Audit/AuditDb.cs",
+    "Assets/Scripts/Debug/Audit/AuditSchema.cs",
+    "Assets/Scripts/Debug/Audit/ConformanceRecorder.cs",
+    "Assets/Scripts/Debug/Audit/ConformanceQuery.cs",
+    "Assets/Scripts/Debug/Audit/DebugLogSink.cs",
+    "Assets/Scripts/Debug/Audit/LogParser.cs"
   ],
   "dependencies": ["vehicle", "input"],
   "replaced_by": "",
