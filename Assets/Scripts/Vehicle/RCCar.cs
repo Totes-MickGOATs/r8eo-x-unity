@@ -6,226 +6,76 @@ namespace R8EOX.Vehicle
     /// <summary>
     /// Main RC buggy vehicle controller. Rigidbody on root GameObject.
     /// Orchestrates ground drive, steering, tumble detection, and airborne state.
-    /// Ported from rc_car.gd with Godot→Unity coordinate mapping.
+    /// All tunable parameters live in <see cref="VehicleParams"/> (_p).
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public class RCCar : MonoBehaviour
     {
-        // ---- Constants ----
-
-        const int k_AirborneThreshold = 5;
-        const float k_DefaultMass = 15.0f;
-        const float k_DefaultAngularDrag = 0.05f;
-        const float k_DefaultBounciness = 0.05f;
-        const float k_FlipHeightOffset = 14.0f;
-        const float k_ReverseSpeedThreshold = 0.25f;
+        const float k_DefaultMass                = 15.0f;
+        const float k_DefaultAngularDrag         = 0.05f;
+        const float k_FlipHeightOffset           = 14.0f;
+        const float k_ReverseSpeedThreshold      = 0.25f;
         const float k_ForwardSpeedClearThreshold = 0.50f;
-        const float k_ReverseBrakeMinThreshold = 0.1f;
-        const float k_MsToKmh = 3.6f;
+        const float k_ReverseBrakeMinThreshold   = 0.1f;
+        const float k_MsToKmh                    = 3.6f;
 
+        [SerializeField] private VehicleParams _p = new VehicleParams();
 
-        // ---- Motor Presets ----
+        // Runtime state
+        public float       CurrentEngineForce { get; private set; }
+        public float       CurrentBrakeForce  { get; private set; }
+        public float       SmoothThrottle     { get; private set; }
+        public bool        IsAirborne         { get; private set; }
+        public bool        ReverseEngaged     { get; private set; }
+        public float       ForwardSpeed       { get; private set; }
+        public float       CurrentSteering    => _steeringRamp.CurrentSteering;
+        public float       TumbleFactor       => _tumbleController.TumbleFactor;
+        public float       TiltAngle          => _tumbleController.TiltAngle;
+        public MotorPreset ActiveMotorPreset  => _p.MotorPreset;
 
-        /// <summary>Motor turn rating presets matching real RC motor specifications.</summary>
-        public enum MotorPreset
-        {
-            Motor21_5T, Motor17_5T, Motor13_5T, Motor9_5T, Motor5_5T, Motor1_5T, Custom
-        }
+        // Tuning read-only surface (delegates to VehicleParams)
+        public float EngineForceMax          => _p.EngineForceMax;
+        public float MaxSpeed                => _p.MaxSpeed;
+        public float BrakeForce              => _p.BrakeForce;
+        public float ReverseForce            => _p.ReverseForce;
+        public float CoastDrag               => _p.CoastDrag;
+        public float ThrottleRampUp          => _p.ThrottleRampUp;
+        public float ThrottleRampDown        => _p.ThrottleRampDown;
+        public float SteeringMax             => _p.SteeringMax;
+        public float SteeringSpeed           => _p.SteeringSpeed;
+        public float SteeringSpeedLimit      => _p.SteeringSpeedLimit;
+        public float SteeringHighSpeedFactor => _p.SteeringHighSpeedFactor;
+        public float FrontSpringStrength     => _p.FrontSpringStrength;
+        public float FrontSpringDamping      => _p.FrontSpringDamping;
+        public float RearSpringStrength      => _p.RearSpringStrength;
+        public float RearSpringDamping       => _p.RearSpringDamping;
+        public float GripCoeff              => _p.GripCoeff;
+        public float ComGroundY             => _p.ComGround.y;
+        public float TumbleEngageDeg        => _p.TumbleEngageDeg;
+        public float TumbleFullDeg          => _p.TumbleFullDeg;
+        public float TumbleBounce           => _p.TumbleBounce;
+        public float TumbleFriction         => _p.TumbleFriction;
+        public RCAirPhysics AirPhysics      => _airPhysics;
+        public Drivetrain   DrivetrainRef   => _drivetrain;
+        public float        Mass            => _rb != null ? _rb.mass : k_DefaultMass;
 
-        struct MotorData
-        {
-            public float EngineForceMax;
-            public float BrakeForce;
-            public float ReverseForce;
-            public float CoastDrag;
-            public float MaxSpeed;
-            public float ThrottleRampUp;
-
-            public MotorData(float engine, float brake, float reverse, float coast, float max, float ramp)
-            {
-                EngineForceMax = engine;
-                BrakeForce = brake;
-                ReverseForce = reverse;
-                CoastDrag = coast;
-                MaxSpeed = max;
-                ThrottleRampUp = ramp;
-            }
-        }
-
-        static readonly MotorData[] k_MotorPresets =
-        {
-            new MotorData(155f, 132f,  85f, 20f, 13f, 3.0f),  // 21.5T
-            new MotorData(180f, 153f,  99f, 25f, 20f, 4.0f),  // 17.5T
-            new MotorData(260f, 221f, 143f, 30f, 27f, 5.5f),  // 13.5T
-            new MotorData(340f, 289f, 187f, 35f, 34f, 7.0f),  // 9.5T
-            new MotorData(440f, 374f, 242f, 40f, 44f, 9.0f),  // 5.5T
-            new MotorData(560f, 476f, 308f, 50f, 56f, 12.0f), // 1.5T
-        };
-
-
-        // ---- Serialized Fields ----
-
-        [Header("Motor")]
-        [Tooltip("Select a motor preset or Custom for manual tuning")]
-        [SerializeField] private MotorPreset _motorPreset = MotorPreset.Motor13_5T;
-
-        [Header("Engine")]
-        [Tooltip("Peak driving force in Newtons")]
-        [SerializeField] private float _engineForceMax = 260f;
-        [Tooltip("Maximum speed in m/s")]
-        [SerializeField] private float _maxSpeed = 27f;
-        [Tooltip("Braking force in Newtons (~85% of engine)")]
-        [SerializeField] private float _brakeForce = 221f;
-        [Tooltip("Reverse force in Newtons (~55% of forward)")]
-        [SerializeField] private float _reverseForce = 143f;
-        [Tooltip("Drivetrain drag force while coasting in Newtons")]
-        [SerializeField] private float _coastDrag = 30f;
-
-        [Header("Throttle Response")]
-        [Tooltip("Ramp rate from 0 to 1 in units/sec")]
-        [SerializeField] private float _throttleRampUp = 5.5f;
-        [Tooltip("Ramp rate from 1 to 0 in units/sec")]
-        [SerializeField] private float _throttleRampDown = 10f;
-
-        [Header("Steering")]
-        [Tooltip("Max steering angle in radians (~29 deg)")]
-        [SerializeField] private float _steeringMax = 0.50f;
-        [Tooltip("Steering ramp speed in rad/s")]
-        [SerializeField] private float _steeringSpeed = 7f;
-        [Tooltip("Speed in m/s at which steering reduces")]
-        [SerializeField] private float _steeringSpeedLimit = 8f;
-        [Tooltip("Fraction of steeringMax kept at high speed")]
-        [Range(0f, 1f)]
-        [SerializeField] private float _steeringHighSpeedFactor = 0.4f;
-
-        [Header("Suspension — Front")]
-        [Tooltip("Front axle spring stiffness in N/m (B6.4 red spring = 4.0 lbs/in = 700 N/m)")]
-        [SerializeField] private float _frontSpringStrength = 700.0f;
-        [Tooltip("Front axle damping coefficient in N·s/m")]
-        [SerializeField] private float _frontSpringDamping = 41.0f;
-
-        [Header("Suspension — Rear")]
-        [Tooltip("Rear axle spring stiffness in N/m (B6.4 gray spring = 2.0 lbs/in = 350 N/m)")]
-        [SerializeField] private float _rearSpringStrength = 350.0f;
-        [Tooltip("Rear axle damping coefficient in N·s/m")]
-        [SerializeField] private float _rearSpringDamping = 29.0f;
-
-        [Header("Traction")]
-        [Tooltip("Global grip multiplier (0-1)")]
-        [Range(0f, 1f)]
-        [SerializeField] private float _gripCoeff = 0.7f;
-
-        [Header("Centre of Mass")]
-        [Tooltip("Centre of mass offset")]
-        [SerializeField] private Vector3 _comGround = new Vector3(0f, -0.12f, 0f);
-
-        [Header("Crash Physics")]
-        [Tooltip("Tilt angle in degrees where tumble blending begins")]
-        [SerializeField] private float _tumbleEngageDeg = 50f;
-        [Tooltip("Tilt angle in degrees for full tumble effect")]
-        [SerializeField] private float _tumbleFullDeg = 70f;
-        [Tooltip("Bounciness coefficient during tumble")]
-        [Range(0f, 1f)]
-        [SerializeField] private float _tumbleBounce = 0.35f;
-        [Tooltip("Friction coefficient during tumble")]
-        [Range(0f, 1f)]
-        [SerializeField] private float _tumbleFriction = 0.3f;
-        [Tooltip("Hysteresis band in degrees to prevent threshold oscillation")]
-        [SerializeField] private float _tumbleHysteresisDeg = 5f;
-        [Tooltip("Enable dynamic bounciness/friction blending when tumbling. Disable to let PhysX handle collision response naturally.")]
-        [SerializeField] private bool _enableDynamicPhysicsMaterial = true;
-
-
-        // ---- Public Properties ----
-
-        public float CurrentEngineForce { get; private set; }
-        public float CurrentBrakeForce { get; private set; }
-        public float SmoothThrottle { get; private set; }
-        public float CurrentSteering { get; private set; }
-        public bool IsAirborne { get; private set; }
-        public float TumbleFactor { get; private set; }
-        public float TiltAngle { get; private set; }
-        public bool ReverseEngaged { get; private set; }
-        public float ForwardSpeed { get; private set; }
-        public MotorPreset ActiveMotorPreset => _motorPreset;
-
-        // ---- Read-Only Accessors for Tuning Panel ----
-
-        /// <summary>Current engine force max in Newtons.</summary>
-        public float EngineForceMax => _engineForceMax;
-        /// <summary>Current max speed in m/s.</summary>
-        public float MaxSpeed => _maxSpeed;
-        /// <summary>Current brake force in Newtons.</summary>
-        public float BrakeForce => _brakeForce;
-        /// <summary>Current reverse force in Newtons.</summary>
-        public float ReverseForce => _reverseForce;
-        /// <summary>Current coast drag in Newtons.</summary>
-        public float CoastDrag => _coastDrag;
-        /// <summary>Current throttle ramp up rate in units/sec.</summary>
-        public float ThrottleRampUp => _throttleRampUp;
-        /// <summary>Current throttle ramp down rate in units/sec.</summary>
-        public float ThrottleRampDown => _throttleRampDown;
-        /// <summary>Current max steering angle in radians.</summary>
-        public float SteeringMax => _steeringMax;
-        /// <summary>Current steering speed in rad/s.</summary>
-        public float SteeringSpeed => _steeringSpeed;
-        /// <summary>Current steering speed limit in m/s.</summary>
-        public float SteeringSpeedLimit => _steeringSpeedLimit;
-        /// <summary>Current steering high speed factor (0-1).</summary>
-        public float SteeringHighSpeedFactor => _steeringHighSpeedFactor;
-        /// <summary>Front axle spring strength in N/m.</summary>
-        public float FrontSpringStrength => _frontSpringStrength;
-        /// <summary>Front axle spring damping coefficient in N·s/m.</summary>
-        public float FrontSpringDamping => _frontSpringDamping;
-        /// <summary>Rear axle spring strength in N/m.</summary>
-        public float RearSpringStrength => _rearSpringStrength;
-        /// <summary>Rear axle spring damping coefficient in N·s/m.</summary>
-        public float RearSpringDamping => _rearSpringDamping;
-        /// <summary>Current grip coefficient (0-1).</summary>
-        public float GripCoeff => _gripCoeff;
-        /// <summary>Centre of mass Y offset when grounded.</summary>
-        public float ComGroundY => _comGround.y;
-        /// <summary>Current tumble engage angle in degrees.</summary>
-        public float TumbleEngageDeg => _tumbleEngageDeg;
-        /// <summary>Current tumble full angle in degrees.</summary>
-        public float TumbleFullDeg => _tumbleFullDeg;
-        /// <summary>Current tumble bounce coefficient.</summary>
-        public float TumbleBounce => _tumbleBounce;
-        /// <summary>Current tumble friction coefficient.</summary>
-        public float TumbleFriction => _tumbleFriction;
-        /// <summary>The air physics subsystem, if present.</summary>
-        public RCAirPhysics AirPhysics => _airPhysics;
-        /// <summary>The drivetrain subsystem, if present.</summary>
-        public Drivetrain DrivetrainRef => _drivetrain;
-        /// <summary>Rigidbody mass in kg.</summary>
-        public float Mass => _rb != null ? _rb.mass : k_DefaultMass;
-
-
-        // ---- Private Fields ----
-
-        private Rigidbody _rb;
+        private Rigidbody                 _rb;
         private R8EOX.Input.IVehicleInput _input;
-        private RCAirPhysics _airPhysics;
-        private Drivetrain _drivetrain;
-        private RaycastWheel[] _allWheels;
-        private RaycastWheel[] _frontWheels;
-        private RaycastWheel[] _rearWheels;
-        private PhysicMaterial _physMat;
-        private Collider[] _colliders;
-        private bool _wasTumbling;
-        private int _airborneFrames;
-        private bool _flipRequested;
+        private RCAirPhysics              _airPhysics;
+        private Drivetrain                _drivetrain;
+        private readonly WheelManager     _wheels           = new WheelManager();
+        private readonly AirborneDetector _airborneDetector = new AirborneDetector();
+        private readonly TumbleController _tumbleController = new TumbleController();
+        private readonly SteeringRamp     _steeringRamp     = new SteeringRamp();
+        private bool  _flipRequested;
 #if UNITY_EDITOR || DEBUG
         private float _debugLogTimer;
 #endif
 
-
-        // ---- Unity Lifecycle ----
-
         void Awake()
         {
-            _rb = GetComponent<Rigidbody>();
-            _input = GetComponent<R8EOX.Input.RCInput>();
+            _rb         = GetComponent<Rigidbody>();
+            _input      = GetComponent<R8EOX.Input.RCInput>();
             _airPhysics = GetComponentInChildren<RCAirPhysics>();
             _drivetrain = GetComponentInChildren<Drivetrain>();
         }
@@ -234,384 +84,185 @@ namespace R8EOX.Vehicle
         {
             ApplyMotorPreset();
             ConfigureRigidbody();
-            CreatePhysicsMaterial();
-            DiscoverWheels();
-            ConfigureWheels();
-
-            Debug.Log($"[RCCar] Motor={_motorPreset} engine={_engineForceMax}N max={_maxSpeed}m/s " +
-                      $"mass={_rb.mass}kg frontSpring={_frontSpringStrength} rearSpring={_rearSpringStrength} grip={_gripCoeff}");
+            _tumbleController.Initialise(transform);
+            _wheels.Discover(transform);
+            _wheels.Configure(_drivetrain, gameObject.layer,
+                _p.FrontSpringStrength, _p.FrontSpringDamping,
+                _p.RearSpringStrength,  _p.RearSpringDamping,
+                _p.GripCoeff);
+            Debug.Log($"[RCCar] Motor={_p.MotorPreset} engine={_p.EngineForceMax}N max={_p.MaxSpeed}m/s " +
+                      $"mass={_rb.mass}kg frontSpring={_p.FrontSpringStrength} rearSpring={_p.RearSpringStrength} grip={_p.GripCoeff}");
         }
 
         void Update()
         {
-            if (_input != null && _input.ResetPressed)
-                _flipRequested = true;
-
+            if (_input != null && _input.ResetPressed)         _flipRequested = true;
             if (_input != null && _input.DebugTogglePressed)
-            {
-                foreach (var w in _allWheels)
-                    w.ShowDebug = !w.ShowDebug;
-            }
+                foreach (var w in _wheels.All) w.ShowDebug = !w.ShowDebug;
         }
 
         void FixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
+            if (_flipRequested) { _flipRequested = false; DoFlip(); }
 
-            if (_flipRequested)
-            {
-                _flipRequested = false;
-                DoFlip();
-            }
+            bool anyOnGround = false;
+            foreach (var w in _wheels.All) if (w.IsOnGround) { anyOnGround = true; break; }
 
-            IsAirborne = CheckAirborne();
-            ComputeTumbleFactor();
-            _rb.centerOfMass = _comGround;
-            UpdatePhysicsMaterial();
+            IsAirborne = _airborneDetector.Update(anyOnGround);
+            _tumbleController.Update(transform, IsAirborne,
+                _p.TumbleEngageDeg, _p.TumbleFullDeg, _p.TumbleHysteresisDeg,
+                _p.TumbleBounce, _p.TumbleFriction, _p.EnableDynamicPhysicsMaterial);
+            _rb.centerOfMass = _p.ComGround;
 
             float throttleRaw = _input != null ? _input.Throttle : 0f;
-            float brakeIn = _input != null ? _input.Brake : 0f;
-            float steerIn = _input != null ? _input.Steer : 0f;
+            float brakeIn     = _input != null ? _input.Brake    : 0f;
+            float steerIn     = _input != null ? _input.Steer    : 0f;
 
-            float rampRate = throttleRaw > SmoothThrottle ? _throttleRampUp : _throttleRampDown;
+            float rampRate = throttleRaw > SmoothThrottle ? _p.ThrottleRampUp : _p.ThrottleRampDown;
             SmoothThrottle = Mathf.MoveTowards(SmoothThrottle, throttleRaw, rampRate * dt);
-            ForwardSpeed = Vector3.Dot(_rb.velocity, transform.forward);
+            ForwardSpeed   = Vector3.Dot(_rb.velocity, transform.forward);
 
             if (IsAirborne)
             {
-                CurrentEngineForce = 0f;
-                CurrentBrakeForce = 0f;
-                foreach (var w in _allWheels)
-                    w.MotorForceShare = 0f;
-                if (_airPhysics != null)
-                    _airPhysics.Apply(dt, SmoothThrottle, brakeIn, steerIn);
+                CurrentEngineForce = 0f; CurrentBrakeForce = 0f;
+                foreach (var w in _wheels.All) w.MotorForceShare = 0f;
+                if (_airPhysics != null) _airPhysics.Apply(dt, SmoothThrottle, brakeIn, steerIn);
             }
             else
             {
                 ApplyGroundDrive(SmoothThrottle, brakeIn, ForwardSpeed);
                 if (_drivetrain != null)
-                    _drivetrain.Distribute(CurrentEngineForce, _frontWheels, _rearWheels);
-                ApplySteering(dt, steerIn, ForwardSpeed);
+                    _drivetrain.Distribute(CurrentEngineForce, _wheels.Front, _wheels.Rear);
+                _steeringRamp.Update(dt, steerIn, ForwardSpeed,
+                    _p.SteeringMax, _p.SteeringSpeed, _p.SteeringSpeedLimit, _p.SteeringHighSpeedFactor);
             }
 
-            foreach (var w in _allWheels)
+            foreach (var w in _wheels.All)
             {
                 w.IsBraking = CurrentBrakeForce > 0f && w.IsMotor;
                 w.ApplyWheelPhysics(_rb, dt);
-
                 if (w.IsSteer)
                     w.transform.localRotation = Quaternion.Euler(0f, CurrentSteering * Mathf.Rad2Deg, 0f);
             }
-
 #if UNITY_EDITOR || DEBUG
             _debugLogTimer += dt;
             if (_debugLogTimer >= 0.5f)
             {
-                Debug.Log($"[esc] throttle={SmoothThrottle:F3} engineForce={CurrentEngineForce:F2}N brake={CurrentBrakeForce:F2}N reverse={ReverseEngaged} airborne={IsAirborne}");
+                Debug.Log($"[esc] throttle={SmoothThrottle:F3} engineForce={CurrentEngineForce:F2}N " +
+                          $"brake={CurrentBrakeForce:F2}N reverse={ReverseEngaged} airborne={IsAirborne}");
                 _debugLogTimer = 0f;
             }
 #endif
         }
 
-
         // ---- Public API ----
 
-        /// <summary>Returns total speed in km/h.</summary>
-        public float GetSpeedKmh() => _rb.velocity.magnitude * k_MsToKmh;
-
-        /// <summary>Returns signed forward speed in km/h.</summary>
+        public float GetSpeedKmh()        => _rb.velocity.magnitude * k_MsToKmh;
         public float GetForwardSpeedKmh() => Vector3.Dot(_rb.velocity, transform.forward) * k_MsToKmh;
 
-        /// <summary>Returns average slip ratio across motor wheels (0=grip, 1=slide).</summary>
         public float GetSlip()
         {
-            float slip = 0f;
-            int count = 0;
-            foreach (var w in _allWheels)
-            {
-                if (w.IsMotor)
-                {
-                    slip += w.SlipRatio;
-                    count++;
-                }
-            }
+            float slip = 0f; int count = 0;
+            foreach (var w in _wheels.All) if (w.IsMotor) { slip += w.SlipRatio; count++; }
             return count > 0 ? slip / count : 0f;
         }
 
-        /// <summary>Returns all wheel components for telemetry display.
-        /// Lazy-initialises wheel discovery if not yet performed, making this
-        /// safe to call regardless of Start() execution order.</summary>
+        /// <summary>Returns all wheel components. Lazy-discovers if not yet initialised.</summary>
         public RaycastWheel[] GetAllWheels()
         {
-            if (_allWheels == null)
-                DiscoverWheels();
-            return _allWheels;
+            if (_wheels.All == null) _wheels.Discover(transform);
+            return _wheels.All;
         }
 
-        /// <summary>Pushes current suspension settings to all wheels (per-axle).</summary>
-        public void ApplySuspensionSettings()
-        {
-            foreach (var w in _frontWheels)
-            {
-                w.SpringStrength = _frontSpringStrength;
-                w.SpringDamping = _frontSpringDamping;
-            }
-            foreach (var w in _rearWheels)
-            {
-                w.SpringStrength = _rearSpringStrength;
-                w.SpringDamping = _rearSpringDamping;
-            }
-        }
+        public void ApplySuspensionSettings() =>
+            _wheels.ApplySuspension(_p.FrontSpringStrength, _p.FrontSpringDamping,
+                                    _p.RearSpringStrength,  _p.RearSpringDamping);
 
-        /// <summary>Pushes current traction settings to all wheels.</summary>
-        public void ApplyTractionSettings()
-        {
-            foreach (var w in _allWheels)
-                w.GripCoeff = _gripCoeff;
-        }
+        public void ApplyTractionSettings() => _wheels.ApplyTraction(_p.GripCoeff);
 
-        /// <summary>Sets motor parameters and switches to Custom preset.</summary>
+        // ---- Tuning Setters ----
+
         public void SetMotorParams(float engineForce, float maxSpeed, float brakeForce,
             float reverseForce, float coastDrag)
         {
-            _motorPreset = MotorPreset.Custom;
-            _engineForceMax = engineForce;
-            _maxSpeed = maxSpeed;
-            _brakeForce = brakeForce;
-            _reverseForce = reverseForce;
-            _coastDrag = coastDrag;
+            _p.MotorPreset    = MotorPreset.Custom;
+            _p.EngineForceMax = engineForce;  _p.MaxSpeed     = maxSpeed;
+            _p.BrakeForce     = brakeForce;   _p.ReverseForce = reverseForce;
+            _p.CoastDrag      = coastDrag;
         }
 
-        /// <summary>Sets throttle response ramp rates.</summary>
         public void SetThrottleResponse(float rampUp, float rampDown)
-        {
-            _throttleRampUp = rampUp;
-            _throttleRampDown = rampDown;
-        }
+        { _p.ThrottleRampUp = rampUp; _p.ThrottleRampDown = rampDown; }
 
-        /// <summary>Sets steering parameters.</summary>
         public void SetSteeringParams(float max, float speed, float speedLimit, float highSpeedFactor)
-        {
-            _steeringMax = max;
-            _steeringSpeed = speed;
-            _steeringSpeedLimit = speedLimit;
-            _steeringHighSpeedFactor = highSpeedFactor;
-        }
+        { _p.SteeringMax = max; _p.SteeringSpeed = speed; _p.SteeringSpeedLimit = speedLimit; _p.SteeringHighSpeedFactor = highSpeedFactor; }
 
-        /// <summary>Sets the same spring/damping on all wheels (uniform). For per-axle use SetAxleSuspension.</summary>
         public void SetSuspension(float springStrength, float damping)
         {
-            _frontSpringStrength = springStrength;
-            _frontSpringDamping = damping;
-            _rearSpringStrength = springStrength;
-            _rearSpringDamping = damping;
-            if (_allWheels != null)
-                ApplySuspensionSettings();
+            _p.FrontSpringStrength = _p.RearSpringStrength = springStrength;
+            _p.FrontSpringDamping  = _p.RearSpringDamping  = damping;
+            if (_wheels.All != null) ApplySuspensionSettings();
         }
 
-        /// <summary>Sets per-axle spring and damping values independently.</summary>
         public void SetAxleSuspension(float frontK, float frontDamp, float rearK, float rearDamp)
         {
-            _frontSpringStrength = frontK;
-            _frontSpringDamping = frontDamp;
-            _rearSpringStrength = rearK;
-            _rearSpringDamping = rearDamp;
-            if (_allWheels != null)
-                ApplySuspensionSettings();
+            _p.FrontSpringStrength = frontK;  _p.FrontSpringDamping = frontDamp;
+            _p.RearSpringStrength  = rearK;   _p.RearSpringDamping  = rearDamp;
+            if (_wheels.All != null) ApplySuspensionSettings();
         }
 
-        /// <summary>Sets grip coefficient and pushes to all wheels.</summary>
         public void SetTraction(float gripCoeff)
-        {
-            _gripCoeff = gripCoeff;
-            if (_allWheels != null)
-                ApplyTractionSettings();
-        }
+        { _p.GripCoeff = gripCoeff; if (_wheels.All != null) ApplyTractionSettings(); }
 
-        /// <summary>Sets crash/tumble physics parameters.</summary>
         public void SetCrashParams(float engageDeg, float fullDeg, float bounce, float friction)
-        {
-            _tumbleEngageDeg = engageDeg;
-            _tumbleFullDeg = fullDeg;
-            _tumbleBounce = bounce;
-            _tumbleFriction = friction;
-        }
+        { _p.TumbleEngageDeg = engageDeg; _p.TumbleFullDeg = fullDeg; _p.TumbleBounce = bounce; _p.TumbleFriction = friction; }
 
-        /// <summary>Sets centre of mass Y offset.</summary>
-        public void SetCentreOfMass(float groundY)
-        {
-            _comGround = new UnityEngine.Vector3(0f, groundY, 0f);
-        }
+        public void SetCentreOfMass(float groundY) => _p.ComGround = new Vector3(0f, groundY, 0f);
+        public void SetMass(float mass)             { if (_rb != null) _rb.mass = mass; }
 
-        /// <summary>Sets mass on the Rigidbody.</summary>
-        public void SetMass(float mass)
-        {
-            if (_rb != null)
-                _rb.mass = mass;
-        }
-
-        /// <summary>Applies a named motor preset. Does nothing for Custom.</summary>
         public void SelectMotorPreset(MotorPreset preset)
-        {
-            _motorPreset = preset;
-            ApplyMotorPreset();
-        }
+        { _p.MotorPreset = preset; ApplyMotorPreset(); }
 
-
-        // ---- Private Methods ----
+        // ---- Private Helpers ----
 
         private void ApplyMotorPreset()
         {
-            if (_motorPreset == MotorPreset.Custom) return;
-            int idx = (int)_motorPreset;
-            if (idx < 0 || idx >= k_MotorPresets.Length) return;
-            var p = k_MotorPresets[idx];
-            _engineForceMax = p.EngineForceMax;
-            _brakeForce = p.BrakeForce;
-            _reverseForce = p.ReverseForce;
-            _coastDrag = p.CoastDrag;
-            _maxSpeed = p.MaxSpeed;
-            _throttleRampUp = p.ThrottleRampUp;
+            if (!MotorPresetRegistry.TryGet(_p.MotorPreset, out var d)) return;
+            _p.EngineForceMax = d.EngineForceMax; _p.BrakeForce    = d.BrakeForce;
+            _p.ReverseForce   = d.ReverseForce;   _p.CoastDrag     = d.CoastDrag;
+            _p.MaxSpeed       = d.MaxSpeed;        _p.ThrottleRampUp = d.ThrottleRampUp;
         }
 
         private void ConfigureRigidbody()
         {
-            _rb.mass = k_DefaultMass;
-            _rb.centerOfMass = _comGround;
-            _rb.drag = 0f;
-            _rb.angularDrag = k_DefaultAngularDrag;
-            _rb.interpolation = RigidbodyInterpolation.Interpolate;
+            _rb.mass                   = k_DefaultMass;    _rb.drag         = 0f;
+            _rb.centerOfMass           = _p.ComGround;     _rb.angularDrag  = k_DefaultAngularDrag;
+            _rb.interpolation          = RigidbodyInterpolation.Interpolate;
             _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        }
-
-        private void CreatePhysicsMaterial()
-        {
-            _physMat = new PhysicMaterial("CarBody")
-            {
-                dynamicFriction = 0f,
-                staticFriction = 0f,
-                bounciness = k_DefaultBounciness,
-                frictionCombine = PhysicMaterialCombine.Minimum,
-                bounceCombine = PhysicMaterialCombine.Maximum
-            };
-
-            _colliders = GetComponentsInChildren<Collider>();
-            foreach (var col in _colliders)
-                col.material = _physMat;
-        }
-
-        private void DiscoverWheels()
-        {
-            var allList = new System.Collections.Generic.List<RaycastWheel>();
-            var frontList = new System.Collections.Generic.List<RaycastWheel>();
-            var rearList = new System.Collections.Generic.List<RaycastWheel>();
-
-            foreach (var w in GetComponentsInChildren<RaycastWheel>())
-            {
-                allList.Add(w);
-                if (w.transform.localPosition.z > 0f)
-                    frontList.Add(w);
-                else
-                    rearList.Add(w);
-            }
-
-            _allWheels = allList.ToArray();
-            _frontWheels = frontList.ToArray();
-            _rearWheels = rearList.ToArray();
-        }
-
-        private void ConfigureWheels()
-        {
-            if (_drivetrain != null)
-                _drivetrain.UpdateLayout(_frontWheels, _rearWheels);
-
-            ApplySuspensionSettings();
-            ApplyTractionSettings();
-
-            int carLayer = gameObject.layer;
-            foreach (var w in _allWheels)
-            {
-                w.GroundMask = ~(1 << carLayer);
-                w.ShowDebug = false;
-            }
         }
 
         private void ApplyGroundDrive(float throttleIn, float brakeIn, float fwdSpeed)
         {
-            var result = PhysicsMath.ESCMath.ComputeGroundDrive(
-                throttleIn, brakeIn, fwdSpeed,
-                ReverseEngaged,
-                _engineForceMax, _brakeForce, _reverseForce,
-                _coastDrag, _maxSpeed, _rb.velocity.magnitude,
-                k_ReverseSpeedThreshold, k_ForwardSpeedClearThreshold,
-                k_ReverseBrakeMinThreshold);
+            var r = PhysicsMath.ESCMath.ComputeGroundDrive(
+                throttleIn, brakeIn, fwdSpeed, ReverseEngaged,
+                _p.EngineForceMax, _p.BrakeForce, _p.ReverseForce,
+                _p.CoastDrag, _p.MaxSpeed, _rb.velocity.magnitude,
+                k_ReverseSpeedThreshold, k_ForwardSpeedClearThreshold, k_ReverseBrakeMinThreshold);
 
-            CurrentEngineForce = result.EngineForce;
-            CurrentBrakeForce = result.BrakeForce;
-            ReverseEngaged = result.ReverseEngaged;
-
-            // C6: Apply coast drag as a separate retarding force, not as brake
-            // This prevents IsBraking from being set true during coasting
-            if (result.CoastDragForce > 0f)
-            {
-                _rb.AddForce(-transform.forward * result.CoastDragForce, ForceMode.Force);
-            }
-        }
-
-        private void ApplySteering(float dt, float steerIn, float fwdSpeed)
-        {
-            float spd = Mathf.Abs(fwdSpeed);
-            float t = Mathf.Clamp01(spd / _steeringSpeedLimit);
-            float effectiveMax = Mathf.Lerp(_steeringMax, _steeringMax * _steeringHighSpeedFactor, t);
-            float steerSign = fwdSpeed < -k_ReverseSpeedThreshold ? -1f : 1f;
-            float target = steerIn * effectiveMax * steerSign;
-            CurrentSteering = Mathf.MoveTowards(CurrentSteering, target, _steeringSpeed * dt);
-        }
-
-        private void ComputeTumbleFactor()
-        {
-            TiltAngle = PhysicsMath.TumbleMath.ComputeTiltAngle(transform.up);
-            TumbleFactor = PhysicsMath.TumbleMath.ComputeTumbleFactor(
-                TiltAngle, IsAirborne, _wasTumbling,
-                _tumbleEngageDeg, _tumbleFullDeg, _tumbleHysteresisDeg);
-            _wasTumbling = TumbleFactor > 0f;
-        }
-
-        private bool CheckAirborne()
-        {
-            bool offGround = true;
-            foreach (var w in _allWheels)
-            {
-                if (w.IsOnGround)
-                {
-                    offGround = false;
-                    break;
-                }
-            }
-
-            _airborneFrames = offGround
-                ? Mathf.Min(_airborneFrames + 1, k_AirborneThreshold)
-                : 0;
-
-            return _airborneFrames >= k_AirborneThreshold;
-        }
-
-        private void UpdatePhysicsMaterial()
-        {
-            if (!_enableDynamicPhysicsMaterial) return;
-            if (_physMat == null) return;
-            _physMat.bounciness = Mathf.Lerp(k_DefaultBounciness, _tumbleBounce, TumbleFactor);
-            _physMat.dynamicFriction = Mathf.Lerp(0f, _tumbleFriction, TumbleFactor);
-            _physMat.staticFriction = Mathf.Lerp(0f, _tumbleFriction, TumbleFactor);
+            CurrentEngineForce = r.EngineForce;
+            CurrentBrakeForce  = r.BrakeForce;
+            ReverseEngaged     = r.ReverseEngaged;
+            if (r.CoastDragForce > 0f)
+                _rb.AddForce(-transform.forward * r.CoastDragForce, ForceMode.Force);
         }
 
         private void DoFlip()
         {
-            Vector3 euler = transform.eulerAngles;
-            transform.rotation = Quaternion.Euler(0f, euler.y, 0f);
+            Vector3 e          = transform.eulerAngles;
+            transform.rotation = Quaternion.Euler(0f, e.y, 0f);
             transform.position += Vector3.up * k_FlipHeightOffset;
-            _rb.velocity = Vector3.zero;
-            _rb.angularVelocity = Vector3.zero;
+            _rb.velocity = _rb.angularVelocity = Vector3.zero;
         }
     }
 }

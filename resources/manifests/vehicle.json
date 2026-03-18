@@ -4,6 +4,12 @@
   "status": "ACTIVE",
   "files": [
     "Assets/Scripts/Vehicle/RCCar.cs",
+    "Assets/Scripts/Vehicle/VehicleParams.cs",
+    "Assets/Scripts/Vehicle/MotorPresetRegistry.cs",
+    "Assets/Scripts/Vehicle/WheelManager.cs",
+    "Assets/Scripts/Vehicle/AirborneDetector.cs",
+    "Assets/Scripts/Vehicle/TumbleController.cs",
+    "Assets/Scripts/Vehicle/SteeringRamp.cs",
     "Assets/Scripts/Vehicle/RaycastWheel.cs",
     "Assets/Scripts/Vehicle/Drivetrain.cs",
     "Assets/Scripts/Vehicle/RCAirPhysics.cs",
@@ -36,7 +42,10 @@
       "BlackBoxPhysicsTests",
       "ReverseESCTests",
       "SteeringTests",
-      "TuningApiTests"
+      "TuningApiTests",
+      "WheelManagerTests",
+      "AirborneDetectorTests",
+      "SteeringRampTests"
     ],
     "playmode": [
       "VehicleIntegrationTests",
