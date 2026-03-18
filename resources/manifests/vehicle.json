@@ -10,6 +10,7 @@
     "Assets/Scripts/Vehicle/TumbleController.cs",
     "Assets/Scripts/Vehicle/SteeringRamp.cs",
     "Assets/Scripts/Vehicle/RaycastWheel.cs",
+    "Assets/Scripts/Vehicle/WheelVisuals.cs",
     "Assets/Scripts/Vehicle/Drivetrain.cs",
     "Assets/Scripts/Vehicle/RCAirPhysics.cs",
     "Assets/Scripts/Vehicle/R8EOX.Vehicle.asmdef",
@@ -20,6 +21,9 @@
     "Assets/Scripts/Vehicle/Physics/AirPhysicsMath.cs",
     "Assets/Scripts/Vehicle/Physics/TumbleMath.cs",
     "Assets/Scripts/Vehicle/Physics/GyroscopicMath.cs",
+    "Assets/Scripts/Vehicle/Physics/WheelForceInput.cs",
+    "Assets/Scripts/Vehicle/Physics/WheelForceResult.cs",
+    "Assets/Scripts/Vehicle/Physics/WheelForceSolver.cs",
     "Assets/Scripts/Vehicle/Config/MotorPresetConfig.cs",
     "Assets/Scripts/Vehicle/Config/SuspensionConfig.cs",
     "Assets/Scripts/Vehicle/Config/TractionConfig.cs",
@@ -47,7 +51,8 @@
       "WheelManagerTests",
       "AirborneDetectorTests",
       "SteeringRampTests",
-      "SphereCastTests"
+      "SphereCastTests",
+      "WheelForceSolverTests"
     ],
     "playmode": [
       "VehicleSettlingTests",
