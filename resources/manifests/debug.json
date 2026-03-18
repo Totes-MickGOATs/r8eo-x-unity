@@ -7,6 +7,7 @@
     "Assets/Scripts/Debug/TuningPanel.cs",
     "Assets/Scripts/Debug/ContractDebugger.cs",
     "Assets/Scripts/Debug/WheelTerrainDiagnostics.cs",
+    "Assets/Scripts/Debug/Diagnostics/TerrainDiagnosticChecks.cs",
     "Assets/Scripts/Debug/DebugBootstrap.cs",
     "Assets/Scripts/Debug/R8EOX.Debug.asmdef",
     "Assets/Scripts/Debug/Audit/AuditConstants.cs",
@@ -30,7 +31,8 @@
       "InputContractValidatorTests",
       "VehicleContractValidatorTests",
       "WheelContractValidatorTests",
-      "DebugBootstrapTests"
+      "DebugBootstrapTests",
+      "TerrainDiagnosticChecksTests"
     ],
     "playmode": [
       "DebugLoggingTests"
