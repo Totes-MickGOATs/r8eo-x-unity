@@ -11,7 +11,7 @@ Source code organized by subsystem. Add subdirectories as your project grows.
 
 ## Conventions
 
-Add your project-specific coding conventions here after running setup-engine.sh.
-See `.ai/knowledge/architecture/coding-standards.md` for general standards.
+- Shell: `#!/usr/bin/env bash`, `set -euo pipefail`, 2-space indent
+- Python: 4-space indent, type hints on public functions, run via `uv run python`
 
-<!-- ENGINE-SPECIFIC: Engine conventions added by setup-engine.sh -->
+See `.ai/knowledge/architecture/coding-standards.md` for general standards.

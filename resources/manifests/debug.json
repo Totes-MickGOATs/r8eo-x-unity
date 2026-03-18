@@ -29,8 +29,11 @@
       "WheelTerrainDiagnosticsTests",
       "InputContractValidatorTests",
       "VehicleContractValidatorTests",
-      "WheelContractValidatorTests"
+      "WheelContractValidatorTests",
+      "DebugBootstrapTests"
     ],
-    "playmode": []
+    "playmode": [
+      "DebugLoggingTests"
+    ]
   }
 }
