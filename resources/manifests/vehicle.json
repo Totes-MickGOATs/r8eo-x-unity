@@ -68,7 +68,10 @@
       "TerrainSnagTests",
       "ConformanceAtRestTests",
       "ConformanceTransitionTests",
-      "ConformanceDynamicsTests"
+      "ConformanceDynamicsTests",
+      "TerrainTestFixture",
+      "TerrainSeamTests",
+      "TerrainRegressionTests"
     ]
   }
 }
