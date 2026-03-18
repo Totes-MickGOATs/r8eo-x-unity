@@ -65,7 +65,10 @@
       "VehicleWheelTests",
       "VehicleDriveTests",
       "CompoundConformanceTests",
-      "TerrainSnagTests"
+      "TerrainSnagTests",
+      "ConformanceAtRestTests",
+      "ConformanceTransitionTests",
+      "ConformanceDynamicsTests"
     ]
   }
 }
