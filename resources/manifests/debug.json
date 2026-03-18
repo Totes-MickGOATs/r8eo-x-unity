@@ -15,14 +15,21 @@
     "Assets/Scripts/Debug/Audit/ConformanceRecorder.cs",
     "Assets/Scripts/Debug/Audit/ConformanceQuery.cs",
     "Assets/Scripts/Debug/Audit/DebugLogSink.cs",
-    "Assets/Scripts/Debug/Audit/LogParser.cs"
+    "Assets/Scripts/Debug/Audit/LogParser.cs",
+    "Assets/Scripts/Debug/Validators/InputContractValidator.cs",
+    "Assets/Scripts/Debug/Validators/VehicleContractValidator.cs",
+    "Assets/Scripts/Debug/Validators/WheelContractValidator.cs",
+    "Assets/Scripts/Debug/Validators/ObservableContractValidator.cs"
   ],
   "dependencies": ["vehicle", "input"],
   "replaced_by": "",
   "tests": {
     "editmode": [
       "ContractDebuggerTests",
-      "WheelTerrainDiagnosticsTests"
+      "WheelTerrainDiagnosticsTests",
+      "InputContractValidatorTests",
+      "VehicleContractValidatorTests",
+      "WheelContractValidatorTests"
     ],
     "playmode": []
   }

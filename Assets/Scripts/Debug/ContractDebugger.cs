@@ -1,6 +1,7 @@
 using UnityEngine;
 using R8EOX.Input;
 using R8EOX.Vehicle;
+using R8EOX.Debug.Validators;
 
 namespace R8EOX.Debug
 {
@@ -14,24 +15,6 @@ namespace R8EOX.Debug
     public class ContractDebugger : MonoBehaviour
     {
 #if UNITY_EDITOR || DEBUG
-        // ---- Constants ----
-
-        /// <summary>Tolerance for floating-point comparisons.</summary>
-        const float k_Epsilon = 1e-5f;
-
-        /// <summary>Consecutive frames required before observable contracts trigger.</summary>
-        const int k_ObservableFrameThreshold = 10;
-
-        /// <summary>Minimum velocity increase per frame to consider "accelerating" (m/s).</summary>
-        const float k_MinAccelerationDelta = 0.0001f;
-
-        /// <summary>Minimum velocity decrease per frame to consider "decelerating" (m/s).</summary>
-        const float k_MinDecelerationDelta = 0.0001f;
-
-        /// <summary>Speed threshold below which we consider the car "stopped" (m/s).</summary>
-        const float k_StoppedSpeedThreshold = 0.05f;
-
-
         // ---- Serialized Fields ----
 
         [Header("Contract Debugger")]
@@ -57,10 +40,7 @@ namespace R8EOX.Debug
         private Rigidbody _rb;
         private RaycastWheel[] _wheels;
 
-        // Observable contract tracking
-        private int _consecutiveEngineFrames;
-        private int _consecutiveZeroInputFrames;
-        private float _prevVelocityMagnitude;
+        private ObservableContractValidator _observableValidator = new ObservableContractValidator();
 
         // Violation counters for summary
         private int _inputViolations;
@@ -163,260 +143,39 @@ namespace R8EOX.Debug
             _vehicleViolations = 0;
             _wheelViolations = 0;
             _observableViolations = 0;
-            _consecutiveEngineFrames = 0;
-            _consecutiveZeroInputFrames = 0;
+            _observableValidator.Reset();
         }
-
-
-        // ---- Validation: Input Contracts (Update) ----
 
         /// <summary>
         /// Validates all input contracts. Public for direct invocation in tests.
         /// </summary>
         public void ValidateInputContracts()
         {
-            if (_input == null) return;
-
-            int frame = Time.frameCount;
-
-            // Throttle in [0, 1]
-            if (_input.Throttle < -k_Epsilon || _input.Throttle > 1f + k_Epsilon)
-            {
-                LogInputViolation("Throttle out of range [0,1]",
-                    _input.Throttle, 0f, 1f, frame);
-            }
-
-            // Brake in [0, 1]
-            if (_input.Brake < -k_Epsilon || _input.Brake > 1f + k_Epsilon)
-            {
-                LogInputViolation("Brake out of range [0,1]",
-                    _input.Brake, 0f, 1f, frame);
-            }
-
-            // Steer in [-1, 1]
-            if (_input.Steer < -1f - k_Epsilon || _input.Steer > 1f + k_Epsilon)
-            {
-                LogInputViolation("Steer out of range [-1,1]",
-                    _input.Steer, -1f, 1f, frame);
-            }
-
-            if (_logAllValues)
-            {
-                UnityEngine.Debug.Log($"[ContractDebugger] Input OK frame={frame} " +
-                    $"throttle={_input.Throttle:F4} brake={_input.Brake:F4} steer={_input.Steer:F4}");
-            }
+            _inputViolations += InputContractValidator.ValidateInputContracts(_input, _logAllValues);
         }
-
-
-        // ---- Validation: Vehicle Contracts (FixedUpdate) ----
 
         /// <summary>
         /// Validates all vehicle contracts. Public for direct invocation in tests.
         /// </summary>
         public void ValidateVehicleContracts()
         {
-            if (_car == null) return;
-
-            int frame = Time.frameCount;
-
-            // CurrentBrakeForce >= 0
-            if (_car.CurrentBrakeForce < -k_Epsilon)
-            {
-                LogVehicleViolation("CurrentBrakeForce is negative",
-                    _car.CurrentBrakeForce, 0f, float.MaxValue, frame);
-            }
-
-            // Engine and Brake mutually exclusive (both > 0 simultaneously is a violation)
-            if (_car.CurrentEngineForce > k_Epsilon && _car.CurrentBrakeForce > k_Epsilon)
-            {
-                LogVehicleViolation(
-                    $"Engine ({_car.CurrentEngineForce:F2}) and Brake ({_car.CurrentBrakeForce:F2}) both active",
-                    _car.CurrentEngineForce, 0f, 0f, frame);
-            }
-
-            // If airborne: engine and brake must be 0
-            if (_car.IsAirborne)
-            {
-                if (Mathf.Abs(_car.CurrentEngineForce) > k_Epsilon)
-                {
-                    LogVehicleViolation("Engine force non-zero while airborne",
-                        _car.CurrentEngineForce, 0f, 0f, frame);
-                }
-                if (Mathf.Abs(_car.CurrentBrakeForce) > k_Epsilon)
-                {
-                    LogVehicleViolation("Brake force non-zero while airborne",
-                        _car.CurrentBrakeForce, 0f, 0f, frame);
-                }
-            }
-
-            // Speed cutoff: if at max speed with throttle, engine should be 0
-            if (_input != null && _input.Throttle > k_Epsilon &&
-                Mathf.Abs(_car.ForwardSpeed) >= _car.MaxSpeed - k_Epsilon &&
-                !_car.IsAirborne)
-            {
-                if (Mathf.Abs(_car.CurrentEngineForce) > k_Epsilon)
-                {
-                    LogVehicleViolation(
-                        $"Engine force ({_car.CurrentEngineForce:F2}) active at max speed ({_car.ForwardSpeed:F2}/{_car.MaxSpeed:F2})",
-                        _car.CurrentEngineForce, 0f, 0f, frame);
-                }
-            }
-
-            // SmoothThrottle in [0, 1]
-            if (_car.SmoothThrottle < -k_Epsilon || _car.SmoothThrottle > 1f + k_Epsilon)
-            {
-                LogVehicleViolation("SmoothThrottle out of range [0,1]",
-                    _car.SmoothThrottle, 0f, 1f, frame);
-            }
-
-            // CurrentSteering magnitude <= steeringMax
-            if (Mathf.Abs(_car.CurrentSteering) > _car.SteeringMax + k_Epsilon)
-            {
-                LogVehicleViolation(
-                    $"CurrentSteering magnitude ({Mathf.Abs(_car.CurrentSteering):F4}) exceeds SteeringMax ({_car.SteeringMax:F4})",
-                    Mathf.Abs(_car.CurrentSteering), 0f, _car.SteeringMax, frame);
-            }
-
-            if (_logAllValues)
-            {
-                UnityEngine.Debug.Log($"[ContractDebugger] Vehicle OK frame={frame} " +
-                    $"engine={_car.CurrentEngineForce:F2} brake={_car.CurrentBrakeForce:F2} " +
-                    $"steering={_car.CurrentSteering:F4} smoothThrottle={_car.SmoothThrottle:F4} " +
-                    $"airborne={_car.IsAirborne}");
-            }
+            _vehicleViolations += VehicleContractValidator.ValidateVehicleContracts(_car, _input, _logAllValues);
         }
-
-
-        // ---- Validation: Wheel/Physics Contracts (FixedUpdate) ----
 
         /// <summary>
         /// Validates all wheel contracts. Public for direct invocation in tests.
         /// </summary>
         public void ValidateWheelContracts()
         {
-            if (_wheels == null) return;
-
-            int frame = Time.frameCount;
-
-            for (int i = 0; i < _wheels.Length; i++)
-            {
-                RaycastWheel w = _wheels[i];
-                string wheelName = w != null ? w.name : $"Wheel[{i}]";
-
-                // GripLoad >= 0 when grounded (no tension in suspension)
-                if (w.IsOnGround && w.LastGripLoad < -k_Epsilon)
-                {
-                    LogWheelViolation(wheelName, "GripLoad negative while grounded",
-                        w.LastGripLoad, 0f, float.MaxValue, frame);
-                }
-
-                // SlipRatio in [0, 1] (our implementation uses 0-1, not -1 to 1)
-                if (w.SlipRatio < -k_Epsilon || w.SlipRatio > 1f + k_Epsilon)
-                {
-                    LogWheelViolation(wheelName, "SlipRatio out of range [0,1]",
-                        w.SlipRatio, 0f, 1f, frame);
-                }
-
-                // GripFactor in [0, 1]
-                if (w.GripFactor < -k_Epsilon || w.GripFactor > 1f + k_Epsilon)
-                {
-                    LogWheelViolation(wheelName, "GripFactor out of range [0,1]",
-                        w.GripFactor, 0f, 1f, frame);
-                }
-
-                // Motor force only if IsMotor AND IsOnGround
-                if (!w.IsMotor && Mathf.Abs(w.MotorForceShare) > k_Epsilon)
-                {
-                    LogWheelViolation(wheelName, "MotorForceShare non-zero on non-motor wheel",
-                        w.MotorForceShare, 0f, 0f, frame);
-                }
-                if (!w.IsOnGround && Mathf.Abs(w.MotorForceShare) > k_Epsilon)
-                {
-                    LogWheelViolation(wheelName, "MotorForceShare non-zero while airborne",
-                        w.MotorForceShare, 0f, 0f, frame);
-                }
-            }
-
-            if (_logAllValues && _wheels.Length > 0)
-            {
-                var w = _wheels[0];
-                UnityEngine.Debug.Log($"[ContractDebugger] Wheels OK frame={frame} " +
-                    $"sample: {w.name} ground={w.IsOnGround} grip={w.GripFactor:F3} " +
-                    $"slip={w.SlipRatio:F3} motor={w.MotorForceShare:F2}");
-            }
+            _wheelViolations += WheelContractValidator.ValidateWheelContracts(_wheels, _logAllValues);
         }
-
-
-        // ---- Validation: Observable/Consistency Contracts (LateUpdate) ----
 
         /// <summary>
         /// Validates observable consistency contracts. Public for direct invocation in tests.
         /// </summary>
         public void ValidateObservableContracts()
         {
-            if (_car == null || _rb == null) return;
-
-            int frame = Time.frameCount;
-            float currentSpeed = _rb.velocity.magnitude;
-
-            // Track consecutive engine-force frames
-            if (_car.CurrentEngineForce > k_Epsilon && !_car.IsAirborne)
-                _consecutiveEngineFrames++;
-            else
-                _consecutiveEngineFrames = 0;
-
-            // Track consecutive zero-input frames
-            if (_input != null &&
-                Mathf.Abs(_input.Throttle) < k_Epsilon &&
-                Mathf.Abs(_input.Brake) < k_Epsilon &&
-                Mathf.Abs(_input.Steer) < k_Epsilon &&
-                !_car.IsAirborne)
-            {
-                _consecutiveZeroInputFrames++;
-            }
-            else
-            {
-                _consecutiveZeroInputFrames = 0;
-            }
-
-            // If engine active for N frames AND grounded: velocity should increase (or be at max)
-            if (_consecutiveEngineFrames >= k_ObservableFrameThreshold)
-            {
-                bool atMaxSpeed = Mathf.Abs(_car.ForwardSpeed) >= _car.MaxSpeed - k_Epsilon;
-                bool velocityIncreasing = currentSpeed > _prevVelocityMagnitude - k_MinAccelerationDelta;
-
-                if (!atMaxSpeed && !velocityIncreasing)
-                {
-                    LogObservableViolation(
-                        $"Engine active for {_consecutiveEngineFrames} frames but velocity not increasing " +
-                        $"(prev={_prevVelocityMagnitude:F4} current={currentSpeed:F4})",
-                        frame);
-                }
-            }
-
-            // If all inputs zero for N frames AND grounded: velocity should decrease
-            if (_consecutiveZeroInputFrames >= k_ObservableFrameThreshold)
-            {
-                bool alreadyStopped = currentSpeed < k_StoppedSpeedThreshold;
-                bool velocityDecreasing = currentSpeed < _prevVelocityMagnitude + k_MinDecelerationDelta;
-
-                if (!alreadyStopped && !velocityDecreasing)
-                {
-                    LogObservableViolation(
-                        $"All inputs zero for {_consecutiveZeroInputFrames} frames but velocity not decreasing " +
-                        $"(prev={_prevVelocityMagnitude:F4} current={currentSpeed:F4})",
-                        frame);
-                }
-            }
-
-            _prevVelocityMagnitude = currentSpeed;
-
-            if (_logAllValues)
-            {
-                UnityEngine.Debug.Log($"[ContractDebugger] Observable OK frame={frame} " +
-                    $"speed={currentSpeed:F4} engineFrames={_consecutiveEngineFrames} " +
-                    $"zeroFrames={_consecutiveZeroInputFrames}");
-            }
+            _observableViolations += _observableValidator.Validate(_car, _rb, _input, _logAllValues);
         }
 
 
@@ -433,38 +192,6 @@ namespace R8EOX.Debug
                 _rb = _car.GetComponent<Rigidbody>();
                 _wheels = _car.GetAllWheels();
             }
-        }
-
-        private void LogInputViolation(string contract, float actual, float expectedMin, float expectedMax, int frame)
-        {
-            _inputViolations++;
-            UnityEngine.Debug.LogError(
-                $"[ContractDebugger] INPUT VIOLATION: {contract} | " +
-                $"actual={actual:F6} expected=[{expectedMin:F2}, {expectedMax:F2}] | frame={frame}");
-        }
-
-        private void LogVehicleViolation(string contract, float actual, float expectedMin, float expectedMax, int frame)
-        {
-            _vehicleViolations++;
-            UnityEngine.Debug.LogError(
-                $"[ContractDebugger] VEHICLE VIOLATION: {contract} | " +
-                $"actual={actual:F6} expected=[{expectedMin:F2}, {expectedMax:F2}] | frame={frame}");
-        }
-
-        private void LogWheelViolation(string wheelName, string contract, float actual,
-            float expectedMin, float expectedMax, int frame)
-        {
-            _wheelViolations++;
-            UnityEngine.Debug.LogError(
-                $"[ContractDebugger] WHEEL VIOLATION [{wheelName}]: {contract} | " +
-                $"actual={actual:F6} expected=[{expectedMin:F2}, {expectedMax:F2}] | frame={frame}");
-        }
-
-        private void LogObservableViolation(string description, int frame)
-        {
-            _observableViolations++;
-            UnityEngine.Debug.LogWarning(
-                $"[ContractDebugger] OBSERVABLE: {description} | frame={frame}");
         }
 
 #endif // UNITY_EDITOR || DEBUG
