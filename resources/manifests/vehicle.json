@@ -51,13 +51,14 @@
       "BlackBoxInputTests",
       "ReverseESCTests",
       "SteeringTests",
-      "TuningApiTests",
       "MotorPresetRegistryTests",
       "WheelManagerTests",
       "AirborneDetectorTests",
       "SteeringRampTests",
       "SphereCastTests",
-      "WheelForceSolverTests"
+      "WheelForceSolverTests",
+      "TuningMotorTests",
+      "TuningChassisTests"
     ],
     "playmode": [
       "VehicleSettlingTests",
