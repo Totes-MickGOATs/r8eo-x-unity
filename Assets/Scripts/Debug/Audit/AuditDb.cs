@@ -13,6 +13,7 @@ namespace R8EOX.Debug.Audit
     /// <summary>
     /// Manages the SQLite connection lifecycle and schema for the physics audit database.
     /// Thread-safe lazy singleton — the database file lives at {project_root}/Logs/physics_audit.db.
+    /// Schema SQL is declared in <see cref="AuditSchema"/>.
     /// </summary>
     public static class AuditDb
     {
@@ -21,50 +22,6 @@ namespace R8EOX.Debug.Audit
         private static SqliteConnection _connection;
         private static readonly object _lock = new object();
         private static bool _initialized;
-
-
-        // ---- Schema SQL ----
-
-        private const string k_CreateConformanceRuns = @"
-CREATE TABLE IF NOT EXISTS conformance_runs (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    run_id      TEXT NOT NULL,
-    timestamp   TEXT NOT NULL,
-    git_sha     TEXT,
-    branch      TEXT,
-    category    TEXT NOT NULL,
-    check_id    TEXT NOT NULL,
-    check_name  TEXT NOT NULL,
-    expected    REAL,
-    actual      REAL,
-    tolerance   REAL,
-    tier        TEXT,
-    passed      INTEGER NOT NULL,
-    metadata    TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_conformance_time ON conformance_runs(timestamp);
-CREATE INDEX IF NOT EXISTS idx_conformance_check ON conformance_runs(check_id);
-CREATE INDEX IF NOT EXISTS idx_conformance_tier ON conformance_runs(tier);";
-
-        private const string k_CreateDebugLogs = @"
-CREATE TABLE IF NOT EXISTS debug_logs (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp   TEXT NOT NULL,
-    frame       INTEGER,
-    level       TEXT NOT NULL,
-    system      TEXT,
-    message     TEXT NOT NULL,
-    stack_trace TEXT,
-    context     TEXT,
-    log_hash    TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_logs_time ON debug_logs(timestamp);
-CREATE INDEX IF NOT EXISTS idx_logs_level ON debug_logs(level);
-CREATE INDEX IF NOT EXISTS idx_logs_system ON debug_logs(system);
-CREATE INDEX IF NOT EXISTS idx_logs_hash ON debug_logs(log_hash);";
-
-        private const string k_PurgeSql =
-            "DELETE FROM debug_logs WHERE timestamp < datetime('now', '-{0} hours')";
 
 
         // ---- Editor Startup ----
@@ -125,13 +82,11 @@ CREATE INDEX IF NOT EXISTS idx_logs_hash ON debug_logs(log_hash);";
                     Directory.CreateDirectory(dbDir);
 
                 string dbPath = Path.Combine(dbDir, "physics_audit.db");
-                string connectionString = $"URI=file:{dbPath}";
-
-                _connection = new SqliteConnection(connectionString);
+                _connection = new SqliteConnection($"URI=file:{dbPath}");
                 _connection.Open();
 
-                ExecuteNonQuery(k_CreateConformanceRuns);
-                ExecuteNonQuery(k_CreateDebugLogs);
+                ExecuteNonQuery(AuditSchema.k_CreateConformanceRuns);
+                ExecuteNonQuery(AuditSchema.k_CreateDebugLogs);
 
                 _initialized = true;
             }
@@ -148,7 +103,7 @@ CREATE INDEX IF NOT EXISTS idx_logs_hash ON debug_logs(log_hash);";
                 if (!_initialized || _connection == null)
                     return;
 
-                string sql = string.Format(k_PurgeSql, AuditConstants.k_PurgeHours);
+                string sql = string.Format(AuditSchema.k_PurgeSql, AuditConstants.k_PurgeHours);
                 ExecuteNonQuery(sql);
                 ExecuteNonQuery("VACUUM");
             }
@@ -175,7 +130,7 @@ CREATE INDEX IF NOT EXISTS idx_logs_hash ON debug_logs(log_hash);";
 
         /// <summary>
         /// Executes a query and returns a reader. Caller is responsible for disposing the reader.
-        /// NOTE: The caller must NOT hold the lock while iterating — copy results into a list first.
+        /// NOTE: Copy results into a list before releasing — do not iterate while holding the lock.
         /// </summary>
         /// <param name="sql">The SQL query to execute.</param>
         /// <param name="parameters">Optional named parameters as alternating name/value pairs.</param>
