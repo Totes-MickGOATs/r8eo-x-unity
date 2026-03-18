@@ -3,11 +3,7 @@ using R8EOX.Vehicle.Physics;
 
 namespace R8EOX.Tests.EditMode
 {
-    /// <summary>
-    /// Tests for M7 (airborne-to-ground damping spike) and M8 (settling behavior).
-    /// Validates that suspension forces remain stable during landing transitions
-    /// and that oscillations decay monotonically over time.
-    /// </summary>
+    /// <summary>Tests for M7 (airborne-to-ground damping spike) and M8 (settling behavior).</summary>
     public class SuspensionStabilityTests
     {
         // ---- Constants matching production defaults (1/1 full scale) ----
@@ -19,7 +15,6 @@ namespace R8EOX.Tests.EditMode
         const float k_OverExtend = 0.24f;
         const float k_WheelRadius = 0.420f; // metres (×10 scale, Proline Electron rear)
         const float k_MinSpringLen = 0.12f;
-
 
         // ---- M7: Airborne-to-ground damping spike ----
 
@@ -36,10 +31,7 @@ namespace R8EOX.Tests.EditMode
             float airborneLen = k_RestDistance + k_OverExtend; // 0.49m full droop
             float landingSpringLen = steadySpringLen;
 
-            // WITHOUT the fix, this would produce a huge damping spike:
-            // damping = 106.25 * (0.49 - 0.20) / 0.008333 = ~3697 N
-            // WITH the fix (SanitizePrevSpringLenForLanding), prevSpringLen = springLen,
-            // so damping = 0 and force = spring component only.
+            // With fix (SanitizePrevSpringLenForLanding): prevSpringLen = springLen, damping = 0.
             float sanitizedPrev = SuspensionMath.SanitizePrevSpringLenForLanding(
                 landingSpringLen, airborneLen, wasOnGround: false);
             float landingForce = SuspensionMath.ComputeSuspensionForceWithDamping(

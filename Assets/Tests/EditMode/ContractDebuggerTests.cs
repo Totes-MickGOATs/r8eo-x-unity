@@ -6,11 +6,7 @@ using R8EOX.Vehicle;
 
 namespace R8EOX.Tests.EditMode
 {
-    /// <summary>
-    /// Unit tests for ContractDebugger contract validation logic.
-    /// Tests verify that violations are counted and that valid states pass silently.
-    /// Uses minimal GameObject setup since ContractDebugger observes via public properties.
-    /// </summary>
+    /// <summary>Unit tests for ContractDebugger contract validation logic.</summary>
     [TestFixture]
     public class ContractDebuggerTests
     {
@@ -40,7 +36,6 @@ namespace R8EOX.Tests.EditMode
             if (_rootGo != null)
                 UnityEngine.Object.DestroyImmediate(_rootGo);
         }
-
 
         // ---- Toggle Tests ----
 
@@ -96,7 +91,6 @@ namespace R8EOX.Tests.EditMode
             Assert.IsFalse(_debugger.EnableObservableContracts);
         }
 
-
         // ---- Counter Tests ----
 
         [Test]
@@ -110,18 +104,15 @@ namespace R8EOX.Tests.EditMode
         }
 
 
-        // ---- Input Validation (no input ref = no violations) ----
+        // ---- Validation (no refs = no violations) ----
 
         [Test]
         public void ValidateInputContracts_NoInputRef_NoViolations()
         {
-            // With no car/input set, validation should silently skip
             _debugger.ValidateInputContracts();
             Assert.AreEqual(0, _debugger.InputViolationCount);
         }
 
-
-        // ---- Vehicle Validation (no car ref = no violations) ----
 
         [Test]
         public void ValidateVehicleContracts_NoCarRef_NoViolations()
@@ -131,8 +122,6 @@ namespace R8EOX.Tests.EditMode
         }
 
 
-        // ---- Wheel Validation (no wheels = no violations) ----
-
         [Test]
         public void ValidateWheelContracts_NoWheelRef_NoViolations()
         {
@@ -140,8 +129,6 @@ namespace R8EOX.Tests.EditMode
             Assert.AreEqual(0, _debugger.WheelViolationCount);
         }
 
-
-        // ---- Observable Validation (no car/rb = no violations) ----
 
         [Test]
         public void ValidateObservableContracts_NoCarRef_NoViolations()
