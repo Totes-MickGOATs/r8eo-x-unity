@@ -163,7 +163,7 @@ If lint CI fails after you push, you are responsible for:
 
 **TDD Cycle:** Hypothesize -> Write failing test (RED) -> Implement (GREEN) -> Commit. Steps 2-3 are non-negotiable.
 
-**Module-based test gating:** Pre-push and `ff-main` automatically run ALL tests for any touched module plus transitive dependents. Changing `Input/InputMath.cs` runs input + vehicle + debug + editor tests. The filter is resolved from manifest `tests` fields by `scripts/tools/resolve_module_tests.py`. Bypass: `SKIP_TEST_CHECK=1 git push` or `SKIP_FF_TESTS=1 just ff-main`.
+**Module-based test gating:** Pre-push detects changed `.cs` files, resolves affected modules and their transitive dependents via `scripts/tools/resolve_module_tests.py`, and reports which test classes would need to run. Tests are only executed if `UNITY_PATH` is set and the Unity binary exists on PATH — if Unity is not found, the hook reports the required tests but does not block the push. Bypass test execution entirely: `SKIP_TEST_CHECK=1 git push`. `ff-main` respects `SKIP_FF_TESTS=1 just ff-main`.
 
 **Test Tiers:** Unit (every public method, 1 positive + 1 negative) + Integration (cross-system wiring) + E2E (user-facing features). All three required for user-facing changes.
 
