@@ -51,3 +51,7 @@ format:
 # Lint C# code (check only, no changes)
 lint:
     dotnet format *.sln --verify-no-changes --verbosity normal
+
+# Check all .cs files are within the 200-line hard limit
+line-limit:
+    bash scripts/tools/check_line_limit.sh
