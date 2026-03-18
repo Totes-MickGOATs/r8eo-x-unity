@@ -25,7 +25,6 @@ namespace R8EOX.Editor
         const string k_FoldCoM         = "RCCarEditor.FoldCoM";
         const string k_FoldCrash       = "RCCarEditor.FoldCrash";
 
-
         // ---- Cached SerializedProperties ----
 
         SerializedProperty _motorPreset;
@@ -187,38 +186,14 @@ namespace R8EOX.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
+        // ---- Helpers (static wrappers for RCCarEditorHelpers) ----
 
-        // ---- Helpers ----
+        static bool Foldout(string key, string label, bool defaultOpen) =>
+            RCCarEditorHelpers.Foldout(key, label, defaultOpen);
 
-        static bool Foldout(string key, string label, bool defaultOpen)
-        {
-            bool current = SessionState.GetBool(key, defaultOpen);
-            bool next    = EditorGUILayout.Foldout(current, label, true, EditorStyles.foldoutHeader);
-            if (next != current)
-                SessionState.SetBool(key, next);
-            return next;
-        }
-
-        /// <summary>
-        /// Draws an editable field in human-friendly display units alongside a
-        /// grayed-out read-only label showing the raw internal value.
-        /// Layout: [ displayValue ] displayUnit  ░ internalValue internalUnit
-        /// </summary>
         static void UnitField(SerializedProperty prop, string label, string displayUnit, string internalUnit,
-            System.Func<float, float> toDisplay, System.Func<float, float> toInternal)
-        {
-            float displayVal = toDisplay(prop.floatValue);
-            EditorGUILayout.BeginHorizontal();
-            float newDisplay = EditorGUILayout.FloatField(new GUIContent(label), displayVal);
-            GUILayout.Label(displayUnit, GUILayout.Width(36));
-            GUI.enabled = false;
-            EditorGUILayout.FloatField(prop.floatValue, GUILayout.Width(60));
-            GUI.enabled = true;
-            GUILayout.Label(internalUnit, GUILayout.Width(30));
-            EditorGUILayout.EndHorizontal();
-            if (!Mathf.Approximately(newDisplay, displayVal))
-                prop.floatValue = toInternal(newDisplay);
-        }
+            System.Func<float, float> toDisplay, System.Func<float, float> toInternal) =>
+            RCCarEditorHelpers.UnitField(prop, label, displayUnit, internalUnit, toDisplay, toInternal);
     }
 }
 #endif
