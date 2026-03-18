@@ -11,10 +11,23 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 | `resolve_module_tests.py` | Resolve which test classes to run given a list of changed files (module-based test gating) |
 | `test_coverage_report.py` | Track per-category test coverage with baseline comparison |
 
+## Shell Scripts
+
+| File | Role |
+|------|------|
+| `safe-worktree-init.sh` | Create a single feature branch + worktree from origin/main |
+| `safe-worktree-init-batch.sh` | Batch create multiple worktrees with a single git fetch |
+| `stream-status.sh` | Dashboard: commit count, push status, and PR state for all active streams |
+| `conflict-forecast.sh` | Detect files touched by multiple active worktree branches |
+| `syntax-check-csharp.sh` | Lightweight pre-commit C# checks: balanced braces, namespace, line limit |
+| `check_line_limit.sh` | CI enforcement: fail if any .cs file exceeds 200 lines |
+| `worktree-audit.sh` | Detect ghost `wt/active/*` tags with no matching local branch |
+
 ## Notes
 
 - Python scripts use `uv` package manager (`.venv/` at project root)
 - Run: `uv run python scripts/tools/<script>.py`
+- Shell scripts: `bash scripts/tools/<script>.sh` or via `just` recipe
 
 ## Adding New Scripts
 

@@ -22,11 +22,6 @@ jobs:
     name: Post-Merge Test Suite
     runs-on: ubuntu-latest
     steps:
-      - name: Debounce (wait for more merges)
-        run: |
-          echo "Waiting 60s for merge queue to settle..."
-          sleep 60
-
       - uses: actions/checkout@v6
         with:
           lfs: false
@@ -39,13 +34,11 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      # Engine-specific test steps are added by setup-engine.sh
-      # For now, run Python tests only
-      - name: Run Python tests
-        continue-on-error: true
+      - name: Lint Python tools
         run: uv run ruff check scripts/tools/
 
-      - name: Placeholder — engine test suite
-        run: |
-          echo "Engine-specific tests not configured."
-          echo "Run ./tools/setup-engine.sh to configure your engine's test pipeline."
+      - name: Check line limits
+        run: bash scripts/tools/check_line_limit.sh
+
+      - name: Validate system registry
+        run: uv run python scripts/tools/validate_registry.py

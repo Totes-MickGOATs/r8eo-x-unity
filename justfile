@@ -12,10 +12,19 @@ default:
 
 # Install dependencies, configure hooks, verify tooling
 setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
     uv sync
     git config core.hooksPath .githooks
-    @echo "--- Python dependencies installed, git hooks configured ---"
-    @echo "--- Setup complete ---"
+    git lfs install
+    echo "--- Python dependencies installed, git hooks configured, LFS active ---"
+    # Warn if Unity is not reachable
+    if [ -z "${UNITY_PATH:-}" ] && ! command -v Unity >/dev/null 2>&1; then
+        echo "WARNING: UNITY_PATH is not set and Unity is not on PATH."
+        echo "  Set UNITY_PATH to your Unity installation, e.g.:"
+        echo "    export UNITY_PATH=\"/Applications/Unity/Hub/Editor/<version>/Unity.app/Contents/MacOS/Unity\""
+    fi
+    echo "--- Setup complete ---"
 
 # One-command project initialization (interactive)
 quick-start:
@@ -364,6 +373,10 @@ worktree-mark-abandoned task:
     git push origin "wt/done/{{ task }}" --force 2>/dev/null || true
     echo "--- Tagged wt/done/{{ task }} — safe to clean up ---"
     echo "Run: just worktree-cleanup {{ task }}"
+
+# Detect ghost worktree tags with no matching branch
+worktree-audit:
+    bash scripts/tools/worktree-audit.sh
 
 # --- Local Fast-Forward ---
 
