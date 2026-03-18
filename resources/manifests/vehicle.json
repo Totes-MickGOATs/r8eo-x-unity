@@ -10,6 +10,7 @@
     "Assets/Scripts/Vehicle/TumbleController.cs",
     "Assets/Scripts/Vehicle/SteeringRamp.cs",
     "Assets/Scripts/Vehicle/RaycastWheel.cs",
+    "Assets/Scripts/Vehicle/WheelVisuals.cs",
     "Assets/Scripts/Vehicle/Drivetrain.cs",
     "Assets/Scripts/Vehicle/RCAirPhysics.cs",
     "Assets/Scripts/Vehicle/R8EOX.Vehicle.asmdef",
