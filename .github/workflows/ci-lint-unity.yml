@@ -36,6 +36,15 @@ jobs:
           echo "Checking for TODO/FIXME/HACK..."
           grep -rn "TODO\|FIXME\|HACK" Assets/Scripts/ --include="*.cs" || true
 
+  line-limit-check:
+    name: C# 200-line Hard Limit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check .cs file line limits
+        run: bash scripts/tools/check_line_limit.sh
+
   meta-file-check:
     name: Meta File Validation
     runs-on: ubuntu-latest
