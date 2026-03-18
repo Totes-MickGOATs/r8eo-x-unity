@@ -6,13 +6,23 @@
     "Assets/Scripts/Camera/CameraController.cs",
     "Assets/Scripts/Camera/CameraMode.cs",
     "Assets/Scripts/Camera/TracksideAnchor.cs",
-    "Assets/Scripts/Camera/ChaseCamera.cs",
+    "Assets/Scripts/Camera/ICameraMode.cs",
+    "Assets/Scripts/Camera/CameraPose.cs",
+    "Assets/Scripts/Camera/CameraTransition.cs",
+    "Assets/Scripts/Camera/Modes/ChaseCameraMode.cs",
+    "Assets/Scripts/Camera/Modes/OrbitCameraMode.cs",
+    "Assets/Scripts/Camera/Modes/FpvCameraMode.cs",
+    "Assets/Scripts/Camera/Modes/TracksideCameraMode.cs",
     "Assets/Scripts/Camera/R8EOX.Camera.asmdef"
   ],
   "dependencies": [],
   "replaced_by": "",
   "tests": {
-    "editmode": [],
+    "editmode": [
+      "ChaseCameraModeTests",
+      "OrbitCameraModeTests",
+      "CameraTransitionTests"
+    ],
     "playmode": []
   }
 }
