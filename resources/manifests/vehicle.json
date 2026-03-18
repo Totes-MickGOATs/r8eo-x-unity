@@ -13,6 +13,7 @@
     "Assets/Scripts/Vehicle/Drivetrain.cs",
     "Assets/Scripts/Vehicle/RCAirPhysics.cs",
     "Assets/Scripts/Vehicle/R8EOX.Vehicle.asmdef",
+    "Assets/Scripts/Vehicle/Physics/R8EOX.Vehicle.Physics.asmdef",
     "Assets/Scripts/Vehicle/Physics/SuspensionMath.cs",
     "Assets/Scripts/Vehicle/Physics/GripMath.cs",
     "Assets/Scripts/Vehicle/Physics/DrivetrainMath.cs",
