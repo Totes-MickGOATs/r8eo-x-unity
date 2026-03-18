@@ -3,16 +3,21 @@ using PhysicsMath = R8EOX.Vehicle.Physics;
 
 namespace R8EOX.Vehicle
 {
-    /// <summary>Per-wheel physics: suspension, grip, friction, motor force. Attach on wheel pivot (child of RCCar).</summary>
+    /// <summary>
+    /// Per-wheel physics: suspension spring, lateral grip, longitudinal friction, motor force.
+    /// Attach as MonoBehaviour on each wheel pivot GameObject (child of RCCar root).
+    /// Each wheel pivot should have a child "WheelVisual" with the tire mesh.
+    /// Force computation is delegated to <see cref="PhysicsMath.WheelForceSolver.Solve"/>.
+    /// </summary>
     public class RaycastWheel : MonoBehaviour
     {
         // ---- Constants ----
-        const float k_MinSpeedForGrip = 0.1f;
-        const float k_StaticFrictionSpeed = 0.5f;
-        const float k_StaticFrictionTraction = 5.0f;
-        // SphereCast radius: averages contact normals over the tire patch (anti-snag, ~150 mm).
+
+        const float k_DebugScale = 0.024f;
+        const float k_DroopSpeed = 200f;
+        // k_SphereCastRadius: sphere radius for SphereCast ground detection (~150mm tire contact patch, anti-snag).
         private const float k_SphereCastRadius = 0.15f;
-        /// <summary>Public accessor used by tests to validate the sphere-cast radius constant.</summary>
+        /// <summary>Public accessor for the SphereCast radius. Used by tests to validate the constant.</summary>
         public static float SphereCastRadius => k_SphereCastRadius;
         // ---- Serialized Fields ----
 
@@ -30,11 +35,8 @@ namespace R8EOX.Vehicle
         [SerializeField] private float _zTraction = 0.10f;
         [SerializeField] private float _zBrakeTraction = 0.5f;
         [SerializeField] private AnimationCurve _gripCurve = new AnimationCurve(
-            new Keyframe(0f, 0f),
-            new Keyframe(0.15f, 0.8f),
-            new Keyframe(0.4f, 1.0f),
-            new Keyframe(1.0f, 0.7f)
-        );
+            new Keyframe(0f, 0f), new Keyframe(0.15f, 0.8f),
+            new Keyframe(0.4f, 1.0f), new Keyframe(1.0f, 0.7f));
         [Header("Ground Detection")]
         [SerializeField] private LayerMask _groundMask = ~0;
         [Header("Debug")]
@@ -43,39 +45,46 @@ namespace R8EOX.Vehicle
         // ---- Public Properties ----
 
         public float SpringStrength { get; set; } = 750.0f;
-        public float SpringDamping { get; set; } = 42.5f;
-        public float GripCoeff { get; set; } = 0.7f;
-        public LayerMask GroundMask { get => _groundMask; set => _groundMask = value; }
-        public bool ShowDebug { get => _showDebug; set => _showDebug = value; }
-        public bool IsMotor { get => _isMotor; set => _isMotor = value; }
-        public bool IsSteer { get => _isSteer; set => _isSteer = value; }
-        public bool IsBraking { get; set; }
+        public float SpringDamping  { get; set; } = 42.5f;
+        public float GripCoeff      { get; set; } = 0.7f;
+        public LayerMask GroundMask { get => _groundMask;  set => _groundMask  = value; }
+        public bool ShowDebug       { get => _showDebug;   set => _showDebug   = value; }
+        public bool IsMotor         { get => _isMotor;     set => _isMotor     = value; }
+        public bool IsSteer         { get => _isSteer;     set => _isSteer     = value; }
+        public bool IsBraking       { get; set; }
         public float MotorForceShare { get; set; }
-        public float RestDistance { get => _restDistance; set => _restDistance = value; }
-        public float ZTraction { get => _zTraction; set => _zTraction = value; }
+        public float RestDistance   { get => _restDistance;  set => _restDistance  = value; }
+        public float ZTraction      { get => _zTraction;     set => _zTraction     = value; }
         public float ZBrakeTraction { get => _zBrakeTraction; set => _zBrakeTraction = value; }
 
-        public float GripFactor { get; private set; }
-        public float SlipRatio { get; private set; }
-        public bool IsOnGround { get; private set; }
-        public float WheelRpm { get; private set; }
+        // ---- Public Properties (read by telemetry / diagnostics) ----
+
+        public float GripFactor    { get; private set; }
+        public float SlipRatio     { get; private set; }
+        public bool IsOnGround     { get; private set; }
+        public float WheelRpm      { get; private set; }
         public float LastSpringLen { get; private set; }
-        public float LastGripLoad { get; private set; }
-        public Vector3 ContactPoint => _contactPoint;
+        public float LastGripLoad  { get; private set; }
+        public Vector3 ContactPoint  => _contactPoint;
         public Vector3 ContactNormal => _contactNormal;
-        public float SuspensionForce => _suspensionForce;
-        public Vector3 TireVelocity => _tireVelocity;
+        /// <summary>Suspension force magnitude (N) from the most recent frame.</summary>
+        public float SuspensionForce => _lastResult.SuspensionForceMag;
+        public Vector3 TireVelocity  => _tireVelocity;
 
         // ---- Private Fields ----
 
-        private Transform _wheelVisual, _hubVisual;
+#if UNITY_EDITOR || DEBUG
+        float _debugLogTimer;
+#endif
+        private Transform _wheelVisual;
+        private Transform _hubVisual;
         private RCCar _cachedCar;
         private float _prevSpringLen, _rayLen;
         private bool _wasOnGround;
-        private Vector3 _contactPoint, _contactNormal, _tireVelocity;
-        private Vector3 _yForce, _xForce, _zForce, _motorForce;
-        private float _springLen, _springForce, _suspensionForce, _gripLoad;
-        private float _speed, _fSpeed;
+        private Vector3 _contactPoint;
+        private Vector3 _contactNormal;
+        private Vector3 _tireVelocity;
+        private PhysicsMath.WheelForceResult _lastResult;
 
         // ---- Unity Lifecycle ----
 
@@ -92,14 +101,17 @@ namespace R8EOX.Vehicle
         // ---- Public API ----
 
         /// <summary>
-        /// Main physics entry point called by RCCar each FixedUpdate.
-        /// Computes suspension, grip, friction, and motor forces and applies them to the Rigidbody.
+        /// Main physics entry point (called by RCCar each FixedUpdate).
+        /// Builds <see cref="PhysicsMath.WheelForceInput"/>, calls <see cref="PhysicsMath.WheelForceSolver.Solve"/>,
+        /// then applies the composite force to the Rigidbody at the contact point.
         /// </summary>
         public void ApplyWheelPhysics(Rigidbody carRb, float dt)
         {
             if (_cachedCar == null) _cachedCar = carRb.GetComponent<RCCar>();
-            _rayLen = PhysicsMath.SuspensionMath.ComputeRayLength(_restDistance, _overExtend, _wheelRadius);
+            _rayLen = PhysicsMath.SuspensionMath.ComputeRayLength(
+                _restDistance, _overExtend, _wheelRadius);
 
+            // SphereCast averages contact normals over the tire contact patch (anti-snag).
             Vector3 rayOrigin = transform.position + transform.up * k_SphereCastRadius;
             RaycastHit hit;
             if (!UnityEngine.Physics.SphereCast(new Ray(rayOrigin, -transform.up),
@@ -122,78 +134,93 @@ namespace R8EOX.Vehicle
             _contactPoint = hit.point;
             _contactNormal = hit.normal;
 
-            ComputeSuspension(carRb, dt, wasGroundedLastFrame);
-            ComputeLateralForce();
-            ComputeLongitudinalForce(carRb);
-            ComputeMotorForce();
+            _tireVelocity = carRb.GetPointVelocity(_contactPoint);
+            float engineForce = _cachedCar != null ? _cachedCar.CurrentEngineForce : 0f;
 
-            carRb.AddForceAtPosition(_yForce + _xForce + _zForce + _motorForce, _contactPoint);
-            WheelVisuals.UpdateGrounded(_wheelVisual, _hubVisual, transform, _springLen, _fSpeed, _wheelRadius, dt);
-            WheelRpm = PhysicsMath.GripMath.ComputeWheelRpm(_fSpeed, _wheelRadius);
+            var input = new PhysicsMath.WheelForceInput(
+                SpringStrength, SpringDamping, _restDistance, _minSpringLen, _maxSpringForce,
+                _wheelRadius, GripCoeff, _zTraction, _zBrakeTraction, _gripCurve,
+                _isMotor, IsBraking, MotorForceShare,
+                Vector3.Distance(transform.position, _contactPoint),
+                _contactNormal, _contactPoint, _tireVelocity,
+                transform.forward, transform.right,
+                _prevSpringLen, wasGroundedLastFrame, dt, engineForce);
+
+            _lastResult   = PhysicsMath.WheelForceSolver.Solve(in input);
+            _prevSpringLen = _lastResult.SpringLen;
+            GripFactor    = _lastResult.GripFactor;
+            SlipRatio     = _lastResult.SlipRatio;
+            LastSpringLen = _lastResult.SpringLen;
+            LastGripLoad  = _lastResult.GripLoad;
+
+            carRb.AddForceAtPosition(_lastResult.TotalForce, _contactPoint);
+            UpdateVisuals(dt);
+            WheelRpm     = PhysicsMath.GripMath.ComputeWheelRpm(_lastResult.ForwardSpeed, _wheelRadius);
             _wasOnGround = IsOnGround;
 
+#if UNITY_EDITOR || DEBUG
+            _debugLogTimer += dt;
+            if (_debugLogTimer >= 0.5f)
+            {
+                Debug.Log($"[suspension] wheel={name} springLen={_lastResult.SpringLen:F4}m suspForce={_lastResult.SuspensionForceMag:F2}N gripLoad={_lastResult.GripLoad:F3}");
+                Debug.Log($"[grip] wheel={name} slip={SlipRatio:F4} gripFactor={GripFactor:F3} lat={_lastResult.LateralForce.magnitude:F2}N long={_lastResult.LongitudinalForce.magnitude:F2}N motor={_lastResult.MotorForce.magnitude:F2}N");
+                _debugLogTimer = 0f;
+            }
+#endif
+
             if (_showDebug)
-                WheelVisuals.DrawForces(transform, _contactPoint, _yForce, _xForce, _zForce, _motorForce);
+                DrawDebug();
         }
 
         // ---- Private Methods ----
 
-        private void ComputeSuspension(Rigidbody carRb, float dt, bool wasGroundedLastFrame)
+        private void HandleAirborne(float dt)
         {
-            float anchorToContact = Vector3.Distance(transform.position, _contactPoint);
-            _springLen = PhysicsMath.SuspensionMath.ComputeSpringLength(anchorToContact, _wheelRadius, _minSpringLen);
-            _springForce = SpringStrength * (_restDistance - _springLen);
-            float effectivePrev = PhysicsMath.SuspensionMath.SanitizePrevSpringLenForLanding(
-                _springLen, _prevSpringLen, wasGroundedLastFrame);
-            _suspensionForce = PhysicsMath.SuspensionMath.ComputeSuspensionForceWithDamping(
-                SpringStrength, SpringDamping, _restDistance, _springLen, effectivePrev, dt);
-            _prevSpringLen = _springLen;
-            _yForce = _contactNormal * _suspensionForce;
-            _tireVelocity = carRb.GetPointVelocity(_contactPoint);
-            _speed = _tireVelocity.magnitude;
-            _fSpeed = Vector3.Dot(transform.forward, _tireVelocity);
-            _gripLoad = PhysicsMath.SuspensionMath.ComputeGripLoadFromSuspensionForce(_suspensionForce, _maxSpringForce);
-            LastSpringLen = _springLen;
-            LastGripLoad = _gripLoad;
+            GripFactor = 0f;
+            SlipRatio = 0f;
+            IsOnGround = false;
+            _wasOnGround = false;
+            _prevSpringLen = _restDistance + _overExtend;
+
+            float droopTarget = -(_restDistance + _overExtend);
+            if (_wheelVisual != null)
+                _wheelVisual.localPosition = new Vector3(0f,
+                    Mathf.MoveTowards(_wheelVisual.localPosition.y, droopTarget, k_DroopSpeed * dt), 0f);
+            if (_hubVisual != null)
+                _hubVisual.localPosition = new Vector3(0f,
+                    Mathf.MoveTowards(_hubVisual.localPosition.y, droopTarget, k_DroopSpeed * dt), 0f);
         }
 
-        private void ComputeLateralForce()
+        private void UpdateVisuals(float dt)
         {
-            Vector3 steerSideDir = transform.right;
-            float lateralVel = Vector3.Dot(steerSideDir, _tireVelocity);
-            if (_speed < k_MinSpeedForGrip || _gripCurve == null)
+            float spinAngle = _lastResult.ForwardSpeed / _wheelRadius * dt * Mathf.Rad2Deg;
+
+            if (_wheelVisual != null)
             {
-                GripFactor = 0f; SlipRatio = 0f; _xForce = Vector3.zero;
-                return;
+                _wheelVisual.localPosition = new Vector3(0f, -_lastResult.SpringLen, 0f);
+                _wheelVisual.Rotate(transform.right, spinAngle, Space.World);
             }
-            SlipRatio = PhysicsMath.GripMath.ComputeSlipRatio(lateralVel, _speed);
-            GripFactor = _gripCurve.Evaluate(SlipRatio);
-            _xForce = steerSideDir * PhysicsMath.GripMath.ComputeLateralForceMagnitude(
-                lateralVel, GripFactor, GripCoeff, _gripLoad);
-        }
-
-        private void ComputeLongitudinalForce(Rigidbody carRb)
-        {
-            float engineForce = _cachedCar != null ? _cachedCar.CurrentEngineForce : 0f;
-            float effectiveZTraction = PhysicsMath.GripMath.ComputeEffectiveTraction(
-                IsBraking, _fSpeed, engineForce,
-                _zTraction, _zBrakeTraction,
-                k_StaticFrictionSpeed, k_StaticFrictionTraction);
-            _zForce = transform.forward * PhysicsMath.GripMath.ComputeLongitudinalForceMagnitude(
-                _fSpeed, effectiveZTraction, GripCoeff, _gripLoad);
-            // Ramp-sliding fix: cancel the spring's horizontal component when stopped.
-            if (Mathf.Abs(_fSpeed) < k_StaticFrictionSpeed)
+            if (_hubVisual != null)
             {
-                Vector3 sh = _contactNormal * _suspensionForce;
-                _xForce -= new Vector3(sh.x, 0f, sh.z);
+                _hubVisual.localPosition = new Vector3(0f, -_lastResult.SpringLen, 0f);
+                _hubVisual.Rotate(transform.right, spinAngle, Space.World);
             }
         }
 
-        private void ComputeMotorForce()
+        private void DrawDebug()
         {
-            _motorForce = (_isMotor && MotorForceShare != 0f)
-                ? transform.forward * MotorForceShare
-                : Vector3.zero;
+            if (!IsOnGround) return;
+
+            Debug.DrawLine(transform.position, _contactPoint, Color.white);
+
+            if (_lastResult.SuspensionForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _lastResult.SuspensionForce * k_DebugScale, Color.yellow);
+            if (_lastResult.LateralForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _lastResult.LateralForce * k_DebugScale, Color.red);
+            if (_lastResult.LongitudinalForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _lastResult.LongitudinalForce * k_DebugScale, Color.green);
+            if (_lastResult.MotorForce.sqrMagnitude > 0.0001f)
+                Debug.DrawRay(_contactPoint, _lastResult.MotorForce * k_DebugScale, Color.cyan);
         }
     }
 }
