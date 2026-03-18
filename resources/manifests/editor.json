@@ -11,6 +11,7 @@
     "Assets/Scripts/Editor/TerrainDebug.cs",
     "Assets/Scripts/Editor/TerrainSpawnCheck.cs",
     "Assets/Scripts/Editor/RCCarEditor.cs",
+    "Assets/Scripts/Editor/RCCarEditorHelpers.cs",
     "Assets/Scripts/Editor/DrivetrainEditor.cs",
     "Assets/Scripts/Editor/R8EOX.Editor.asmdef",
     "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr",
