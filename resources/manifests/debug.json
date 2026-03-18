@@ -20,7 +20,16 @@
     "Assets/Scripts/Debug/Validators/InputContractValidator.cs",
     "Assets/Scripts/Debug/Validators/VehicleContractValidator.cs",
     "Assets/Scripts/Debug/Validators/WheelContractValidator.cs",
-    "Assets/Scripts/Debug/Validators/ObservableContractValidator.cs"
+    "Assets/Scripts/Debug/Validators/ObservableContractValidator.cs",
+    "Assets/Scripts/Debug/Tuning/SliderDefinition.cs",
+    "Assets/Scripts/Debug/Tuning/SliderRenderer.cs",
+    "Assets/Scripts/Debug/Tuning/TuningSection.cs",
+    "Assets/Scripts/Debug/Tuning/VehicleTuningSection.cs",
+    "Assets/Scripts/Debug/Tuning/MotorTuningSection.cs",
+    "Assets/Scripts/Debug/Tuning/SuspensionTuningSection.cs",
+    "Assets/Scripts/Debug/Tuning/SteeringTuningSection.cs",
+    "Assets/Scripts/Debug/Tuning/DrivetrainTuningSection.cs",
+    "Assets/Scripts/Debug/Tuning/CrashTuningSection.cs"
   ],
   "dependencies": ["vehicle", "input"],
   "replaced_by": "",
@@ -32,7 +41,8 @@
       "VehicleContractValidatorTests",
       "WheelContractValidatorTests",
       "DebugBootstrapTests",
-      "TerrainDiagnosticChecksTests"
+      "TerrainDiagnosticChecksTests",
+      "SliderRendererTests"
     ],
     "playmode": [
       "DebugLoggingTests"
