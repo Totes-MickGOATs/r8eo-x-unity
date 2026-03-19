@@ -6,7 +6,6 @@ namespace R8EOX.Vehicle
     /// <summary>
     /// Per-wheel physics: suspension spring, lateral grip, longitudinal friction, motor force.
     /// Attach as MonoBehaviour on each wheel pivot GameObject (child of RCCar root).
-    /// Each wheel pivot should have a child "WheelVisual" with the tire mesh.
     /// Force computation is delegated to <see cref="PhysicsMath.WheelForceSolver.Solve"/>.
     /// </summary>
     public class RaycastWheel : MonoBehaviour
@@ -15,10 +14,11 @@ namespace R8EOX.Vehicle
 
         const float k_DebugScale = 0.024f;
         const float k_DroopSpeed = 200f;
-        // k_SphereCastRadius: sphere radius for SphereCast ground detection (~150mm tire contact patch, anti-snag).
+        // SphereCast radius (~150mm tire contact patch, anti-snag).
         private const float k_SphereCastRadius = 0.15f;
-        /// <summary>Public accessor for the SphereCast radius. Used by tests to validate the constant.</summary>
+        /// <summary>SphereCast radius accessor used by tests.</summary>
         public static float SphereCastRadius => k_SphereCastRadius;
+
         // ---- Serialized Fields ----
 
         [Header("Suspension")]
@@ -47,17 +47,17 @@ namespace R8EOX.Vehicle
         public float SpringStrength { get; set; } = 750.0f;
         public float SpringDamping  { get; set; } = 42.5f;
         public float GripCoeff      { get; set; } = 0.7f;
-        public LayerMask GroundMask { get => _groundMask;  set => _groundMask  = value; }
-        public bool ShowDebug       { get => _showDebug;   set => _showDebug   = value; }
-        public bool IsMotor         { get => _isMotor;     set => _isMotor     = value; }
-        public bool IsSteer         { get => _isSteer;     set => _isSteer     = value; }
+        public LayerMask GroundMask { get => _groundMask; set => _groundMask = value; }
+        public bool ShowDebug       { get => _showDebug;  set => _showDebug  = value; }
+        public bool IsMotor         { get => _isMotor;    set => _isMotor    = value; }
+        public bool IsSteer         { get => _isSteer;    set => _isSteer    = value; }
         public bool IsBraking       { get; set; }
         public float MotorForceShare { get; set; }
-        public float RestDistance   { get => _restDistance;  set => _restDistance  = value; }
-        public float ZTraction      { get => _zTraction;     set => _zTraction     = value; }
-        public float ZBrakeTraction { get => _zBrakeTraction; set => _zBrakeTraction = value; }
+        public float RestDistance   { get => _restDistance;    set => _restDistance    = value; }
+        public float ZTraction      { get => _zTraction;       set => _zTraction       = value; }
+        public float ZBrakeTraction { get => _zBrakeTraction;  set => _zBrakeTraction  = value; }
 
-        // ---- Public Properties (read by telemetry / diagnostics) ----
+        // ---- Telemetry / diagnostics ----
 
         public float GripFactor    { get; private set; }
         public float SlipRatio     { get; private set; }
@@ -67,7 +67,6 @@ namespace R8EOX.Vehicle
         public float LastGripLoad  { get; private set; }
         public Vector3 ContactPoint  => _contactPoint;
         public Vector3 ContactNormal => _contactNormal;
-        /// <summary>Suspension force magnitude (N) from the most recent frame.</summary>
         public float SuspensionForce => _lastResult.SuspensionForceMag;
         public Vector3 TireVelocity  => _tireVelocity;
 
@@ -100,11 +99,7 @@ namespace R8EOX.Vehicle
 
         // ---- Public API ----
 
-        /// <summary>
-        /// Main physics entry point (called by RCCar each FixedUpdate).
-        /// Builds <see cref="PhysicsMath.WheelForceInput"/>, calls <see cref="PhysicsMath.WheelForceSolver.Solve"/>,
-        /// then applies the composite force to the Rigidbody at the contact point.
-        /// </summary>
+        /// <summary>Main physics entry point — called by RCCar each FixedUpdate.</summary>
         public void ApplyWheelPhysics(Rigidbody carRb, float dt)
         {
             if (_cachedCar == null) _cachedCar = carRb.GetComponent<RCCar>();
@@ -175,7 +170,6 @@ namespace R8EOX.Vehicle
         private void UpdateVisuals(float dt)
         {
             float spinAngle = _lastResult.ForwardSpeed / _wheelRadius * dt * Mathf.Rad2Deg;
-
             if (_wheelVisual != null)
             {
                 _wheelVisual.localPosition = new Vector3(0f, -_lastResult.SpringLen, 0f);
@@ -191,16 +185,15 @@ namespace R8EOX.Vehicle
         private void DrawDebug()
         {
             if (!IsOnGround) return;
-
+            const float kSq = 0.0001f;
             Debug.DrawLine(transform.position, _contactPoint, Color.white);
-
-            if (_lastResult.SuspensionForce.sqrMagnitude > 0.0001f)
+            if (_lastResult.SuspensionForce.sqrMagnitude > kSq)
                 Debug.DrawRay(_contactPoint, _lastResult.SuspensionForce * k_DebugScale, Color.yellow);
-            if (_lastResult.LateralForce.sqrMagnitude > 0.0001f)
+            if (_lastResult.LateralForce.sqrMagnitude > kSq)
                 Debug.DrawRay(_contactPoint, _lastResult.LateralForce * k_DebugScale, Color.red);
-            if (_lastResult.LongitudinalForce.sqrMagnitude > 0.0001f)
+            if (_lastResult.LongitudinalForce.sqrMagnitude > kSq)
                 Debug.DrawRay(_contactPoint, _lastResult.LongitudinalForce * k_DebugScale, Color.green);
-            if (_lastResult.MotorForce.sqrMagnitude > 0.0001f)
+            if (_lastResult.MotorForce.sqrMagnitude > kSq)
                 Debug.DrawRay(_contactPoint, _lastResult.MotorForce * k_DebugScale, Color.cyan);
         }
     }
