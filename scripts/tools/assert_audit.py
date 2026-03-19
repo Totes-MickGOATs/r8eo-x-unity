@@ -49,7 +49,7 @@ def _find_test_methods(lines: list[str]) -> list[tuple[int, str]]:
         stripped = line.strip()
 
         # Check for test attributes
-        if re.match(r"^\[(Test|UnityTest|TestCase)", stripped):
+        if re.match(r"^\[(Test|UnityTest|TestCase)\b", stripped):
             pending_attr = True
             is_unity_test = "UnityTest" in stripped
             continue
