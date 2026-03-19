@@ -45,10 +45,14 @@
       "GroundDriveTests",
       "ForceDirectionTests",
       "BlackBoxSuspensionTests",
+      "BlackBoxSuspensionGripTests",
       "BlackBoxGripTests",
+      "BlackBoxGripTractionTests",
+      "BlackBoxGripRpmTests",
       "BlackBoxDrivetrainTests",
       "BlackBoxAirPhysicsTests",
       "BlackBoxTumbleTests",
+      "BlackBoxTumbleSmoothstepTests",
       "BlackBoxInputTests",
       "ReverseESCTests",
       "SteeringTests",
@@ -59,7 +63,9 @@
       "SphereCastTests",
       "WheelForceSolverTests",
       "TuningMotorTests",
-      "TuningChassisTests"
+      "TuningChassisTests",
+      "TuningApiTests",
+      "TuningApiMotorTests"
     ],
     "playmode": [
       "VehicleSettlingTests",
@@ -68,6 +74,7 @@
       "CompoundConformanceTests",
       "ConformanceAtRestTests",
       "ConformanceTransitionTests",
+      "ConformanceLandingTests",
       "ConformanceDynamicsTests",
       "TerrainSeamTests",
       "TerrainRegressionTests"
