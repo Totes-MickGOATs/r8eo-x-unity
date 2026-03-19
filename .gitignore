@@ -120,3 +120,17 @@ Assets/Screenshots/
 
 # Fathom server config
 .fathom-server.json
+
+# Caliber state
+.caliber/
+CALIBER_LEARNINGS.md
+
+# Claude Code local caches
+.claude/analytics/
+.claude/skills/
+
+# Disabled workflow backups
+.github/workflows/*.disabled
+
+# Orphaned Unity meta for ignored plugin
+Assets/Plugins/Roslyn.meta

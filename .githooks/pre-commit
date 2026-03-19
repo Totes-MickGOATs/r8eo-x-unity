@@ -104,32 +104,13 @@ if [ -n "$STAGED_CS" ]; then
     fi
 fi
 
-# ── Coverage ratchet (Layer 2) ──────────────────────────────────────────────
+# ── Coverage ratchet + Assert audit (Layer 2) ────────────────────────────────
 if [ -n "$STAGED_CS" ] && [ -z "${SKIP_COVERAGE_CHECK:-}" ]; then
-    # Resolve affected modules from staged files
-    MODULES=$(echo "$STAGED_CS" | uv run python scripts/tools/resolve_module_tests.py --format json 2>/dev/null || echo '{"modules":[]}')
-    MODULE_LIST=$(echo "$MODULES" | python3 -c "import sys,json; print(','.join(json.load(sys.stdin).get('modules',[])))" 2>/dev/null || echo "")
-    if [ -n "$MODULE_LIST" ]; then
-        if ! uv run python scripts/tools/test_coverage_report.py --check-modules "$MODULE_LIST" 2>&1; then
-            echo ""
-            echo "BLOCKED: Test coverage regression detected for modules: $MODULE_LIST"
-            echo "Add tests to restore coverage. Bypass: SKIP_COVERAGE_CHECK=1 git commit ..."
-            exit 1
-        fi
-    fi
-fi
-
-# ── Assert audit (Layer 3) ──────────────────────────────────────────────────
-if [ -n "$STAGED_CS" ] && [ -z "${SKIP_COVERAGE_CHECK:-}" ]; then
-    STAGED_TEST_CS=$(echo "$STAGED_CS" | grep -E 'Assets/Tests/' || true)
-    if [ -n "$STAGED_TEST_CS" ]; then
-        if ! echo "$STAGED_TEST_CS" | uv run python scripts/tools/assert_audit.py 2>&1; then
-            echo ""
-            echo "BLOCKED: Test methods without assertions detected."
-            echo "Every [Test]/[UnityTest] must contain at least one Assert call."
-            echo "Bypass: SKIP_COVERAGE_CHECK=1 git commit ..."
-            exit 1
-        fi
+    if ! echo "$STAGED_CS" | uv run python scripts/tools/pre_commit_checks.py 2>&1; then
+        echo ""
+        echo "BLOCKED: Pre-commit checks failed. See details above."
+        echo "Bypass: SKIP_COVERAGE_CHECK=1 git commit ..."
+        exit 1
     fi
 fi
 

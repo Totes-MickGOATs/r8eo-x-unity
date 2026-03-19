@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Post-commit hook: continuous sync for parallel worktrees
+# Fetches + merges base branch changes after each commit.
+# MUST always exit 0 — never block the agent.
+
+# ── Reentrancy guard ─────────────────────────────────────────────────────────
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null) || exit 0
+LOCK_FILE="$GIT_DIR/.post-commit-sync.lock"
+
+if [ -f "$LOCK_FILE" ]; then
+  exit 0
+fi
+touch "$LOCK_FILE"
+trap 'rm -f "$LOCK_FILE"' EXIT
+
+# ── Base branch detection ─────────────────────────────────────────────────────
+# The marker file is written by scripts/setup-worktree-sync.sh
+MARKER_FILE="$GIT_DIR/.xenon-base-branch"
+if [ ! -f "$MARKER_FILE" ]; then
+  exit 0
+fi
+
+BASE_BRANCH=$(cat "$MARKER_FILE" 2>/dev/null)
+if [ -z "$BASE_BRANCH" ]; then
+  exit 0
+fi
+
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null)
+if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "main" ]; then
+  exit 0
+fi
+
+# ── Fetch + merge base branch ─────────────────────────────────────────────────
+echo "post-commit: syncing with $BASE_BRANCH..."
+
+if ! git fetch origin "$BASE_BRANCH" --quiet 2>/dev/null; then
+  echo "post-commit: WARNING — could not fetch origin/$BASE_BRANCH (offline?)"
+  exit 0
+fi
+
+# Check if we're already up to date
+if git merge-base --is-ancestor "origin/$BASE_BRANCH" HEAD 2>/dev/null; then
+  echo "post-commit: already up to date with $BASE_BRANCH"
+  exit 0
+fi
+
+# Attempt merge (no-edit, non-interactive)
+if git merge "origin/$BASE_BRANCH" --no-edit --quiet 2>/dev/null; then
+  echo "post-commit: merged origin/$BASE_BRANCH successfully"
+else
+  # Conflict — abort merge and report
+  git merge --abort 2>/dev/null || true
+  echo ""
+  echo "post-commit: CONFLICT merging origin/$BASE_BRANCH"
+  echo "  Resolve manually: git merge origin/$BASE_BRANCH"
+  echo "  Or rebase: git rebase origin/$BASE_BRANCH"
+  echo ""
+fi
+
+exit 0

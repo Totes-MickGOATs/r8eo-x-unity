@@ -23,30 +23,30 @@ namespace R8EOX.UI
         public static readonly Color WarningYellow = new(1f, 0.85f, 0.3f, 1f);
 
         // ---- Font Sizes ----
-        public const int FontDisplay = 96;
-        public const int FontH1 = 64;
-        public const int FontH2 = 48;
-        public const int FontH3 = 32;
-        public const int FontBody = 24;
-        public const int FontSmall = 18;
-        public const int FontMicro = 12;
+        public const int k_FontDisplay = 96;
+        public const int k_FontH1 = 64;
+        public const int k_FontH2 = 48;
+        public const int k_FontH3 = 32;
+        public const int k_FontBody = 24;
+        public const int k_FontSmall = 18;
+        public const int k_FontMicro = 12;
 
         // ---- Animation Durations (seconds) ----
-        public const float AnimFast = 0.2f;
-        public const float AnimNormal = 0.4f;
-        public const float AnimSlow = 0.8f;
-        public const float StaggerDelay = 0.08f;
+        public const float k_AnimFast = 0.2f;
+        public const float k_AnimNormal = 0.4f;
+        public const float k_AnimSlow = 0.8f;
+        public const float k_StaggerDelay = 0.08f;
 
         // ---- Panel ----
-        public const int PanelBorder = 2;
-        public const int PanelRadius = 8;
-        public const int PanelRadiusLg = 16;
+        public const int k_PanelBorder = 2;
+        public const int k_PanelRadius = 8;
+        public const int k_PanelRadiusLg = 16;
 
         // ---- Canvas Sort Orders ----
-        public const int SortOrderBackground = 0;
-        public const int SortOrderMenus = 10;
-        public const int SortOrderOverlays = 50;
-        public const int SortOrderNotifications = 100;
-        public const int SortOrderTransitions = 200;
+        public const int k_SortOrderBackground = 0;
+        public const int k_SortOrderMenus = 10;
+        public const int k_SortOrderOverlays = 50;
+        public const int k_SortOrderNotifications = 100;
+        public const int k_SortOrderTransitions = 200;
     }
 }
