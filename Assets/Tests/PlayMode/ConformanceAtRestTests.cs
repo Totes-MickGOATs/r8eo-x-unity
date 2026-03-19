@@ -75,18 +75,8 @@ namespace R8EOX.Tests.PlayMode
         /// <summary>Spawns ground + vehicle at the given position and caches references.</summary>
         private void SpawnTestVehicle(Vector3 spawnPosition)
         {
-            _ground = ConformanceSceneSetup.CreateGround();
-            _car = ConformanceSceneSetup.CreateTestVehicle(spawnPosition);
-            _carRb = _car.GetComponent<Rigidbody>();
-            _rcCar = _car.GetComponent<R8EOX.Vehicle.RCCar>();
-            _wheels = _car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
-        }
-
-        /// <summary>Yields the given number of FixedUpdate frames.</summary>
-        private static IEnumerator WaitPhysicsFrames(int count)
-        {
-            for (int i = 0; i < count; i++)
-                yield return new WaitForFixedUpdate();
+            ConformanceSceneSetup.SpawnTestVehicle(
+                spawnPosition, out _ground, out _car, out _carRb, out _rcCar, out _wheels);
         }
 
         /// <summary>
@@ -108,38 +98,6 @@ namespace R8EOX.Tests.PlayMode
             }
         }
 
-        /// <summary>
-        /// Sets MotorForceShare on all motor wheels to simulate throttle.
-        /// totalForce is distributed evenly across motor wheels.
-        /// </summary>
-        private void SetMotorForce(float totalForce)
-        {
-            int motorCount = 0;
-            foreach (var w in _wheels)
-                if (w.IsMotor) motorCount++;
-
-            float perWheel = motorCount > 0 ? totalForce / motorCount : 0f;
-            foreach (var w in _wheels)
-                w.MotorForceShare = w.IsMotor ? perWheel : 0f;
-        }
-
-        /// <summary>Sets IsBraking on all motor wheels.</summary>
-        private void SetBraking(bool braking)
-        {
-            foreach (var w in _wheels)
-                if (w.IsMotor) w.IsBraking = braking;
-        }
-
-        /// <summary>Clears all motor force and braking.</summary>
-        private void ClearDriveInputs()
-        {
-            foreach (var w in _wheels)
-            {
-                w.MotorForceShare = 0f;
-                w.IsBraking = false;
-            }
-        }
-
 
         // ================================================================
         // L1: At Rest on Flat — All Forces Balance, No Drift
@@ -151,13 +109,13 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn car on flat surface, wait for settling
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Record position after initial settle
             Vector3 settledPos = _car.transform.position;
 
             // Wait additional frames to detect drift
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Assert: velocity magnitude < threshold
             Assert.Less(_carRb.velocity.magnitude, k_L1RestVelocityThreshold,
@@ -187,12 +145,12 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn and settle
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Apply full throttle for 1 second to build speed
             // Engine force: 26N total for 13.5T preset, 13N per rear wheel
-            SetMotorForce(26f);
-            yield return WaitPhysicsFrames(k_DriveFrames);
+            ConformanceSceneSetup.SetMotorForce(_wheels,26f);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedAfterThrottle = _carRb.velocity.magnitude;
             Assert.Greater(speedAfterThrottle, 0.3f,
@@ -201,9 +159,9 @@ namespace R8EOX.Tests.PlayMode
 
             // Now apply throttle AND braking simultaneously
             // Brake force is applied through IsBraking flag + longitudinal friction
-            SetMotorForce(26f);
-            SetBraking(true);
-            yield return WaitPhysicsFrames(k_DriveFrames);
+            ConformanceSceneSetup.SetMotorForce(_wheels,26f);
+            ConformanceSceneSetup.SetBraking(_wheels, true);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedAfterBrake = _carRb.velocity.magnitude;
 
@@ -212,7 +170,7 @@ namespace R8EOX.Tests.PlayMode
                 "L3: Speed should not increase significantly when braking with throttle. " +
                 $"Before brake: {speedAfterThrottle:F3} m/s, after: {speedAfterBrake:F3} m/s");
 
-            ClearDriveInputs();
+            ConformanceSceneSetup.ClearDriveInputs(_wheels);
         }
 
 
@@ -226,11 +184,11 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn and settle
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Apply full throttle on flat surface for 10 seconds
             // 26N total engine force (13.5T motor preset)
-            SetMotorForce(26f);
+            ConformanceSceneSetup.SetMotorForce(_wheels,26f);
 
             float speedAtHalfway = 0f;
 
@@ -262,7 +220,7 @@ namespace R8EOX.Tests.PlayMode
                 "L10: Final speed should not exceed theoretical V_max. " +
                 $"V_max = {theoreticalVMax} m/s, actual = {finalSpeed:F3} m/s");
 
-            ClearDriveInputs();
+            ConformanceSceneSetup.ClearDriveInputs(_wheels);
         }
     }
 }

@@ -102,6 +102,57 @@ namespace R8EOX.Tests.PlayMode.Helpers
         }
 
         /// <summary>
+        /// Spawns a flat ground plane and a test vehicle, caching all commonly-needed references.
+        /// Convenience wrapper around <see cref="CreateGround"/> and <see cref="CreateTestVehicle"/>.
+        /// </summary>
+        public static void SpawnTestVehicle(
+            Vector3 spawnPosition,
+            out GameObject ground,
+            out GameObject car,
+            out Rigidbody carRb,
+            out R8EOX.Vehicle.RCCar rcCar,
+            out R8EOX.Vehicle.RaycastWheel[] wheels)
+        {
+            ground = CreateGround();
+            car = CreateTestVehicle(spawnPosition);
+            carRb = car.GetComponent<Rigidbody>();
+            rcCar = car.GetComponent<R8EOX.Vehicle.RCCar>();
+            wheels = car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
+        }
+
+        /// <summary>
+        /// Sets MotorForceShare on all motor wheels to simulate throttle.
+        /// totalForce is distributed evenly across motor wheels.
+        /// </summary>
+        public static void SetMotorForce(R8EOX.Vehicle.RaycastWheel[] wheels, float totalForce)
+        {
+            int motorCount = 0;
+            foreach (var w in wheels)
+                if (w.IsMotor) motorCount++;
+
+            float perWheel = motorCount > 0 ? totalForce / motorCount : 0f;
+            foreach (var w in wheels)
+                w.MotorForceShare = w.IsMotor ? perWheel : 0f;
+        }
+
+        /// <summary>Sets IsBraking on all motor wheels.</summary>
+        public static void SetBraking(R8EOX.Vehicle.RaycastWheel[] wheels, bool braking)
+        {
+            foreach (var w in wheels)
+                if (w.IsMotor) w.IsBraking = braking;
+        }
+
+        /// <summary>Clears all motor force and braking.</summary>
+        public static void ClearDriveInputs(R8EOX.Vehicle.RaycastWheel[] wheels)
+        {
+            foreach (var w in wheels)
+            {
+                w.MotorForceShare = 0f;
+                w.IsBraking = false;
+            }
+        }
+
+        /// <summary>
         /// Creates a single wheel child object under the car root.
         /// </summary>
         private static void CreateWheel(

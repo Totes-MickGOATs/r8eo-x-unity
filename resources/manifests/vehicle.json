@@ -27,7 +27,8 @@
     "Assets/Scripts/Vehicle/Config/MotorPresetConfig.cs",
     "Assets/Scripts/Vehicle/Config/SuspensionConfig.cs",
     "Assets/Scripts/Vehicle/Config/TractionConfig.cs",
-    "Assets/Scripts/Vehicle/Config/WheelInertiaConfig.cs"
+    "Assets/Scripts/Vehicle/Config/WheelInertiaConfig.cs",
+    "Assets/Scripts/Vehicle/Physics/ESCMath.cs"
   ],
   "dependencies": ["input", "core"],
   "replaced_by": "",
@@ -65,11 +66,9 @@
       "VehicleWheelTests",
       "VehicleDriveTests",
       "CompoundConformanceTests",
-      "TerrainSnagTests",
       "ConformanceAtRestTests",
       "ConformanceTransitionTests",
       "ConformanceDynamicsTests",
-      "TerrainTestFixture",
       "TerrainSeamTests",
       "TerrainRegressionTests"
     ]

@@ -78,12 +78,6 @@ namespace R8EOX.Tests.PlayMode
             _wheels = _car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
         }
 
-        private static IEnumerator WaitPhysicsFrames(int count)
-        {
-            for (int i = 0; i < count; i++)
-                yield return new WaitForFixedUpdate();
-        }
-
         private void ApplyMotorForce()
         {
             foreach (var wheel in _wheels)
@@ -118,11 +112,11 @@ namespace R8EOX.Tests.PlayMode
             try
             {
                 // Settle on ground
-                yield return WaitPhysicsFrames(k_SettleFrames);
+                yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
                 // Apply motor force to drive the car
                 ApplyMotorForce();
-                yield return WaitPhysicsFrames(k_DriveFrames);
+                yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
                 ClearMotorForce();
 
@@ -164,7 +158,7 @@ namespace R8EOX.Tests.PlayMode
             try
             {
                 // Wait for landing and settle
-                yield return WaitPhysicsFrames(k_LandingFrames);
+                yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_LandingFrames);
 
                 bool hasSuspensionLog = logs.Any(
                     m => System.Text.RegularExpressions.Regex.IsMatch(m, k_PhysSuspTagPattern));
