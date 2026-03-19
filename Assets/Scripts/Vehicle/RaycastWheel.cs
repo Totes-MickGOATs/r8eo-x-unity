@@ -108,8 +108,6 @@ namespace R8EOX.Vehicle
         public void ApplyWheelPhysics(Rigidbody carRb, float dt)
         {
             if (_cachedCar == null) _cachedCar = carRb.GetComponent<RCCar>();
-            _rayLen = PhysicsMath.SuspensionMath.ComputeRayLength(
-                _restDistance, _overExtend, _wheelRadius);
 
             // SphereCast averages contact normals over the tire contact patch (anti-snag).
             Vector3 rayOrigin = transform.position + transform.up * k_SphereCastRadius;
