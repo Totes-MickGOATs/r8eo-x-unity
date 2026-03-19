@@ -28,18 +28,24 @@ If you're a Claude Code subagent, run `bash scripts/tools/safe-worktree-init.sh 
 - Commit message format: `type: short description` (e.g., `feat: add surface friction zone`, `fix: correct wheel radius`).
 - Follow TDD: write test first, run it red, implement, run it green, commit.
 
-### 3. Push and Create a PR
+### 3. Push, Create PR, and Merge
+
+For subagents, the one-command path is:
+
+```bash
+just lifecycle ship    # push + create PR + squash-merge + sync local main
+```
+
+Or manually:
 
 ```bash
 git push -u origin feat/<task-name>
 gh pr create --base main --title "feat: description" --body "..."
+gh pr merge <number> --squash
+git fetch origin main && git update-ref refs/heads/main origin/main
 ```
 
-Or use the one-liner:
-
-```bash
-just pr "feat: description"    # push + create PR in one command
-```
+> **No GitHub Actions** — PRs are merged directly with `gh pr merge --squash`. No CI pipeline, no `ready-to-merge` label, no auto-merge workflow.
 
 ### 4. Local Fast-Forward (Mid-Development Speed Optimization)
 
@@ -49,49 +55,25 @@ After a successful push (pre-push tests passed), fast-forward local main to the 
 just ff-main
 ```
 
-**Why:** Gives the next subagent immediate access to your changes on local main, without waiting for the remote PR/CI/merge cycle. The remote PR flow remains the source of truth.
+**Why:** Gives the next subagent immediate access to your changes on local main mid-development.
 
-**When to use:** Mid-development, BEFORE the PR merges — to make your in-progress changes visible to the next sequential task.
+**When to use:** Mid-development only — BEFORE the PR merges.
 
-**Safety:** The recipe enforces:
-- Must be on a feature branch (not main)
-- Branch must be pushed to origin (tests passed)
-- Main must be ancestor of HEAD (fast-forward only, no force)
-
-**After remote PR merges:** Use `git update-ref` to sync local main to the squash commit — do NOT use `just ff-main` post-merge:
+**After remote PR merges:** Use `git update-ref` to sync local main (or use `just lifecycle ship` which does this automatically):
 ```bash
 git fetch origin main && git update-ref refs/heads/main origin/main
 ```
-This replaces the individual commits with the single squash commit from the PR merge. `just ff-main` is for mid-development only; post-merge sync requires fetching from origin.
 
-### 5. Wait for CI
+### 5. Cleanup
 
-Required checks must pass before the PR can merge:
-- **Lint & Preflight** — format checks, lint, registry validation
+**Subagents:** `just lifecycle ship` handles everything through merge.
 
-If CI fails, fix the issue in the feature branch, push again. CI re-runs automatically.
-
-### 6. Auto-Merge (Event-Driven)
-
-CI automatically adds the `ready-to-merge` label when checks pass. The **auto-merge workflow** (`auto-merge.yml`) triggers immediately on label addition:
-- If the PR is behind main, it rebases automatically, CI re-runs, label re-added on pass, merge re-triggered
-- If CI is green and up-to-date, it squash-merges and deletes the remote branch
-- If CI failed, it removes the label and comments on the PR
-
-**No manual labeling needed in the normal flow.** CI handles it. If you need to manually re-add the label (e.g., after fixing a CI failure):
-
+**Main agent after subagent merge:**
 ```bash
-gh pr edit <number> --add-label "ready-to-merge"
-```
-
-**Safety net:** When new commits are pushed to a PR, the `pr-guard.yml` workflow immediately strips the `ready-to-merge` label before CI starts, ensuring the PR must pass CI again.
-
-### 7. Cleanup
-
-```bash
-just worktree-cleanup <task-name>   # Remove worktree + local/remote branch
+just task-complete <task-name>    # Verify merge, delete branch/worktree/tags, sync main
 # OR
-just worktree-sync                  # Batch: pull main, delete merged branches, prune
+just worktree-cleanup <task-name> # Manual cleanup
+just worktree-sync                # Batch: pull main, delete merged branches, prune
 ```
 
 ## Definition of Done
@@ -101,38 +83,33 @@ A task is **not done** until ALL of the following are true. Agents must self-mon
 | # | Criterion | How to Verify |
 |---|-----------|---------------|
 | 1 | PR is open with all commits pushed | `gh pr view` shows your PR |
-| 2 | CI is green | `gh run watch` completed successfully |
-| 3 | `ready-to-merge` label applied | `gh pr view` shows the label |
-| 4 | PR merged | `gh pr view --json state -q .state` returns `MERGED` |
-| 5 | Local main updated | `git fetch origin main && git update-ref refs/heads/main origin/main` |
-| 6 | No other agent's PR broken by your changes | Merge queue handles this — if it removes your label, you fix the conflict/failure |
-| 7 | Knowledge synced | CLAUDE.md files, manifests updated if applicable |
+| 2 | Local pre-commit hooks passed | Coverage ratchet + assert audit are FAIL gates |
+| 3 | PR merged | `gh pr view --json state -q .state` returns `MERGED` |
+| 4 | Local main updated | `git rev-parse --short main` matches merge commit |
+| 5 | Knowledge synced | CLAUDE.md files, manifests updated if applicable |
 
-### Owning Your CI
+### Owning Your Branch
 
-**You are responsible for your branch's CI from push to merge.** This means:
+**You are responsible for your branch from push to merge.** This means:
 
-1. After every push, check CI status: `gh run list --branch feat/<task> --limit 3`
-2. If CI fails, read the failure output: `gh run view <run-id> --log-failed`
-3. Diagnose and fix the issue in your feature branch
-4. Push the fix and wait for CI to go green
-5. Only apply `ready-to-merge` after CI is green
+1. Ensure pre-commit gates pass (coverage ratchet, assert audit)
+2. Ensure pre-push tests pass (if UNITY_PATH is set)
+3. Merge with `gh pr merge --squash` or `just lifecycle ship`
+4. Confirm merge: `gh pr view --json state -q .state`
+5. Sync local main after merge
 
 **Do not:**
-- Walk away from a red CI
-- Assume "it works locally so CI must be wrong"
-- Apply `ready-to-merge` before CI is green
 - Leave your branch unmerged at the end of a task
+- Skip local test gates (coverage ratchet is a hard FAIL)
 
 ### Self-Reflection on Failure
 
-When CI fails or the merge queue rejects your PR:
+When a gate fails or merge fails:
 
-1. **Read the actual error** — don't guess. Use `gh run view --log-failed`.
-2. **Identify root cause** — is it your code, a flaky test, or a conflict with another PR?
+1. **Read the actual error** — don't guess.
+2. **Identify root cause** — is it your code, a failing test, a merge conflict?
 3. **Fix and push** — don't just retry. Address the underlying issue.
-4. **Update memory if needed** — if you discovered a new gotcha or pattern, record it so future agents don't hit the same issue.
-5. **Re-apply the label** only after CI is green again.
+4. **Update memory if needed** — if you discovered a new gotcha, record it so future agents don't hit the same issue.
 
 ## Enforcement Layers
 
@@ -154,7 +131,8 @@ Subagents no longer use `isolation: "worktree"`. Instead, every subagent creates
 
 ```bash
 # Step 1: Create worktree (ALWAYS first action)
-bash scripts/tools/safe-worktree-init.sh <task-name>
+just lifecycle init <task-name>
+# OR: bash scripts/tools/safe-worktree-init.sh <task-name>
 # Output: WORKTREE_PATH=/absolute/path/to/worktree
 
 # Step 2: All subsequent work uses the worktree path
@@ -164,24 +142,19 @@ cd /absolute/path/to/worktree && git branch --show-current  # Verify on feat/<ta
 **Why self-managed?** When Claude Code tears down an `isolation: "worktree"` subagent, the platform switches the main repo's HEAD to the subagent's feature branch. The `SubagentStop` hook fires before teardown completes, so recovery can't reliably catch it. Subagents creating their own worktrees avoids this entirely — the main repo stays on `main`.
 
 **Critical rules for subagents:**
-1. **Run `safe-worktree-init.sh` as the FIRST action** — before any file reads, edits, or git commands
+1. **Run `lifecycle init` or `safe-worktree-init.sh` as the FIRST action** — before any file reads, edits, or git commands
 2. **Use absolute paths for all operations** — `CLAUDE_PROJECT_DIR` points to main repo, not worktree
 3. **Prefix every Bash command** with `cd /worktree/path &&` — shell `cd` does not persist between calls
 4. **Never edit files in `CLAUDE_PROJECT_DIR`** — only work in the worktree
 
-Subagent lifecycle:
-1. Run `bash scripts/tools/safe-worktree-init.sh <task>` → capture `WORKTREE_PATH`
+Subagent lifecycle (two-command pattern):
+1. `just lifecycle init <task>` → capture `WORKTREE_PATH`
 2. Verify: `cd $WORKTREE_PATH && git branch --show-current` → shows `feat/<task>`
-3. Develop: Write code, run tests, commit (all in worktree)
-4. Push: `cd $WORKTREE_PATH && git push -u origin feat/<task>`
-5. Create PR: `gh pr create --base main`
-6. Enable auto-merge: `gh pr merge --auto --squash`
-7. Watch CI: `gh run watch` — wait for CI to complete, fix if it fails
-8. Confirm merge: Poll `gh pr view --json state -q .state` until it returns `MERGED`
-9. Update local main: `git -C $WORKTREE_PATH fetch origin main && git -C $WORKTREE_PATH update-ref refs/heads/main origin/main`
-10. Report back: Return a summary of changes made, files affected, and any downstream implications
+3. TDD develop: write test (RED), implement (GREEN), commit each file immediately
+4. `just lifecycle ship` → push + create PR + squash-merge + sync local main
+5. Report back: Return a summary of changes made, files affected, and any downstream implications
 
-**Subagents must NOT exit until step 9 is complete.**
+**Subagents must NOT exit until step 4 is complete.**
 
 ### Main Agent Responsibilities
 
@@ -189,16 +162,16 @@ The main agent (on main) should:
 
 1. **Never edit files directly** — dispatch subagents for code changes
 2. **Pull latest main** before AND after dispatching: `git fetch origin && git pull --ff-only origin main`
-3. **Verify subagent work** — check the PR diff, not just CI status
-4. **Cleanup after merge**: `just worktree-cleanup <task>` or `just worktree-sync`
+3. **Verify subagent work** — check the PR diff
+4. **Cleanup after merge**: `just task-complete <task>` (verifies merge, removes worktree/branch/tags, syncs main)
 5. **Coordinate sequential tasks** — for multi-task plans, follow the Sequential Coordination protocol in `swarm-development` skill: dispatch one subagent at a time, update in-flight memories between dispatches, clean up memories after merge
 
 ### Hard Rules for All Agents
 
 - **NEVER** commit on the `main` branch
 - **NEVER** use `--no-verify` on git commit
-- **NEVER** leave a branch unmerged or CI failing
-- **NEVER** exit without watching CI through merge and updating local main
+- **NEVER** leave a branch unmerged
+- **NEVER** exit without confirming merge and updating local main
 - **NEVER** use `isolation: "worktree"` — subagents call `safe-worktree-init.sh` themselves
 - **ALWAYS** provide a task name to subagents so they can create their own worktree
 
@@ -246,30 +219,27 @@ git checkout -b feat/my-task origin/main
 
 `just worktree-create` handles this automatically.
 
-### CI Fails After Rebase
-
-The merge queue auto-rebases PRs that are behind main. If CI fails after rebase, the `ready-to-merge` label is removed and a comment is posted. Fix the issue, push, and re-add the label.
-
 ### Merge Conflicts
 
-If the merge queue can't rebase your PR (conflict), it removes the label and comments. Resolve manually:
+If `lifecycle ship` fails because the branch is behind main, rebase first:
 
 ```bash
 git fetch origin main
 git rebase origin/main
-# Fix conflicts
+# Fix conflicts if any
 git push --force-with-lease
-gh pr edit <number> --add-label "ready-to-merge"
+gh pr merge <number> --squash
 ```
 
-### Parallel PR Rebase Cascade
+Or re-run `just lifecycle ship` — it auto-rebases if behind.
 
-When multiple PRs are in flight and one merges, the remaining PRs are now behind main. The merge queue handles this by auto-rebasing, but each rebase triggers a new CI run. With N parallel PRs, expect O(N^2) CI runs total.
+### Parallel PRs
 
-**Mitigation strategies:**
-- Limit parallel PRs to 2-3 when possible
-- Sequence PRs that touch the same files (especially singletons like config files or CI workflows)
-- Pre-rebase before pushing: `git fetch origin && git rebase origin/main`
+When multiple PRs are in flight, merge them sequentially — `lifecycle ship` pushes and merges immediately without CI wait. Pre-rebase before shipping to avoid conflicts:
+
+```bash
+git fetch origin && git rebase origin/main
+```
 
 ### Dirty Worktrees
 
@@ -296,23 +266,22 @@ The merge queue serializes merges — only one PR merges at a time. This prevent
 
 ## Emergency Procedures
 
-### Stuck Merge Queue
+### PR Not Merging
 
-If a PR has the `ready-to-merge` label but hasn't merged after 10+ minutes:
+If `just lifecycle ship` or `gh pr merge` fails:
 
 ```bash
-# Check if CI is still running
-gh run list --branch <branch> --limit 3
-
 # Check PR state
 gh pr view <number>
 
-# If CI passed but merge didn't trigger, re-apply label
-gh pr edit <number> --remove-label "ready-to-merge"
-gh pr edit <number> --add-label "ready-to-merge"
+# Check for merge conflicts
+gh pr view <number> --json mergeable -q .mergeable
 
-# If the auto-merge workflow itself failed, check its runs
-gh run list --workflow auto-merge.yml --limit 5
+# Rebase if behind main
+git fetch origin main
+git rebase origin/main
+git push --force-with-lease
+gh pr merge <number> --squash
 ```
 
 ### Failed Rebase (Unrecoverable Conflicts)
@@ -331,15 +300,6 @@ git push -u origin feat/<task>-v2
 gh pr close <old-number>
 gh pr create --base main
 ```
-
-### CI Outage (GitHub Actions Down)
-
-If GitHub Actions is experiencing an outage:
-
-1. Check status: https://www.githubstatus.com/
-2. Do NOT force-merge PRs without CI — wait for the outage to resolve
-3. Continue developing and pushing — CI will run when Actions recovers
-4. If urgent, run tests locally to verify, but still wait for CI before merging
 
 ### Release / Hotfix Bypass
 
@@ -373,7 +333,7 @@ Every worktree has a lifecycle tracked by lightweight git tags pushed to origin:
 - `worktree-cleanup` **refuses** to delete a worktree with a `wt/active/*` tag
 - Override with `FORCE=1 just worktree-cleanup <task>` for emergencies
 - `worktree-sync` auto-cleans `wt/done/*` worktrees, skips `wt/active/*`
-- GitHub CI workflows also check tags before deleting branches
+- `just task-complete <task>` handles all cleanup atomically after merge
 
 ### Abandoning a Worktree
 
@@ -402,24 +362,27 @@ just worktree-cleanup <task>          # Now succeeds
 | `just worktree-list` | Show all worktrees with branch name, tag status, PR status, commits-behind-main |
 | `just worktree-sync` | Pull main, auto-clean done worktrees, report active ones |
 
-## CI Command Reference
+## Lifecycle Command Reference
 
 | Command | Purpose |
 |---------|---------|
-| `just watch-ci` | Watch latest CI run for current branch until complete |
-| `just ci-log` | Show failed CI log for current branch |
-| `just ship [title]` | Push + create PR + watch CI (all-in-one) |
-| `just pr [title]` | Push + create PR |
-| `gh run list --branch <branch>` | List CI runs for a branch |
-| `gh run view <run-id> --log-failed` | View failed CI output |
-| `gh run watch <run-id>` | Watch a running CI job |
+| `just lifecycle init <task>` | Subagent: create worktree (delegates to safe-worktree-init.sh) |
+| `just lifecycle ship` | Subagent: push + create PR + squash-merge + sync local main |
+| `just task-complete <task>` | Main agent: verify merge, clean up worktree/branch/tags, sync main |
+| `just assert-audit` | Run assert_audit.py on all test files |
+| `just pr [title]` | Push + create PR (manual alternative to lifecycle ship) |
+| `gh pr merge <number> --squash` | Merge a PR directly (no CI required) |
+| `gh pr view --json state -q .state` | Check PR merge state |
 
 ## Infrastructure Files
 
 | File | Role |
 |------|------|
-| `.githooks/pre-commit` | Main branch commit guard (+ lint, format checks) |
-| `.githooks/pre-push` | Main branch push guard |
-| `.github/workflows/auto-merge.yml` | Event-driven merge queue — serialized squash-merge |
-| `.github/workflows/ci.yml` | CI pipeline — lint + tests + auto-label |
-| `.github/workflows/pr-guard.yml` | Strip ready-to-merge label on new push |
+| `.githooks/pre-commit` | Main branch commit guard + lint + coverage ratchet + assert audit |
+| `.githooks/pre-push` | Main branch push guard + module-gated test check (advisory if UNITY_PATH unset) |
+| `scripts/tools/subagent-lifecycle.sh` | `init <task>` and `ship` — consolidated subagent lifecycle |
+| `scripts/tools/task-complete.sh` | Main agent one-command post-merge cleanup |
+| `scripts/tools/assert_audit.py` | Static assertion verifier for test methods |
+| `scripts/tools/test_coverage_report.py` | Coverage baseline + `--check-modules` per-module ratchet |
+
+> GitHub Actions workflows are disabled (`.github/workflows/*.yml.disabled`). All enforcement is local.

@@ -1,0 +1,76 @@
+name: Batch Sub-PR Tracker
+
+# When a PR targeting an integration branch is closed (merged),
+# comment on the batch PR with the remaining sub-PR count.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: ['integrate/*', 'integrate/**']
+
+jobs:
+  track:
+    name: Track Sub-PR Progress
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Update batch PR with progress
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.MERGE_TOKEN || github.token }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const baseBranch = context.payload.pull_request.base.ref;
+            const mergedPr = context.payload.pull_request;
+
+            core.info(`Sub-PR #${mergedPr.number} merged into ${baseBranch}`);
+
+            // Find the batch PR (integrate/* → main)
+            const { data: batchPrs } = await github.rest.pulls.list({
+              owner, repo, state: 'open', head: `${owner}:${baseBranch}`, per_page: 5,
+            });
+
+            if (batchPrs.length === 0) {
+              core.info(`No open batch PR found for ${baseBranch}`);
+              return;
+            }
+
+            const batchPr = batchPrs[0];
+
+            // Count remaining open sub-PRs
+            const { data: openSubPrs } = await github.rest.pulls.list({
+              owner, repo, state: 'open', base: baseBranch, per_page: 50,
+            });
+
+            // Count merged sub-PRs
+            const { data: closedSubPrs } = await github.rest.pulls.list({
+              owner, repo, state: 'closed', base: baseBranch, per_page: 50,
+            });
+            const mergedCount = closedSubPrs.filter(pr => pr.merged_at).length;
+
+            const remaining = openSubPrs.length;
+            const total = mergedCount + remaining;
+
+            let body = `### Sub-PR Progress: ${mergedCount}/${total} merged\n\n`;
+            body += `Sub-PR #${mergedPr.number} (\`${mergedPr.head.ref}\`) merged.\n\n`;
+
+            if (remaining > 0) {
+              body += `**${remaining} sub-PR(s) remaining:**\n`;
+              for (const pr of openSubPrs) {
+                body += `- #${pr.number} — ${pr.title}\n`;
+              }
+            } else {
+              body += `**All sub-PRs merged.** This batch PR is ready to finalize.\n`;
+              body += `Run: \`scripts/finalize-batch.sh ${batchPr.number}\`\n`;
+            }
+
+            body += `\n_Posted by [batch-complete workflow](${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId})._`;
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: batchPr.number, body,
+            });
+
+            core.info(`Commented on batch PR #${batchPr.number}: ${mergedCount}/${total} merged, ${remaining} remaining`);

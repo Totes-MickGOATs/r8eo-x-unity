@@ -1,0 +1,94 @@
+name: Rebase Dependent PRs
+
+# When main or an integration branch is updated, rebase dependent PRs
+# so they stay current and CI runs against the latest base.
+
+on:
+  push:
+    branches: [main, 'integrate/*', 'integrate/**']
+
+# Cancel stale runs for the same trigger
+concurrency:
+  group: rebase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rebase:
+    name: Update Dependent PRs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.MERGE_TOKEN || github.token }}
+
+      - name: Update dependent PR branches
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.MERGE_TOKEN || github.token }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pushedRef = context.ref.replace('refs/heads/', '');
+
+            core.info(`Push to ${pushedRef} — finding dependent PRs...`);
+
+            // Phase 1: If push to main, update integration branches first
+            if (pushedRef === 'main') {
+              const { data: integratePrs } = await github.rest.pulls.list({
+                owner, repo, state: 'open', base: 'main', per_page: 50,
+              });
+
+              const batchPrs = integratePrs.filter(pr =>
+                pr.head.ref.startsWith('integrate/')
+              );
+
+              for (const pr of batchPrs) {
+                try {
+                  await github.rest.pulls.updateBranch({
+                    owner, repo, pull_number: pr.number,
+                  });
+                  core.info(`Updated integration PR #${pr.number} (${pr.head.ref})`);
+                } catch (e) {
+                  core.warning(`Could not update PR #${pr.number}: ${e.message}`);
+                }
+              }
+            }
+
+            // Phase 2: Update PRs targeting the pushed branch
+            const { data: dependentPrs } = await github.rest.pulls.list({
+              owner, repo, state: 'open', base: pushedRef, per_page: 50,
+            });
+
+            if (dependentPrs.length === 0) {
+              core.info(`No open PRs targeting ${pushedRef}.`);
+              return;
+            }
+
+            // Only update PRs that have auto-merge enabled (to avoid noise)
+            for (const pr of dependentPrs) {
+              try {
+                // Check if PR has auto-merge enabled or is from our workflow
+                const { data: prData } = await github.rest.pulls.get({
+                  owner, repo, pull_number: pr.number,
+                });
+
+                await github.rest.pulls.updateBranch({
+                  owner, repo, pull_number: pr.number,
+                });
+                core.info(`Updated PR #${pr.number} (${pr.head.ref} → ${pushedRef})`);
+              } catch (e) {
+                if (e.message.includes('merge conflict')) {
+                  core.warning(`PR #${pr.number} has merge conflicts with ${pushedRef}`);
+                  await github.rest.issues.createComment({
+                    owner, repo, issue_number: pr.number,
+                    body: `## Merge conflict detected\n\nThis PR has conflicts with \`${pushedRef}\`. Please rebase or merge manually.\n\n_Posted by [rebase-prs workflow](${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId})._`,
+                  });
+                } else {
+                  core.warning(`Could not update PR #${pr.number}: ${e.message}`);
+                }
+              }
+            }

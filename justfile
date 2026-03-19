@@ -378,6 +378,20 @@ worktree-mark-abandoned task:
 worktree-audit:
     bash scripts/tools/worktree-audit.sh
 
+# --- Agent Lifecycle ---
+
+# Subagent lifecycle: init or ship
+lifecycle *args:
+    bash scripts/tools/subagent-lifecycle.sh {{args}}
+
+# Main agent: verify merge, clean up everything
+task-complete task:
+    bash scripts/tools/task-complete.sh {{task}}
+
+# Assert audit on all test files
+assert-audit:
+    uv run python scripts/tools/assert_audit.py --all
+
 # --- Local Fast-Forward ---
 
 # Fast-forward local main to current branch after successful push (tested commits only)

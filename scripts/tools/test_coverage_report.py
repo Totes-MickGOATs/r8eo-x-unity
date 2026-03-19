@@ -147,10 +147,7 @@ def print_report(snap: dict) -> bool:
 
     for cat_name, cat in snap["categories"].items():
         src_info = f", {cat['source_files']} source files" if cat["source_files"] > 0 else ""
-        print(
-            f"\n  {cat_name} -- {cat['test_count']} tests "
-            f"in {cat['test_files']} test files{src_info}"
-        )
+        print(f"\n  {cat_name} -- {cat['test_count']} tests in {cat['test_files']} test files{src_info}")
         for fname, count in cat["test_file_details"].items():
             print(f"    {fname:40s} {count} tests")
 
@@ -198,15 +195,9 @@ def ci_compare(snap: dict) -> int:
     prev_total = baseline.get("total_tests", 0)
     curr_total = snap["total_tests"]
     if curr_total < prev_total:
-        regressions.append(
-            f"Total tests: {prev_total} -> {curr_total} "
-            f"(lost {prev_total - curr_total} tests)"
-        )
+        regressions.append(f"Total tests: {prev_total} -> {curr_total} (lost {prev_total - curr_total} tests)")
     elif curr_total > prev_total:
-        improvements.append(
-            f"Total tests: {prev_total} -> {curr_total} "
-            f"(gained {curr_total - prev_total} tests)"
-        )
+        improvements.append(f"Total tests: {prev_total} -> {curr_total} (gained {curr_total - prev_total} tests)")
 
     # Check per-category regressions
     prev_cats = baseline.get("categories", {})
@@ -215,13 +206,9 @@ def ci_compare(snap: dict) -> int:
         prev_count = prev.get("test_count", 0)
         curr_count = cat["test_count"]
         if curr_count < prev_count:
-            regressions.append(
-                f"{cat_name}: test count dropped {prev_count} -> {curr_count}"
-            )
+            regressions.append(f"{cat_name}: test count dropped {prev_count} -> {curr_count}")
         elif curr_count > prev_count:
-            improvements.append(
-                f"{cat_name}: test count improved {prev_count} -> {curr_count}"
-            )
+            improvements.append(f"{cat_name}: test count improved {prev_count} -> {curr_count}")
 
     print("\n--- COVERAGE DELTA (vs baseline) ---")
     if improvements:
@@ -242,14 +229,69 @@ def ci_compare(snap: dict) -> int:
     return 0
 
 
+def check_modules(module_names: list[str]) -> int:
+    """Compare per-module test counts against baseline for specified modules only.
+
+    Args:
+        module_names: List of module names to check (e.g., ['vehicle', 'input']).
+
+    Returns:
+        0 if no regression detected, 1 if any module's test count decreased.
+    """
+    if not BASELINE_FILE.exists():
+        print("Warning: No baseline found — skipping module coverage check (first-time commit).")
+        return 0
+
+    baseline = json.loads(BASELINE_FILE.read_text(encoding="utf-8"))
+    snap = gather_snapshot()
+
+    prev_cats = baseline.get("categories", {})
+    regressions: list[str] = []
+
+    # Normalize module names for case-insensitive prefix matching
+    normalized_modules = [m.strip().lower() for m in module_names if m.strip()]
+
+    for cat_name, cat in snap["categories"].items():
+        cat_lower = cat_name.lower()
+        if not any(cat_lower.startswith(mod) or mod in cat_lower for mod in normalized_modules):
+            continue
+
+        prev = prev_cats.get(cat_name, {})
+        prev_count = prev.get("test_count", 0)
+        curr_count = cat["test_count"]
+
+        if curr_count < prev_count:
+            regressions.append(f"  {cat_name}: {prev_count} -> {curr_count} (lost {prev_count - curr_count} test(s))")
+
+    if regressions:
+        print(f"Coverage regression for modules [{', '.join(module_names)}]:")
+        for reg in regressions:
+            print(reg)
+        return 1
+
+    return 0
+
+
 def main() -> int:
+    """Entry point for the test coverage report tool.
+
+    Returns:
+        0 on success, 1 on regression or error.
+    """
     parser = argparse.ArgumentParser(description="Test coverage report")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     parser.add_argument("--ci", action="store_true", help="CI mode: compare vs baseline")
+    parser.add_argument("--save-baseline", action="store_true", help="Save current as baseline")
     parser.add_argument(
-        "--save-baseline", action="store_true", help="Save current as baseline"
+        "--check-modules",
+        metavar="MODULES",
+        help="Comma-separated module names to check for regression (e.g. vehicle,input)",
     )
     args = parser.parse_args()
+
+    if args.check_modules:
+        module_list = [m.strip() for m in args.check_modules.split(",") if m.strip()]
+        return check_modules(module_list)
 
     snap = gather_snapshot()
 
