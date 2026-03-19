@@ -27,7 +27,8 @@ Exit code 0 = all passed; exit code 2 = some failed (check XML).
 | `VehicleIntegrationTests.cs` | `VehicleIntegrationTests` | Integration tests: settlement, zero-input safety, motor direction, friction, steering, drive layout |
 | `CompoundConformanceTests.cs` | `CompoundConformanceTests` | Physics conformance compound scenarios (L1, L3, L5, L7, L8, L10, D8, L12) |
 | `ConformanceAtRestTests.cs` | `ConformanceAtRestTests` | L1, L3, L10 conformance tests; uses `ConformanceSceneSetup` helpers |
-| `ConformanceTransitionTests.cs` | `ConformanceTransitionTests` | L5, L7, L8 conformance tests; uses `ConformanceSceneSetup.SpawnTestVehicle` |
+| `ConformanceTransitionTests.cs` | `ConformanceTransitionTests` | L7, L8 conformance tests (ground/air transitions); uses `ConformanceSceneSetup.SpawnTestVehicle` |
+| `ConformanceLandingTests.cs` | `ConformanceLandingTests` | L5 conformance test (jump landing impact proportional to height); extracted from ConformanceTransitionTests |
 | `ConformanceDynamicsTests.cs` | `ConformanceDynamicsTests` | D8, L12 conformance tests; uses `ConformanceSceneSetup` drive input helpers |
 | `DebugLoggingTests.cs` | `DebugLoggingTests` | Black-box tests: car active/driving and car landing → tagged console logs appear |
 | `TerrainRegressionTests.cs` | `TerrainRegressionTests` | Flat-ground regression: spring length, motor drive, no backward drift |
@@ -64,7 +65,7 @@ Tests map to checks in `.ai/knowledge/architecture/audit-physics-conformance.md`
 |------|----------|----------|
 | `L1_AtRestOnFlat_AllForcesBalance_NoDrift` | L1 | Forces balance at rest, no creep |
 | `L3_FullThrottleAndBrake_Decelerates` | L3 | Brake overpowers motor |
-| `L5_JumpLanding_ImpactProportionalToHeight` | L5 | Impact velocity ~ sqrt(2gh) |
+| `L5_JumpLanding_ImpactProportionalToHeight` | L5 | Impact velocity ~ sqrt(2gh) — in `ConformanceLandingTests` |
 | `L7_GroundToAir_SmoothForceTransition` | L7 | No velocity spike at takeoff |
 | `L8_AirToGround_DampedLanding` | L8 | Bounce peaks decrease (damped) |
 | `L10_HighSpeedStraight_SpeedConvergesToMax` | L10 | Speed asymptotes below V_max |
