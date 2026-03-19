@@ -52,7 +52,7 @@ namespace R8EOX.UI
 
             if (_navigator != null)
             {
-                _navigator.OnScreenPushed += ShowScreen;
+                _navigator.OnScreenPushed += HandleScreenPushed;
             }
         }
 
@@ -65,9 +65,11 @@ namespace R8EOX.UI
 
             if (_navigator != null)
             {
-                _navigator.OnScreenPushed -= ShowScreen;
+                _navigator.OnScreenPushed -= HandleScreenPushed;
             }
         }
+
+        private void HandleScreenPushed(string screenId) => ShowScreen(screenId);
 
         /// <summary>Show a screen by ID. Replaces the current main screen.</summary>
         public void ShowScreen(string screenId, object data = null)
