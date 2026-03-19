@@ -26,8 +26,12 @@ Exit code 0 = all passed; exit code 2 = some failed (check XML).
 |------|-------|---------|
 | `VehicleIntegrationTests.cs` | `VehicleIntegrationTests` | Integration tests: settlement, zero-input safety, motor direction, friction, steering, drive layout |
 | `CompoundConformanceTests.cs` | `CompoundConformanceTests` | Physics conformance compound scenarios (L1, L3, L5, L7, L8, L10, D8, L12) |
+| `ConformanceAtRestTests.cs` | `ConformanceAtRestTests` | L1, L3, L10 conformance tests; uses `ConformanceSceneSetup` helpers |
+| `ConformanceTransitionTests.cs` | `ConformanceTransitionTests` | L5, L7, L8 conformance tests; uses `ConformanceSceneSetup.SpawnTestVehicle` |
+| `ConformanceDynamicsTests.cs` | `ConformanceDynamicsTests` | D8, L12 conformance tests; uses `ConformanceSceneSetup` drive input helpers |
 | `DebugLoggingTests.cs` | `DebugLoggingTests` | Black-box tests: car active/driving and car landing → tagged console logs appear |
-| `TerrainSnagTests.cs` | `TerrainSnagTests` | PlayMode tests for terrain anti-snag: contact smoothness, no phantom velocity, suspension stability on seamed ground |
+| `TerrainRegressionTests.cs` | `TerrainRegressionTests` | Flat-ground regression: spring length, motor drive, no backward drift |
+| `TerrainSeamTests.cs` | `TerrainSeamTests` | Seam/edge terrain physics tests |
 | `R8EOX.Tests.PlayMode.asmdef` | -- | Assembly definition referencing Vehicle, Input, Camera, Debug, Core |
 
 ## Subdirectories

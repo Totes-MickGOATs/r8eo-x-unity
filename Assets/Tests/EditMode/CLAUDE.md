@@ -21,7 +21,6 @@ Edit Mode unit tests for physics math, input processing, and game systems. No Mo
 | `PhantomTriggerTests.cs` | 12 tests: phantom trigger bug — constant combined axis rejection, combined trigger throttle/brake helpers | `TriggerDetector`, `InputMath` |
 | `ZeroInputTests.cs` | 20 tests: zero-input pipeline — phantom values, detecting-phase contracts, all modes x all axes | `TriggerDetector`, `InputMath`, `RCInput` |
 | `GroundDriveTests.cs` | ESC ground drive logic: engine cutoff, braking, reverse, coast drag | `ESCMath` |
-| `BlackBoxPhysicsTests.cs` | Black-box tests for all public physics functions using realistic 1/10 RC values | `SuspensionMath`, `GripMath`, `DrivetrainMath`, `AirPhysicsMath` |
 | `ForceDirectionTests.cs` | Force direction verification — catches axis mapping bugs from Godot-to-Unity port | `SuspensionMath`, `GripMath` |
 | `InputProcessingTests.cs` | Input edge cases: complements InputMathTests with bug-catching scenarios | `InputMath` |
 | `ReverseESCTests.cs` | Reverse ESC state machine: engage/disengage transitions, coast drag | `ESCMath` |
