@@ -5,11 +5,7 @@ using static R8EOX.Tests.EditMode.PhysicsTestConstants;
 
 namespace R8EOX.Tests.EditMode
 {
-    /// <summary>
-    /// Black-box unit tests for InputMath public functions.
-    /// Tests verify physically correct behavior from inputs/outputs only.
-    /// Uses realistic 1/10th scale RC car values throughout.
-    /// </summary>
+    /// <summary>Black-box unit tests for InputMath public functions.</summary>
     [Category("Fast")]
     public class BlackBoxInputTests
     {
