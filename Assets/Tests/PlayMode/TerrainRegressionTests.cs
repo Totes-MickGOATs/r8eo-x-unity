@@ -75,10 +75,6 @@ namespace R8EOX.Tests.PlayMode
                 $"Regression: Car should move forward under motor force. " +
                 $"Forward delta: {forwardDelta:F4}m. SphereCast must not break motor drive.");
 
-            // Verify no backward drift
-            Assert.Greater(forwardDelta, -0.01f,
-                $"Regression: Car must not drift backward. Delta: {forwardDelta:F4}m.");
-
             // Clear motor
             foreach (var w in rearWheels)
                 w.MotorForceShare = 0f;
