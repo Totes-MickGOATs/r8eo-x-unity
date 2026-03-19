@@ -11,6 +11,7 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 | `resolve_module_tests.py` | Resolve which test classes to run given a list of changed files (module-based test gating) |
 | `test_coverage_report.py` | Track per-category test coverage with baseline comparison; `--check-modules` for per-module ratchet |
 | `assert_audit.py` | Verify every `[Test]`/`[UnityTest]` method body contains at least one assertion; `--all` scans all test files |
+| `pre_commit_checks.py` | Unified pre-commit entry point: runs coverage ratchet + assert audit in one process, loading manifests once; reads staged `.cs` paths from stdin |
 
 ## Shell Scripts
 
