@@ -68,38 +68,6 @@ namespace R8EOX.Tests.PlayMode
                 spawnPosition, out _ground, out _car, out _carRb, out _rcCar, out _wheels);
         }
 
-        /// <summary>
-        /// Sets MotorForceShare on all motor wheels to simulate throttle.
-        /// totalForce is distributed evenly across motor wheels.
-        /// </summary>
-        private void SetMotorForce(float totalForce)
-        {
-            int motorCount = 0;
-            foreach (var w in _wheels)
-                if (w.IsMotor) motorCount++;
-
-            float perWheel = motorCount > 0 ? totalForce / motorCount : 0f;
-            foreach (var w in _wheels)
-                w.MotorForceShare = w.IsMotor ? perWheel : 0f;
-        }
-
-        /// <summary>Sets IsBraking on all motor wheels.</summary>
-        private void SetBraking(bool braking)
-        {
-            foreach (var w in _wheels)
-                if (w.IsMotor) w.IsBraking = braking;
-        }
-
-        /// <summary>Clears all motor force and braking.</summary>
-        private void ClearDriveInputs()
-        {
-            foreach (var w in _wheels)
-            {
-                w.MotorForceShare = 0f;
-                w.IsBraking = false;
-            }
-        }
-
 
         // ================================================================
         // D8: Free Fall — Acceleration Equals Gravity
@@ -168,7 +136,7 @@ namespace R8EOX.Tests.PlayMode
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Drive forward to build speed
-            SetMotorForce(26f);
+            ConformanceSceneSetup.SetMotorForce(_wheels,26f);
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedBeforeBrake = _carRb.velocity.magnitude;
@@ -182,8 +150,8 @@ namespace R8EOX.Tests.PlayMode
             if (pitchBefore > 180f) pitchBefore -= 360f;
 
             // Brake hard: clear motor, set braking, apply backward impulse via friction
-            ClearDriveInputs();
-            SetBraking(true);
+            ConformanceSceneSetup.ClearDriveInputs(_wheels);
+            ConformanceSceneSetup.SetBraking(_wheels, true);
 
             // Also reduce velocity by applying backward force directly
             // to simulate the effect of brake friction (since we bypass ESC)
@@ -226,7 +194,7 @@ namespace R8EOX.Tests.PlayMode
                 $"(front: {frontLoadSum:F3}, rear: {rearLoadSum:F3}). " +
                 "Neither condition met — weight transfer may not be working");
 
-            ClearDriveInputs();
+            ConformanceSceneSetup.ClearDriveInputs(_wheels);
         }
     }
 }
