@@ -102,6 +102,25 @@ namespace R8EOX.Tests.PlayMode.Helpers
         }
 
         /// <summary>
+        /// Spawns a flat ground plane and a test vehicle, caching all commonly-needed references.
+        /// Convenience wrapper around <see cref="CreateGround"/> and <see cref="CreateTestVehicle"/>.
+        /// </summary>
+        public static void SpawnTestVehicle(
+            Vector3 spawnPosition,
+            out GameObject ground,
+            out GameObject car,
+            out Rigidbody carRb,
+            out R8EOX.Vehicle.RCCar rcCar,
+            out R8EOX.Vehicle.RaycastWheel[] wheels)
+        {
+            ground = CreateGround();
+            car = CreateTestVehicle(spawnPosition);
+            carRb = car.GetComponent<Rigidbody>();
+            rcCar = car.GetComponent<R8EOX.Vehicle.RCCar>();
+            wheels = car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
+        }
+
+        /// <summary>
         /// Creates a single wheel child object under the car root.
         /// </summary>
         private static void CreateWheel(

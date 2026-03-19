@@ -64,11 +64,8 @@ namespace R8EOX.Tests.PlayMode
         /// <summary>Spawns ground + vehicle at the given position and caches references.</summary>
         private void SpawnTestVehicle(Vector3 spawnPosition)
         {
-            _ground = ConformanceSceneSetup.CreateGround();
-            _car = ConformanceSceneSetup.CreateTestVehicle(spawnPosition);
-            _carRb = _car.GetComponent<Rigidbody>();
-            _rcCar = _car.GetComponent<R8EOX.Vehicle.RCCar>();
-            _wheels = _car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
+            ConformanceSceneSetup.SpawnTestVehicle(
+                spawnPosition, out _ground, out _car, out _carRb, out _rcCar, out _wheels);
         }
 
         /// <summary>
