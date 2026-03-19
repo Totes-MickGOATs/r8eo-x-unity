@@ -160,9 +160,7 @@ def main() -> int:
     Returns:
         0 if all test methods have assertions, 1 if any are missing.
     """
-    parser = argparse.ArgumentParser(
-        description="Verify every [Test]/[UnityTest] method has at least one assertion."
-    )
+    parser = argparse.ArgumentParser(description="Verify every [Test]/[UnityTest] method has at least one assertion.")
     parser.add_argument(
         "--all",
         action="store_true",
