@@ -9,7 +9,8 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 | `validate_claude_md.py` | Check CLAUDE.md freshness against directory git dates |
 | `validate_registry.py` | Validate system manifests (JSON + .tres) against disk; checks `tests` field ownership and file existence |
 | `resolve_module_tests.py` | Resolve which test classes to run given a list of changed files (module-based test gating) |
-| `test_coverage_report.py` | Track per-category test coverage with baseline comparison |
+| `test_coverage_report.py` | Track per-category test coverage with baseline comparison; `--check-modules` for per-module ratchet |
+| `assert_audit.py` | Verify every `[Test]`/`[UnityTest]` method body contains at least one assertion; `--all` scans all test files |
 
 ## Shell Scripts
 
@@ -17,6 +18,8 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 |------|------|
 | `safe-worktree-init.sh` | Create a single feature branch + worktree from origin/main |
 | `safe-worktree-init-batch.sh` | Batch create multiple worktrees with a single git fetch |
+| `subagent-lifecycle.sh` | Consolidated subagent commands: `init <task>` (delegates to safe-worktree-init.sh) and `ship` (push+PR+merge+sync) |
+| `task-complete.sh` | Main agent one-command cleanup after subagent PR merge: delete branch, worktree, tags, sync main |
 | `stream-status.sh` | Dashboard: commit count, push status, and PR state for all active streams |
 | `conflict-forecast.sh` | Detect files touched by multiple active worktree branches |
 | `syntax-check-csharp.sh` | Lightweight pre-commit C# checks: balanced braces, namespace, line limit |

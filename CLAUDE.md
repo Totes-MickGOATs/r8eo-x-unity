@@ -61,27 +61,22 @@ Current state: _Update `.ai/knowledge/status/project-status.md` with phase track
 ### Quick Reference
 
 ```
-just worktree-create <task>          # 1. Create feature branch + worktree
-# ... develop, commit, test ...      # 2. Work on feat/<task> branch
-git push -u origin feat/<task>       # 3. Push (pre-push runs tests)
-just ff-main                         # 4. Fast-forward local main (mid-dev, before PR merges)
-gh pr create --base main             # 5. Open PR → CI runs automatically
-# CI auto-labels ready-to-merge      # 6. Auto-merge triggers on label → squash-merges
-just worktree-mark-done <task>       # 7. After PR merges, transition tag
-just worktree-cleanup <task>         # 8. Clean up worktree, branches, and tags
+just lifecycle init <task>           # 1. Create feature branch + worktree (subagent first action)
+# ... TDD develop, commit, test ...  # 2. Work on feat/<task> branch
+just lifecycle ship                  # 3. Push, create PR, merge, sync main (all-in-one)
+just task-complete <task>            # 4. Main agent cleanup after subagent merge
 ```
 
 ### Branch Workflow
 
-1. **Create a worktree:** `just worktree-create <task-name>` (creates `feat/<task>` from `origin/main`)
-2. **Develop:** Commit frequently in the feature branch. Commit message format: `type: short description`
-3. **Push:** `git push -u origin feat/<task>` (pre-push hook runs tests)
-4. **Fast-forward local main (mid-dev only):** `just ff-main` (gives next task immediate access to your changes before the PR merges — NOT for post-merge sync)
-5. **Create PR:** `gh pr create --base main` (CI runs automatically)
-6. **CI validates:** Lint & Preflight must pass (tests are advisory unless configured otherwise)
-7. **Merge:** CI auto-adds `ready-to-merge` label → auto-merge workflow squash-merges when up-to-date
-8. **Mark done:** `just worktree-mark-done <task>` (transitions `wt/active` → `wt/done` tag, requires merged PR)
-9. **Cleanup:** `just worktree-cleanup <task>` or `just worktree-sync` for batch cleanup. Cleanup is blocked if `wt/active` tag exists (override with `FORCE=1`)
+1. **Create a worktree:** `just lifecycle init <task-name>` or `just worktree-create <task-name>` (creates `feat/<task>` from `origin/main`)
+2. **Develop:** TDD cycle — write failing test, implement, commit. Commit message format: `type: short description`
+3. **Ship (subagent):** `just lifecycle ship` — pushes, creates PR, merges, syncs local main
+4. **Fast-forward local main (mid-dev only):** `just ff-main` (gives next task immediate access to your changes mid-development — NOT for post-merge sync)
+5. **Cleanup (main agent):** `just task-complete <task>` — verifies merged PR, removes worktree, branch, tags
+6. **Batch cleanup:** `just worktree-cleanup <task>` or `just worktree-sync`
+
+> **No GitHub Actions** — all enforcement is local via hooks. PRs are created for audit trail and merged with `gh pr merge --squash`.
 
 ### Agent Protocol (Self-Managed Worktree Pattern)
 
@@ -89,11 +84,15 @@ just worktree-cleanup <task>         # 8. Clean up worktree, branches, and tags
 > - **NEVER commit on the `main` branch.** A PreToolUse hook will block you. Work on your feature branch.
 > - **NEVER use `--no-verify`** on git commit. The hook will block this too. Fix the underlying issue instead.
 > - **NEVER use `isolation: "worktree"`** — subagents call `safe-worktree-init.sh` themselves instead.
-> - **ALWAYS provide task name** to subagents so they can call `bash scripts/tools/safe-worktree-init.sh <task>` as first action.
+> - **ALWAYS provide task name** to subagents so they can call `bash scripts/tools/safe-worktree-init.sh <task>` as first action (or `just lifecycle init <task>`).
 > - **ALWAYS set the `model` parameter** on every Agent tool call: `haiku` for Explore, `opus` for Plan, `sonnet` for general-purpose. Never omit it.
-> - **NEVER leave your branch unmerged or CI failing.** You own your branch from creation to merge. See Definition of Done below.
+> - **NEVER leave your branch unmerged.** You own your branch from creation to merge. See Definition of Done below.
 
-Agents follow the same workflow: run safe-worktree-init.sh → develop in worktree → push → PR → label `ready-to-merge` → auto-merge serializes.
+Subagent lifecycle (two commands):
+1. `just lifecycle init <task>` → captures WORKTREE_PATH, all work uses absolute paths in that worktree
+2. TDD develop in worktree → commit each file immediately
+3. `just lifecycle ship` → push + create PR + squash-merge + sync local main
+4. Main agent runs `just task-complete <task>` to clean up
 
 ### Sequential Task Coordination
 
@@ -111,34 +110,20 @@ Freshness is enforced automatically by hooks — manual steps are belt-and-suspe
 - **SessionStart hook** fetches all remote refs and updates local `main` to match `origin/main` (every session, every agent).
 - **safe-worktree-init.sh** fetches `origin/main` and creates worktree branch from it (every subagent that calls the script as first action).
 - **Main agent (manual):** `git fetch origin && git pull --ff-only origin main` before dispatching subagents.
-- **Subagents (manual):** `git fetch origin && git rebase origin/main` before pushing if the worktree has been alive for a while. Resolve conflicts before push.
+- **Subagents (manual):** `just lifecycle ship` handles rebase automatically before push.
 
 ### Definition of Done
 
 A task is **not done** until ALL of these are true:
 
 1. **PR is open** with all commits pushed
-2. **Lint CI is green** — `Lint & Preflight` passes on GitHub Actions
-3. **Auto-merge is enabled** — `gh pr merge --auto --squash` or `ready-to-merge` label applied
-4. **Local tests pass** — run relevant test files for your changes before pushing
+2. **Local tests pass** — run relevant test files for your changes before shipping (coverage ratchet is a FAIL gate)
+3. **PR merged** — `just lifecycle ship` handles merge; confirm with `gh pr view --json state -q .state`
+4. **Local main updated** — `just lifecycle ship` syncs local main automatically
 5. **Bulletproof quality checklist passed** — see `/dev:bulletproof` for the full process (Phases 0-5)
 6. **Clean loop completed** — run `/dev:clean-loop` to capture lessons, update docs, and verify clean state
-7. **PR merged and main updated** — watch CI, confirm merge, then update local main
 
-> **Enforcement note:** Criteria 2 (Lint CI green) and 3 (ready-to-merge label) are CI-enforced — the auto-merge workflow will not merge without them. All other criteria (1, 4, 5, 6, 7) are agent-discipline requirements with no automated gate. Agents are trusted to complete all criteria before reporting done.
-
-**Subagents MUST watch CI through merge completion:**
-```bash
-gh run watch                                    # Watch CI until done
-gh pr view --json state -q .state               # Confirm "MERGED"
-git fetch origin main                           # Pull merged main
-git update-ref refs/heads/main origin/main      # Update local ref
-```
-
-If lint CI fails after you push, you are responsible for:
-- Checking the CI output: `gh run view --log-failed` or `gh run view <run-id> --log`
-- Diagnosing and fixing the failure in your feature branch
-- Pushing the fix and confirming lint CI goes green
+> **No CI gates** — GitHub Actions are disabled (cost constraint). All enforcement is local: pre-commit hook runs coverage ratchet and assert audit. Pre-push hook runs module-gated tests when UNITY_PATH is set. Agents are on the honor system for test criteria.
 
 ### Commit Rules
 
