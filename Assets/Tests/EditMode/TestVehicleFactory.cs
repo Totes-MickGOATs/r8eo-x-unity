@@ -5,38 +5,46 @@ namespace R8EOX.Tests.EditMode
 {
     public static class TestVehicleFactory
     {
-        public static GameObject CreateTestCar()
+        /// <summary>Creates a minimal RCCar hierarchy with wheels for testing.</summary>
+        public static RCCar CreateTestCar(int wheelCount = 4)
         {
-            var go = new GameObject("TestCar");
-            var rb = go.AddComponent<Rigidbody>();
+            var root = new GameObject("TestCar");
+            var rb = root.AddComponent<Rigidbody>();
             rb.useGravity = false;
-            var car = go.AddComponent<RCCar>();
+            var car = root.AddComponent<RCCar>();
 
-            // Create 4 wheel children
-            string[] wheelNames = { "WheelFL", "WheelFR", "WheelRL", "WheelRR" };
-            Vector3[] positions = {
-                new Vector3(-0.15f, 0f, 0.17f),
-                new Vector3(0.15f, 0f, 0.17f),
-                new Vector3(-0.15f, 0f, -0.17f),
-                new Vector3(0.15f, 0f, -0.17f)
-            };
-
-            for (int i = 0; i < 4; i++)
+            // Create wheel children: first half are front (z > 0), second half rear (z <= 0)
+            for (int i = 0; i < wheelCount; i++)
             {
-                var wheelGO = new GameObject(wheelNames[i]);
-                wheelGO.transform.SetParent(go.transform);
-                wheelGO.transform.localPosition = positions[i];
-                var wheel = wheelGO.AddComponent<RaycastWheel>();
-                wheel.IsMotor = i >= 2; // rear wheels
-                wheel.IsSteer = i < 2; // front wheels
+                var wheelGo = new GameObject($"Wheel_{i}");
+                wheelGo.transform.parent = root.transform;
+                bool isFront = i < wheelCount / 2;
+                wheelGo.transform.localPosition = new Vector3(
+                    i % 2 == 0 ? -0.1f : 0.1f,
+                    0f,
+                    isFront ? 0.15f : -0.15f);
+                wheelGo.AddComponent<RaycastWheel>();
             }
 
-            return go;
+            return car;
         }
 
-        public static void DestroyTestCar(GameObject car)
+        /// <summary>Destroys the test car GameObject after the test.</summary>
+        public static void DestroyTestCar(RCCar car)
         {
-            Object.DestroyImmediate(car);
+            Object.DestroyImmediate(car.gameObject);
+        }
+
+        /// <summary>
+        /// Initialises RCCar by calling its Awake and Start methods via reflection-free approach.
+        /// We call the public API after manual wheel discovery.
+        /// </summary>
+        public static void InitialiseCar(RCCar car)
+        {
+            // Trigger Awake + Start by enabling the component in edit mode
+            // In edit mode, we manually invoke the lifecycle
+            car.SendMessage("Awake", SendMessageOptions.DontRequireReceiver);
+            car.SendMessage("Start", SendMessageOptions.DontRequireReceiver);
         }
     }
 }
