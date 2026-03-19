@@ -71,13 +71,6 @@ namespace R8EOX.Tests.PlayMode
             _wheels = _car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
         }
 
-        /// <summary>Yields the given number of FixedUpdate frames.</summary>
-        private static IEnumerator WaitPhysicsFrames(int count)
-        {
-            for (int i = 0; i < count; i++)
-                yield return new WaitForFixedUpdate();
-        }
-
         /// <summary>
         /// Sets MotorForceShare on all motor wheels to simulate throttle.
         /// totalForce is distributed evenly across motor wheels.
@@ -175,11 +168,11 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn and settle
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Drive forward to build speed
             SetMotorForce(26f);
-            yield return WaitPhysicsFrames(k_DriveFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedBeforeBrake = _carRb.velocity.magnitude;
             Assert.Greater(speedBeforeBrake, 0.3f,
@@ -199,7 +192,7 @@ namespace R8EOX.Tests.PlayMode
             // to simulate the effect of brake friction (since we bypass ESC)
             _carRb.AddForce(-_car.transform.forward * 20f, ForceMode.Force);
 
-            yield return WaitPhysicsFrames(k_DriveFrames / 2);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames / 2);
 
             float pitchDuringBrake = _car.transform.eulerAngles.x;
             if (pitchDuringBrake > 180f) pitchDuringBrake -= 360f;

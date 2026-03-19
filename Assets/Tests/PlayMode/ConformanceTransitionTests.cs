@@ -76,13 +76,6 @@ namespace R8EOX.Tests.PlayMode
             _wheels = _car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
         }
 
-        /// <summary>Yields the given number of FixedUpdate frames.</summary>
-        private static IEnumerator WaitPhysicsFrames(int count)
-        {
-            for (int i = 0; i < count; i++)
-                yield return new WaitForFixedUpdate();
-        }
-
 
         // ================================================================
         // L5: Jump Landing — Impact Proportional to Height
@@ -150,7 +143,7 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn car, settle, then launch it upward to create a ground-to-air transition
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Give the car upward + forward velocity to simulate driving off an edge
             _carRb.velocity = new Vector3(0f, 3f, 5f);

@@ -82,13 +82,6 @@ namespace R8EOX.Tests.PlayMode
             _wheels = _car.GetComponentsInChildren<R8EOX.Vehicle.RaycastWheel>();
         }
 
-        /// <summary>Yields the given number of FixedUpdate frames.</summary>
-        private static IEnumerator WaitPhysicsFrames(int count)
-        {
-            for (int i = 0; i < count; i++)
-                yield return new WaitForFixedUpdate();
-        }
-
         /// <summary>
         /// Waits until the car's velocity drops below threshold or timeout is reached.
         /// Returns true if settled, false if timed out.
@@ -151,13 +144,13 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn car on flat surface, wait for settling
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Record position after initial settle
             Vector3 settledPos = _car.transform.position;
 
             // Wait additional frames to detect drift
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Assert: velocity magnitude < threshold
             Assert.Less(_carRb.velocity.magnitude, k_L1RestVelocityThreshold,
@@ -187,12 +180,12 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn and settle
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Apply full throttle for 1 second to build speed
             // Engine force: 26N total for 13.5T preset, 13N per rear wheel
             SetMotorForce(26f);
-            yield return WaitPhysicsFrames(k_DriveFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedAfterThrottle = _carRb.velocity.magnitude;
             Assert.Greater(speedAfterThrottle, 0.3f,
@@ -203,7 +196,7 @@ namespace R8EOX.Tests.PlayMode
             // Brake force is applied through IsBraking flag + longitudinal friction
             SetMotorForce(26f);
             SetBraking(true);
-            yield return WaitPhysicsFrames(k_DriveFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedAfterBrake = _carRb.velocity.magnitude;
 
@@ -226,7 +219,7 @@ namespace R8EOX.Tests.PlayMode
         {
             // Spawn and settle
             SpawnTestVehicle(k_DefaultSpawn);
-            yield return WaitPhysicsFrames(k_SettleFrames);
+            yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
             // Apply full throttle on flat surface for 10 seconds
             // 26N total engine force (13.5T motor preset)
