@@ -58,7 +58,16 @@ if [ -n "$ACTIVE_TASKS" ]; then
 fi
 
 # Report in-flight work from previous sessions
-MEMORY_DIR="$HOME/.claude/projects/C--Users-prelu-IdeaProjects-r8eo-x-unity/memory"
+# Find the memory directory for this project (Claude Code encodes the path)
+MEMORY_DIR=""
+if [ -d "$HOME/.claude/projects" ]; then
+    # Match directory containing this project's name
+    PROJECT_BASE=$(basename "$CLAUDE_PROJECT_DIR")
+    MEMORY_DIR=$(find "$HOME/.claude/projects" -maxdepth 1 -type d -name "*${PROJECT_BASE}*" -print -quit 2>/dev/null || true)
+    if [ -n "$MEMORY_DIR" ]; then
+        MEMORY_DIR="${MEMORY_DIR}/memory"
+    fi
+fi
 INFLIGHT_FILES=$(ls "$MEMORY_DIR"/project_inflight_*.md 2>/dev/null || true)
 if [ -n "$INFLIGHT_FILES" ]; then
     echo "session-start: IN-FLIGHT WORK detected from previous sessions:"

@@ -132,3 +132,31 @@ if [ -n "$STAGED_CS" ] && [ -z "${SKIP_COVERAGE_CHECK:-}" ]; then
         fi
     fi
 fi
+
+# ── Line limit check (Layer 4) ──────────────────────────────────────────────
+if [ -n "$STAGED_CS" ] && [ -z "${SKIP_LINE_LIMIT:-}" ]; then
+    LINE_VIOLATIONS=0
+    ALLOWLIST="R8EOXInputActions.cs"
+    while IFS= read -r file; do
+        basename_file=$(basename "$file")
+        # Skip allowlisted files
+        case "$basename_file" in
+            $ALLOWLIST) continue ;;
+        esac
+        lines=$(wc -l < "$file" | tr -d ' ')
+        if [ "$lines" -gt 200 ]; then
+            if [ "$LINE_VIOLATIONS" -eq 0 ]; then
+                echo ""
+                echo "=== Line Limit Violations ==="
+            fi
+            echo "FAIL: $file ($lines lines, limit=200)"
+            LINE_VIOLATIONS=$((LINE_VIOLATIONS + 1))
+        fi
+    done <<< "$STAGED_CS"
+    if [ "$LINE_VIOLATIONS" -gt 0 ]; then
+        echo ""
+        echo "BLOCKED: $LINE_VIOLATIONS file(s) exceed the 200-line limit."
+        echo "Split large files before committing. Bypass: SKIP_LINE_LIMIT=1 git commit ..."
+        exit 1
+    fi
+fi
