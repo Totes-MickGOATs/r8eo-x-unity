@@ -242,14 +242,74 @@ def ci_compare(snap: dict) -> int:
     return 0
 
 
+def check_modules(module_names: list[str]) -> int:
+    """Compare per-module test counts against baseline for specified modules only.
+
+    Args:
+        module_names: List of module names to check (e.g., ['vehicle', 'input']).
+
+    Returns:
+        0 if no regression detected, 1 if any module's test count decreased.
+    """
+    if not BASELINE_FILE.exists():
+        print("Warning: No baseline found — skipping module coverage check (first-time commit).")
+        return 0
+
+    baseline = json.loads(BASELINE_FILE.read_text(encoding="utf-8"))
+    snap = gather_snapshot()
+
+    prev_cats = baseline.get("categories", {})
+    regressions: list[str] = []
+
+    # Normalize module names for case-insensitive prefix matching
+    normalized_modules = [m.strip().lower() for m in module_names if m.strip()]
+
+    for cat_name, cat in snap["categories"].items():
+        cat_lower = cat_name.lower()
+        if not any(cat_lower.startswith(mod) or mod in cat_lower for mod in normalized_modules):
+            continue
+
+        prev = prev_cats.get(cat_name, {})
+        prev_count = prev.get("test_count", 0)
+        curr_count = cat["test_count"]
+
+        if curr_count < prev_count:
+            regressions.append(
+                f"  {cat_name}: {prev_count} -> {curr_count} "
+                f"(lost {prev_count - curr_count} test(s))"
+            )
+
+    if regressions:
+        print(f"Coverage regression for modules [{', '.join(module_names)}]:")
+        for reg in regressions:
+            print(reg)
+        return 1
+
+    return 0
+
+
 def main() -> int:
+    """Entry point for the test coverage report tool.
+
+    Returns:
+        0 on success, 1 on regression or error.
+    """
     parser = argparse.ArgumentParser(description="Test coverage report")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     parser.add_argument("--ci", action="store_true", help="CI mode: compare vs baseline")
     parser.add_argument(
         "--save-baseline", action="store_true", help="Save current as baseline"
     )
+    parser.add_argument(
+        "--check-modules",
+        metavar="MODULES",
+        help="Comma-separated module names to check for regression (e.g. vehicle,input)",
+    )
     args = parser.parse_args()
+
+    if args.check_modules:
+        module_list = [m.strip() for m in args.check_modules.split(",") if m.strip()]
+        return check_modules(module_list)
 
     snap = gather_snapshot()
 
