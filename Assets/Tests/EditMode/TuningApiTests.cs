@@ -4,52 +4,16 @@ using R8EOX.Vehicle;
 namespace R8EOX.Tests.EditMode
 {
     /// <summary>
-    /// Unit tests for the runtime tuning setter API on RCCar.
-    /// Verifies that setter methods correctly update internal fields
-    /// and push values to child wheel components.
+    /// Unit tests for chassis tuning setter API on RCCar:
+    /// SetSuspension, SetAxleSuspension, SetTraction, SetCrashParams,
+    /// SetCentreOfMass, and SetMass.
+    /// Motor/steering/throttle tests live in TuningApiMotorTests.cs.
     /// </summary>
     public class TuningApiTests
     {
         // ---- Constants ----
 
         const float k_Epsilon = 0.001f;
-
-
-        // ---- SetMotorParams Tests ----
-
-        [Test]
-        public void SetMotorParams_UpdatesEngineForce_ReturnsNewValue()
-        {
-            var car = TestVehicleFactory.CreateTestCar();
-            TestVehicleFactory.InitialiseCar(car);
-
-            car.SetMotorParams(50f, 40f, 30f, 20f, 5f);
-
-            Assert.AreEqual(50f, car.EngineForceMax, k_Epsilon);
-            Assert.AreEqual(40f, car.MaxSpeed, k_Epsilon);
-            Assert.AreEqual(30f, car.BrakeForce, k_Epsilon);
-            Assert.AreEqual(20f, car.ReverseForce, k_Epsilon);
-            Assert.AreEqual(5f, car.CoastDrag, k_Epsilon);
-            Assert.AreEqual(RCCar.MotorPreset.Custom, car.ActiveMotorPreset);
-
-            TestVehicleFactory.DestroyTestCar(car);
-        }
-
-        [Test]
-        public void SetMotorParams_SetsPresetToCustom()
-        {
-            var car = TestVehicleFactory.CreateTestCar();
-            TestVehicleFactory.InitialiseCar(car);
-
-            // Initially should be 13.5T
-            Assert.AreEqual(RCCar.MotorPreset.Motor13_5T, car.ActiveMotorPreset);
-
-            car.SetMotorParams(10f, 10f, 10f, 10f, 1f);
-
-            Assert.AreEqual(RCCar.MotorPreset.Custom, car.ActiveMotorPreset);
-
-            TestVehicleFactory.DestroyTestCar(car);
-        }
 
 
         // ---- SetSuspension Tests ----
@@ -178,42 +142,6 @@ namespace R8EOX.Tests.EditMode
         }
 
 
-        // ---- SetThrottleResponse Tests ----
-
-        [Test]
-        public void SetThrottleResponse_UpdatesRampRates()
-        {
-            var car = TestVehicleFactory.CreateTestCar();
-            TestVehicleFactory.InitialiseCar(car);
-
-            car.SetThrottleResponse(8f, 15f);
-
-            Assert.AreEqual(8f, car.ThrottleRampUp, k_Epsilon);
-            Assert.AreEqual(15f, car.ThrottleRampDown, k_Epsilon);
-
-            TestVehicleFactory.DestroyTestCar(car);
-        }
-
-
-        // ---- SetSteeringParams Tests ----
-
-        [Test]
-        public void SetSteeringParams_UpdatesAllSteeringValues()
-        {
-            var car = TestVehicleFactory.CreateTestCar();
-            TestVehicleFactory.InitialiseCar(car);
-
-            car.SetSteeringParams(0.6f, 8f, 10f, 0.3f);
-
-            Assert.AreEqual(0.6f, car.SteeringMax, k_Epsilon);
-            Assert.AreEqual(8f, car.SteeringSpeed, k_Epsilon);
-            Assert.AreEqual(10f, car.SteeringSpeedLimit, k_Epsilon);
-            Assert.AreEqual(0.3f, car.SteeringHighSpeedFactor, k_Epsilon);
-
-            TestVehicleFactory.DestroyTestCar(car);
-        }
-
-
         // ---- SetCrashParams Tests ----
 
         [Test]
@@ -260,24 +188,6 @@ namespace R8EOX.Tests.EditMode
             car.SetMass(2.5f);
 
             Assert.AreEqual(2.5f, car.Mass, k_Epsilon);
-
-            TestVehicleFactory.DestroyTestCar(car);
-        }
-
-
-        // ---- SelectMotorPreset Tests ----
-
-        [Test]
-        public void SelectMotorPreset_AppliesPresetValues()
-        {
-            var car = TestVehicleFactory.CreateTestCar();
-            TestVehicleFactory.InitialiseCar(car);
-
-            car.SelectMotorPreset(RCCar.MotorPreset.Motor21_5T);
-
-            Assert.AreEqual(RCCar.MotorPreset.Motor21_5T, car.ActiveMotorPreset);
-            Assert.AreEqual(155f, car.EngineForceMax, k_Epsilon);
-            Assert.AreEqual(13f, car.MaxSpeed, k_Epsilon);
 
             TestVehicleFactory.DestroyTestCar(car);
         }
