@@ -56,13 +56,15 @@ else
         echo "pre-push: Running tests..."
         "$unity_path" -batchmode -nographics -runTests -testPlatform EditMode \
           -projectPath . -testFilter "$filter" -testResults /dev/null 2>&1 || {
-          echo "pre-push: TESTS FAILED — push blocked (bypass: SKIP_TEST_CHECK=1 git push)"
+          echo "pre-push: TESTS FAILED — push BLOCKED. Fix failing tests before pushing."
+          echo "  Bypass (emergency only): SKIP_TEST_CHECK=1 git push"
           exit 1
         }
         echo "pre-push: All module tests passed."
       else
-        echo "pre-push: Unity not found at '$unity_path' — skipping test execution"
-        echo "  (set UNITY_PATH to enable, or SKIP_TEST_CHECK=1 to suppress this message)"
+        echo "pre-push: Unity not found at '$unity_path' — test execution skipped (advisory)"
+        echo "  Tests required when UNITY_PATH is set. Set it to enable hard test gating."
+        echo "  Suppress this message: SKIP_TEST_CHECK=1 git push"
       fi
     else
       echo "pre-push: No module-gated tests needed for changed files."
