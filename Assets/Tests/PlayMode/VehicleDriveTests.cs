@@ -8,16 +8,8 @@ namespace R8EOX.Tests.PlayMode
 {
     /// <summary>
     /// PlayMode tests for motor force direction, friction deceleration, and steering.
-    ///
+    /// Tests drive layout power routing (RWD vs AWD).
     /// Motor tests bypass RCInput by setting MotorForceShare directly on rear wheels.
-    /// This isolates the wheel force-application path from the input pipeline.
-    ///
-    /// Verifies:
-    /// - Positive motor force on rear wheels pushes car forward (+Z)
-    /// - Negative motor force pushes car backward (-Z)
-    /// - Longitudinal friction decelerates a car given an initial velocity
-    /// - Front wheels remain straight with no steering input
-    /// - Drive layout routes power to the correct wheels (RWD vs AWD)
     /// </summary>
     public class VehicleDriveTests
     {
@@ -26,29 +18,21 @@ namespace R8EOX.Tests.PlayMode
         [SetUp]    public void SetUp()    => _h.SetUp();
         [TearDown] public void TearDown() => _h.TearDown();
 
-
         [UnityTest]
         public IEnumerator Car_MotorForceOnRearWheels_PushesForward()
         {
-            // Let car settle first
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(VehicleIntegrationHelper.k_SettleFrames);
-
-            // Directly set motor force on rear wheels to test force direction.
-            // Bypasses RCInput and tests the wheel force application directly.
             Vector3 posBeforeForce = _h.Car.transform.position;
 
             foreach (var w in _h.Wheels)
             {
-                if (w.IsMotor)
-                    w.MotorForceShare = 13f; // Half of 26 N engine force
+                if (w.IsMotor) w.MotorForceShare = 13f; // Half of 26 N engine force
             }
 
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(VehicleIntegrationHelper.k_DriveFrames);
 
-            Vector3 posAfterForce = _h.Car.transform.position;
             float forwardDisplacement = Vector3.Dot(
-                posAfterForce - posBeforeForce, _h.Car.transform.forward);
-
+                _h.Car.transform.position - posBeforeForce, _h.Car.transform.forward);
             Assert.Greater(forwardDisplacement, 0.01f,
                 "Positive MotorForceShare on rear wheels should push car forward (+Z). " +
                 "If the car moves backward or sideways, the force direction axis is wrong " +
@@ -58,23 +42,18 @@ namespace R8EOX.Tests.PlayMode
         [UnityTest]
         public IEnumerator Car_NegativeMotorForce_PushesBackward()
         {
-            // Test that negative motor force (reverse) pushes the car backward
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(VehicleIntegrationHelper.k_SettleFrames);
-
             Vector3 posBeforeForce = _h.Car.transform.position;
 
             foreach (var w in _h.Wheels)
             {
-                if (w.IsMotor)
-                    w.MotorForceShare = -7f; // Negative = reverse
+                if (w.IsMotor) w.MotorForceShare = -7f; // Negative = reverse
             }
 
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(VehicleIntegrationHelper.k_DriveFrames);
 
-            Vector3 posAfterForce = _h.Car.transform.position;
             float forwardDisplacement = Vector3.Dot(
-                posAfterForce - posBeforeForce, _h.Car.transform.forward);
-
+                _h.Car.transform.position - posBeforeForce, _h.Car.transform.forward);
             Assert.Less(forwardDisplacement, -0.005f,
                 "Negative MotorForceShare should push car backward (-Z). " +
                 "If the car moves forward, reverse force direction is inverted");
@@ -83,16 +62,11 @@ namespace R8EOX.Tests.PlayMode
         [UnityTest]
         public IEnumerator Car_InitialVelocity_FrictionDecelerates()
         {
-            // Give the car an initial forward velocity directly via Rigidbody,
-            // then let longitudinal friction from the wheels slow it down.
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(VehicleIntegrationHelper.k_SettleFrames);
-
             _h.CarRb.velocity = _h.Car.transform.forward * 5f;
-
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(VehicleIntegrationHelper.k_DriveFrames);
 
-            float speed = _h.CarRb.velocity.magnitude;
-            Assert.Less(speed, 5f,
+            Assert.Less(_h.CarRb.velocity.magnitude, 5f,
                 "Car should decelerate from initial velocity due to wheel friction. " +
                 "If speed stays constant or increases, longitudinal friction is not working");
         }
@@ -100,9 +74,7 @@ namespace R8EOX.Tests.PlayMode
         [UnityTest]
         public IEnumerator Car_SteerRight_WheelsTurnRight()
         {
-            // With _input == null, CurrentSteering must be 0 and front wheels straight.
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(VehicleIntegrationHelper.k_SettleFrames);
-
             Assert.AreEqual(0f, _h.RcCar.CurrentSteering, 0.01f,
                 "With no input, current steering should be zero (wheels straight)");
 
@@ -112,8 +84,7 @@ namespace R8EOX.Tests.PlayMode
                 {
                     float yRotation = w.transform.localEulerAngles.y;
                     if (yRotation > 180f) yRotation -= 360f; // normalize to -180..180
-                    Assert.AreEqual(0f, yRotation, 1f,
-                        $"Steer wheel {w.name} should be straight with no input");
+                    Assert.AreEqual(0f, yRotation, 1f, $"Steer wheel {w.name} should be straight with no input");
                 }
             }
         }

@@ -16,32 +16,17 @@ namespace R8EOX.Tests.PlayMode
     [Category("Conformance")]
     public class ConformanceAtRestTests
     {
-        // ---- Physics Constants (from adr-001-physics-model.md) ----
-
-        const float k_Mass = ConformanceSceneSetup.k_Mass;
-        const float k_WheelRadius = ConformanceSceneSetup.k_WheelRadiusRear;
-        const float k_Wheelbase = ConformanceSceneSetup.k_Wheelbase;
-        const float k_Gravity = ConformanceSceneSetup.k_Gravity;
-        const float k_GripCoeff = ConformanceSceneSetup.k_GripCoeff;
-
         // ---- Timing Constants ----
 
-        /// <summary>Physics frames to wait for car to settle on ground (2s at 50Hz).</summary>
-        const int k_SettleFrames = 120;
-        /// <summary>Physics frames for drive/force application (1s at 50Hz).</summary>
-        const int k_DriveFrames = 60;
-        /// <summary>Physics frames for extended drive (10s at 50Hz).</summary>
-        const int k_ExtendedDriveFrames = 600;
+        const int k_SettleFrames = 120;   // 2s at 50Hz
+        const int k_DriveFrames = 60;     // 1s at 50Hz
+        const int k_ExtendedDriveFrames = 600; // 10s at 50Hz
 
         // ---- Tolerance Constants ----
 
-        /// <summary>Velocity magnitude below which the car is considered at rest (m/s).</summary>
         const float k_RestVelocityThreshold = 0.05f;
-        /// <summary>L1-only velocity threshold — slightly looser than WaitForSettle to match measured physics (m/s).</summary>
         const float k_L1RestVelocityThreshold = 0.08f;
-        /// <summary>Angular velocity magnitude below which the car is considered rotationally still (rad/s).</summary>
         const float k_RestAngularVelocityThreshold = 0.05f;
-        /// <summary>Position drift threshold for rest tests (m).</summary>
         const float k_RestPositionDrift = 0.02f;
 
         // ---- Spawn Positions ----
@@ -72,17 +57,12 @@ namespace R8EOX.Tests.PlayMode
 
         // ---- Helper Methods ----
 
-        /// <summary>Spawns ground + vehicle at the given position and caches references.</summary>
         private void SpawnTestVehicle(Vector3 spawnPosition)
         {
             ConformanceSceneSetup.SpawnTestVehicle(
                 spawnPosition, out _ground, out _car, out _carRb, out _rcCar, out _wheels);
         }
 
-        /// <summary>
-        /// Waits until the car's velocity drops below threshold or timeout is reached.
-        /// Returns true if settled, false if timed out.
-        /// </summary>
         private IEnumerator WaitForSettle(float maxSeconds = 3f)
         {
             float elapsed = 0f;
@@ -90,9 +70,7 @@ namespace R8EOX.Tests.PlayMode
             {
                 if (_carRb.velocity.magnitude < k_RestVelocityThreshold
                     && _carRb.angularVelocity.magnitude < k_RestAngularVelocityThreshold)
-                {
                     yield break;
-                }
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;
             }
@@ -143,13 +121,11 @@ namespace R8EOX.Tests.PlayMode
         [Timeout(15000)]
         public IEnumerator L3_FullThrottleAndBrake_Decelerates()
         {
-            // Spawn and settle
             SpawnTestVehicle(k_DefaultSpawn);
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
-            // Apply full throttle for 1 second to build speed
-            // Engine force: 26N total for 13.5T preset, 13N per rear wheel
-            ConformanceSceneSetup.SetMotorForce(_wheels,26f);
+            // Apply full throttle for 1 second to build speed (26N for 13.5T preset)
+            ConformanceSceneSetup.SetMotorForce(_wheels, 26f);
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedAfterThrottle = _carRb.velocity.magnitude;
@@ -157,15 +133,12 @@ namespace R8EOX.Tests.PlayMode
                 "L3 precondition: Car should have gained speed after throttle. " +
                 $"Actual speed: {speedAfterThrottle:F3} m/s");
 
-            // Now apply throttle AND braking simultaneously
-            // Brake force is applied through IsBraking flag + longitudinal friction
-            ConformanceSceneSetup.SetMotorForce(_wheels,26f);
+            // Apply throttle AND braking simultaneously
+            ConformanceSceneSetup.SetMotorForce(_wheels, 26f);
             ConformanceSceneSetup.SetBraking(_wheels, true);
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_DriveFrames);
 
             float speedAfterBrake = _carRb.velocity.magnitude;
-
-            // Assert: speed decreased — brake overpowers or at least slows the motor
             Assert.Less(speedAfterBrake, speedAfterThrottle * 1.5f,
                 "L3: Speed should not increase significantly when braking with throttle. " +
                 $"Before brake: {speedAfterThrottle:F3} m/s, after: {speedAfterBrake:F3} m/s");
@@ -182,20 +155,16 @@ namespace R8EOX.Tests.PlayMode
         [Timeout(30000)]
         public IEnumerator L10_HighSpeedStraight_SpeedConvergesToMax()
         {
-            // Spawn and settle
             SpawnTestVehicle(k_DefaultSpawn);
             yield return VehicleIntegrationHelper.WaitPhysicsFrames(k_SettleFrames);
 
-            // Apply full throttle on flat surface for 10 seconds
-            // 26N total engine force (13.5T motor preset)
-            ConformanceSceneSetup.SetMotorForce(_wheels,26f);
-
+            // Apply full throttle for 10 seconds (26N, 13.5T motor preset)
+            ConformanceSceneSetup.SetMotorForce(_wheels, 26f);
             float speedAtHalfway = 0f;
 
             for (int i = 0; i < k_ExtendedDriveFrames; i++)
             {
                 yield return new WaitForFixedUpdate();
-
                 if (i == k_ExtendedDriveFrames / 2)
                     speedAtHalfway = _carRb.velocity.magnitude;
             }
