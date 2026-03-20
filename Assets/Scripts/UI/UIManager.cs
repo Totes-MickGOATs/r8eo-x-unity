@@ -4,6 +4,7 @@ namespace R8EOX.UI
     using System.Collections;
     using System.Collections.Generic;
     using R8EOX.GameFlow;
+    using R8EOX.Shared;
     using UnityEngine;
 
     /// <summary>
@@ -76,13 +77,13 @@ namespace R8EOX.UI
         {
             if (_screenRegistry == null)
             {
-                Debug.LogWarning($"[UIManager] No ScreenRegistry assigned. Cannot show '{screenId}'.");
+                RuntimeLog.LogWarning($"[UIManager] No ScreenRegistry assigned. Cannot show '{screenId}'.");
                 return;
             }
 
             if (!_screenRegistry.TryGetScreen(screenId, out var prefab))
             {
-                Debug.LogWarning($"[UIManager] Screen '{screenId}' not found in registry.");
+                RuntimeLog.LogWarning($"[UIManager] Screen '{screenId}' not found in registry.");
                 return;
             }
 
@@ -94,7 +95,7 @@ namespace R8EOX.UI
         {
             if (_screenRegistry == null || !_screenRegistry.TryGetScreen(screenId, out var prefab))
             {
-                Debug.LogWarning($"[UIManager] Overlay '{screenId}' not found in registry.");
+                RuntimeLog.LogWarning($"[UIManager] Overlay '{screenId}' not found in registry.");
                 return;
             }
 
@@ -102,7 +103,7 @@ namespace R8EOX.UI
             var screen = instance.GetComponent<IScreen>();
             if (screen == null)
             {
-                Debug.LogError($"[UIManager] Overlay prefab '{screenId}' has no IScreen component.");
+                RuntimeLog.LogError($"[UIManager] Overlay prefab '{screenId}' has no IScreen component.");
                 Destroy(instance);
                 return;
             }
@@ -153,7 +154,7 @@ namespace R8EOX.UI
             var screen = instance.GetComponent<IScreen>();
             if (screen == null)
             {
-                Debug.LogError($"[UIManager] Prefab '{screenId}' has no IScreen component.");
+                RuntimeLog.LogError($"[UIManager] Prefab '{screenId}' has no IScreen component.");
                 Destroy(instance);
                 yield break;
             }

@@ -39,16 +39,12 @@ from typing import NamedTuple
 # Tracked in: Logs/lint_baseline.md
 # ---------------------------------------------------------------------------
 POLICY_ALLOWLIST: dict[str, list[int] | str] = {
-    # Debug.Log* baseline — tracked in Logs/lint_baseline.md
-    # Remove entries as each file is migrated to RuntimeLog
-    "Assets/Scripts/Vehicle/RCCar.cs": "all",
-    "Assets/Scripts/Vehicle/RaycastWheel.cs": "all",
-    "Assets/Scripts/Vehicle/Drivetrain.cs": "all",
-    "Assets/Scripts/GameFlow/SceneBootstrapper.cs": "all",
-    "Assets/Scripts/Track/SurfaceZone.cs": "all",
-    "Assets/Scripts/UI/UIManager.cs": "all",
-    # Manifest orphan allowlist
-    "Assets/Scripts/Input/R8EOXInputActions.cs": "orphan",
+    # RuntimeLog.cs is the facade implementation — it must call Debug.Log* internally
+    "Assets/Scripts/Shared/RuntimeLog.cs": "all",
+    # Auto-generated Unity input asset — do not edit; DEBUG_LOG + orphan both allowed
+    "Assets/Scripts/Input/R8EOXInputActions.cs": "all",
+    # GyroscopicMath.cs — pre-existing baseline violations, pending separate migration task
+    "Assets/Scripts/Vehicle/Physics/GyroscopicMath.cs": "all",
 }
 
 # ---------------------------------------------------------------------------

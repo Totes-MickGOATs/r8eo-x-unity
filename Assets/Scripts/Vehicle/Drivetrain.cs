@@ -1,4 +1,5 @@
 using UnityEngine;
+using R8EOX.Shared;
 
 namespace R8EOX.Vehicle
 {
@@ -122,7 +123,7 @@ namespace R8EOX.Vehicle
             _debugLogTimer += Time.fixedDeltaTime;
             if (_debugLogTimer >= 0.5f)
             {
-                Debug.Log($"[drivetrain] totalForce={engineForce:F2}N fl={frontWheels[0].MotorForceShare:F2}N fr={frontWheels[1].MotorForceShare:F2}N rl={rearWheels[0].MotorForceShare:F2}N rr={rearWheels[1].MotorForceShare:F2}N");
+                RuntimeLog.Log($"[drivetrain] totalForce={engineForce:F2}N fl={frontWheels[0].MotorForceShare:F2}N fr={frontWheels[1].MotorForceShare:F2}N rl={rearWheels[0].MotorForceShare:F2}N rr={rearWheels[1].MotorForceShare:F2}N");
                 _debugLogTimer = 0f;
             }
 #endif
