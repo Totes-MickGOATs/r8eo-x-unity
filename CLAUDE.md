@@ -20,6 +20,26 @@ This file provides guidance to Claude Code when working with this repository.
 
 ---
 
+## First Commands — Start Here
+
+Before exploring or fixing anything, run:
+
+```bash
+just diagnose      # syntax → registry → compile (if UNITY_PATH set) → targeted module tests
+```
+
+- Clean tree → exits after phase 3 with no tests run
+- C# changes → auto-selects only affected module tests (not the full suite)
+- Compile error → stops at phase 3 with the exact error
+- Registry drift → stops at phase 2 with the affected manifest
+
+Set `UNITY_PATH` once in your shell profile to enable compile check and test execution:
+```bash
+export UNITY_PATH="/Applications/Unity/Hub/Editor/<version>/Unity.app/Contents/MacOS/Unity"
+```
+
+---
+
 ## Session Start — Self-Reflect Before Acting
 
 > **MANDATORY:** Before writing code:

@@ -2,6 +2,12 @@
 
 Edit Mode unit tests for physics math, input processing, and game systems. No MonoBehaviour instantiation needed — all tests exercise pure static/logic classes.
 
+## Subdirectories
+
+| Dir | Contents |
+|-----|----------|
+| `Physics/` | BlackBox physics integration tests: `BlackBoxSuspensionTests`, `BlackBoxSuspensionGripTests`, `BlackBoxGripTests`, `BlackBoxGripTractionTests`, `BlackBoxGripRpmTests`, `BlackBoxDrivetrainTests`, `BlackBoxAirPhysicsTests`, `BlackBoxTumbleTests`, `BlackBoxTumbleSmoothstepTests`, `BlackBoxInputTests` |
+
 ## Files
 
 | File | Tests | Coverage |

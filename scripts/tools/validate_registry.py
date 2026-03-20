@@ -162,11 +162,11 @@ def validate() -> list[str]:
                 )
 
         for cls in playmode_tests:
-            test_path = PROJECT_ROOT / "Assets" / "Tests" / "PlayMode" / f"{cls}.cs"
-            if not test_path.exists():
+            matches = list(PROJECT_ROOT.glob(f"Assets/Tests/PlayMode/**/{cls}.cs"))
+            if not matches:
                 issues.append(
                     f"[{name}] WARNING: Test class not found: {cls} "
-                    f"(expected at {test_path.relative_to(PROJECT_ROOT)})"
+                    f"(expected under Assets/Tests/PlayMode/)"
                 )
 
         # No coverage warning

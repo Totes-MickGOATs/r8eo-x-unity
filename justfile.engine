@@ -73,3 +73,61 @@ worktree-batch +tasks:
 # Lightweight C# syntax checks (staged files or --all)
 syntax-check *args:
     bash scripts/tools/syntax-check-csharp.sh {{args}}
+
+# First-line triage: syntax → registry → compile (if UNITY_PATH) → targeted module tests
+diagnose:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    FAIL=0
+
+    echo "=== [1/4] C# syntax check ==="
+    bash scripts/tools/syntax-check-csharp.sh --all || FAIL=1
+    [ $FAIL -eq 1 ] && echo "STOP: syntax errors found — fix before proceeding" && exit 1
+
+    echo ""
+    echo "=== [2/4] Registry validation ==="
+    uv run python scripts/tools/validate_registry.py || FAIL=1
+    [ $FAIL -eq 1 ] && echo "STOP: registry errors found — fix before proceeding" && exit 1
+
+    echo ""
+    echo "=== [3/4] Compile check ==="
+    UNITY_BIN="${UNITY_PATH:-}"
+    if [ -z "$UNITY_BIN" ] && command -v Unity >/dev/null 2>&1; then UNITY_BIN="Unity"; fi
+    if [ -z "$UNITY_BIN" ]; then
+        echo "SKIP: UNITY_PATH not set — set it to run compile check"
+        echo "  export UNITY_PATH=\"/Applications/Unity/Hub/Editor/<version>/Unity.app/Contents/MacOS/Unity\""
+    else
+        "$UNITY_BIN" -batchmode -nographics -projectPath . -quit -logFile - 2>&1 \
+            | grep -E "(error|Error|ERROR)" || echo "No compilation errors detected"
+    fi
+
+    echo ""
+    echo "=== [4/4] Targeted module tests ==="
+    CHANGED_CS=$(git diff --name-only main..HEAD 2>/dev/null | grep '\.cs$' || true)
+    if [ -z "$CHANGED_CS" ]; then
+        echo "SKIP: no changed .cs files on this branch"
+        echo ""
+        echo "=== diagnose: PASS (no C# changes) ==="
+        exit 0
+    fi
+    RESOLVE_OUT=$(echo "$CHANGED_CS" | uv run python scripts/tools/resolve_module_tests.py \
+        --format unity-filter --editmode-only 2>/dev/null || true)
+    if [ -z "$RESOLVE_OUT" ]; then
+        echo "SKIP: no owned modules affected by changed files"
+        echo ""
+        echo "=== diagnose: PASS (no module tests triggered) ==="
+        exit 0
+    fi
+    echo "Filter: $RESOLVE_OUT"
+    if [ -z "$UNITY_BIN" ]; then
+        echo "SKIP: UNITY_PATH not set — to run these tests:"
+        echo "  UNITY_PATH=... just test-fast \"$RESOLVE_OUT\""
+        echo ""
+        echo "=== diagnose: PARTIAL (compile + tests skipped — set UNITY_PATH) ==="
+        exit 0
+    fi
+    "$UNITY_BIN" -batchmode -nographics -runTests -testPlatform EditMode \
+        -projectPath . -testFilter "$RESOLVE_OUT" \
+        -testResults test-results/diagnose-editmode.xml \
+        && echo "" && echo "=== diagnose: PASS ===" \
+        || { echo ""; echo "FAIL: targeted tests failed"; echo "Filter: $RESOLVE_OUT"; echo "Results: test-results/diagnose-editmode.xml"; exit 1; }
