@@ -32,6 +32,64 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
+# ── Unity Analyzer Hard-Block Rules ──────────────────────────────────────────
+# These rules produce compile errors and block a build when violated.
+dotnet_diagnostic.UNT0004.severity = error
+dotnet_diagnostic.UNT0005.severity = error
+dotnet_diagnostic.UNT0006.severity = error
+dotnet_diagnostic.UNT0007.severity = error
+dotnet_diagnostic.UNT0008.severity = error
+dotnet_diagnostic.UNT0010.severity = error
+dotnet_diagnostic.UNT0011.severity = error
+dotnet_diagnostic.UNT0023.severity = error
+
+# ── Unity Performance / Style Diagnostics (warning) ──────────────────────────
+dotnet_diagnostic.UNT0001.severity = warning
+dotnet_diagnostic.UNT0002.severity = warning
+dotnet_diagnostic.UNT0003.severity = warning
+dotnet_diagnostic.UNT0009.severity = warning
+dotnet_diagnostic.UNT0012.severity = warning
+dotnet_diagnostic.UNT0013.severity = warning
+dotnet_diagnostic.UNT0014.severity = warning
+dotnet_diagnostic.UNT0015.severity = warning
+dotnet_diagnostic.UNT0016.severity = warning
+
+# ── Naming Conventions ────────────────────────────────────────────────────────
+# Private fields: _camelCase
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+dotnet_naming_rule.private_fields_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_rule.private_fields_underscore_camel_case.severity = suggestion
+
+# Constants and static readonly: k_PascalCase
+dotnet_naming_symbols.constants_and_static_readonly.applicable_kinds = field
+dotnet_naming_symbols.constants_and_static_readonly.applicable_accessibilities = *
+dotnet_naming_symbols.constants_and_static_readonly.required_modifiers = const, static
+
+dotnet_naming_style.k_pascal_case.capitalization = pascal_case
+dotnet_naming_style.k_pascal_case.required_prefix = k_
+
+dotnet_naming_rule.constants_k_pascal_case.symbols = constants_and_static_readonly
+dotnet_naming_rule.constants_k_pascal_case.style = k_pascal_case
+dotnet_naming_rule.constants_k_pascal_case.severity = suggestion
+
+# ── Style Rules ───────────────────────────────────────────────────────────────
+# Prefer braces for all control structures
+csharp_prefer_braces = true:suggestion
+
+# Prefer null-conditional delegate invocation (e.g. handler?.Invoke())
+csharp_style_conditional_delegate_call = true:suggestion
+
+# var preferences
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+
 # C++ (Unreal)
 [*.{cpp,h,hpp}]
 indent_style = tab
