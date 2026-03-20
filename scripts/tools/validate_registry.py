@@ -154,11 +154,11 @@ def validate() -> list[str]:
 
         # Test file existence checks (warnings)
         for cls in editmode_tests:
-            test_path = PROJECT_ROOT / "Assets" / "Tests" / "EditMode" / f"{cls}.cs"
-            if not test_path.exists():
+            matches = list(PROJECT_ROOT.glob(f"Assets/Tests/EditMode/**/{cls}.cs"))
+            if not matches:
                 issues.append(
                     f"[{name}] WARNING: Test class not found: {cls} "
-                    f"(expected at {test_path.relative_to(PROJECT_ROOT)})"
+                    f"(expected under Assets/Tests/EditMode/)"
                 )
 
         for cls in playmode_tests:
