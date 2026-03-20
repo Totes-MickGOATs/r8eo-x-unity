@@ -38,6 +38,58 @@ Set `UNITY_PATH` once in your shell profile to enable compile check and test exe
 export UNITY_PATH="/Applications/Unity/Hub/Editor/<version>/Unity.app/Contents/MacOS/Unity"
 ```
 
+## Mandatory Intake — Before Any Implementation
+
+> **MANDATORY:** Stop before coding. Confirm these seven items. If any are missing, stay in planning mode.
+
+### Intake Checklist
+
+- [ ] **Goal** — one sentence stating what changes and why
+- [ ] **Success criteria** — how you know it's done (observable, testable)
+- [ ] **Scope boundary** — what is explicitly out of scope
+- [ ] **Relevant files** — only the files that will be read or modified (no full-codebase dumps)
+- [ ] **Existing pattern** — one reference implementation to follow
+- [ ] **Tests** — which tests to write or update (class name + scenario)
+- [ ] **Smallest shippable chunk** — can this be one function, one view, or one bounded fix?
+
+If you cannot fill all seven, you are not ready to implement. Ask the user for the missing information.
+
+### Task Packet Format
+
+Every implementation request must be expressible as this packet:
+
+```
+Task:        <one sentence — what to do>
+Acceptance:  <observable done condition>
+Pattern:     <reference file or method to follow>
+Allow:       <files allowed to touch>
+Exclude:     <files that must not change>
+Tests:       <test class + scenario names to write>
+Done when:   <specific verifiable state>
+```
+
+**Scope examples:**
+- REJECT: "build the settings module" — too large, no reference, no boundary
+- ACCEPT: "add `ValidatePassword()` to `AuthService.cs` following the existing `ValidateEmail()` pattern"
+
+### Small Chunks Only Rule
+
+Each implementation chunk must have its own test/verify/commit loop. Decompose before implementing:
+- One function, one view, one API endpoint, or one tightly bounded fix per chunk
+- Larger asks must be broken down and each chunk approved before the next starts
+- No "while I'm in here" changes — scope creep resets the chunk
+
+### Context Discipline
+
+Load only what the task needs:
+1. Root `CLAUDE.md`
+2. Local `CLAUDE.md` for the directory being modified
+3. Directly relevant files (declared in the task packet)
+4. One reference implementation if needed
+
+Do not load the full codebase unless the task is explicitly architectural.
+See `.claudeignore` for files excluded from context by default.
+
 ---
 
 ## Session Start — Self-Reflect Before Acting
