@@ -12,11 +12,13 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 | `test_coverage_report.py` | Track per-category test coverage with baseline comparison; `--check-modules` for per-module ratchet |
 | `assert_audit.py` | Verify every `[Test]`/`[UnityTest]` method body contains at least one assertion; `--all` scans all test files |
 | `pre_commit_checks.py` | Unified pre-commit entry point: runs coverage ratchet + assert audit in one process, loading manifests once; reads staged `.cs` paths from stdin |
+| `lint_csharp_policy.py` | Policy linter for C# runtime assemblies: blocks Debug.Log*, FindObject/Resources.Load, GUID refs in asmdefs, string-based layer/tag/scene lookups, and manifest orphans; `--staged`, `--changed-against <ref>`, `--all` modes |
 
 ## Shell Scripts
 
 | File | Role |
 |------|------|
+| `get_changed_files.sh` | Normalize changed file selection for lint tools: `--staged`, `--changed <ref>`, `--all`, `--cs` filter |
 | `safe-worktree-init.sh` | Create a single feature branch + worktree from origin/main |
 | `safe-worktree-init-batch.sh` | Batch create multiple worktrees with a single git fetch |
 | `subagent-lifecycle.sh` | Consolidated subagent commands: `init <task>` (delegates to safe-worktree-init.sh), `submit` (queue current branch), and `ship` (push+PR+merge+sync remote fallback) |
