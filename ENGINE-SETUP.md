@@ -14,7 +14,7 @@ Open Unity Hub, click "Open", and select this project directory. Unity will gene
 
 ### 2. Configure MCP (optional)
 
-The UnityMCP and coplay-mcp servers enable Claude Code to interact with the running Unity editor.
+The UnityMCP server enables Claude Code to interact with the running Unity editor.
 
 - The `.mcp.json` file is copied to the project root by the setup script
 - Install the UnityMCP package: `npm install @anthropic/unity-mcp`

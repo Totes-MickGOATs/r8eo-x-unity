@@ -27,4 +27,4 @@ After setup is complete, remind the user:
 - Type `/dev:next-task` to see what to work on first
 - All code changes go through feature branches — just describe what you want to build
 - Claude handles branching, commits, PRs, and CI automatically
-- Unity MCP servers (UnityMCP + coplay-mcp) let Claude interact with the Unity Editor directly
+- Unity MCP server (UnityMCP) lets Claude interact with the Unity Editor directly
