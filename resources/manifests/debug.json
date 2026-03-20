@@ -9,6 +9,7 @@
     "Assets/Scripts/Debug/WheelTerrainDiagnostics.cs",
     "Assets/Scripts/Debug/Diagnostics/TerrainDiagnosticChecks.cs",
     "Assets/Scripts/Debug/DebugBootstrap.cs",
+    "Assets/Scripts/Debug/InputDiagnostics.cs",
     "Assets/Scripts/Debug/R8EOX.Debug.asmdef",
     "Assets/Scripts/Debug/Audit/AuditConstants.cs",
     "Assets/Scripts/Debug/Audit/AuditDb.cs",
