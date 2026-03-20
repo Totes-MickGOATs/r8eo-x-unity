@@ -6,8 +6,7 @@
         "R8EOX.Input",
         "R8EOX.Camera",
         "R8EOX.Debug",
-        "R8EOX.Core",
-        "GUID:27619889b8ba8c24980f49ee34dbb44a"
+        "R8EOX.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

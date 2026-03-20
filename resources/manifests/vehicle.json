@@ -71,7 +71,6 @@
       "VehicleSettlingTests",
       "VehicleWheelTests",
       "VehicleDriveTests",
-      "CompoundConformanceTests",
       "ConformanceAtRestTests",
       "ConformanceTransitionTests",
       "ConformanceLandingTests",

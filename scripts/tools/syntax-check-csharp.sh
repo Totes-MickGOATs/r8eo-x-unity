@@ -68,7 +68,7 @@ check_file() {
   fi
 
   # 6. Common typos: doubled semicolons, missing using
-  if grep -nP ';;(?!\s*//)' "$file" | head -3 | grep -q .; then
+  if grep -n ';;' "$file" | grep -v ';;[[:space:]]*//' | head -3 | grep -q .; then
     echo "WARN:  $file — doubled semicolons found"
     warnings=$((warnings + 1))
   fi
