@@ -19,12 +19,13 @@
     "Assets/Scripts/Editor/Builders/TerrainBuilder.cs",
     "Assets/Scripts/Editor/Builders/EnvironmentBuilder.cs",
     "Assets/Scripts/Editor/Builders/AssetHelper.cs",
-    "Assets/Scripts/Editor/Builders/TerrainLayerBuilder.cs"
+    "Assets/Scripts/Editor/Builders/TerrainLayerBuilder.cs",
+    "Assets/Scripts/Editor/AssetLintRunner.cs"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],
   "replaced_by": "",
   "tests": {
-    "editmode": ["OutpostTrackSetupTests", "BuggyMaterialsTests"],
+    "editmode": ["OutpostTrackSetupTests", "BuggyMaterialsTests", "AssetLintRunnerTests"],
     "playmode": []
   }
 }
