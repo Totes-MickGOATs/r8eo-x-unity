@@ -19,8 +19,9 @@ Build utilities, asset generation, and validation scripts. Python scripts run vi
 |------|------|
 | `safe-worktree-init.sh` | Create a single feature branch + worktree from origin/main |
 | `safe-worktree-init-batch.sh` | Batch create multiple worktrees with a single git fetch |
-| `subagent-lifecycle.sh` | Consolidated subagent commands: `init <task>` (delegates to safe-worktree-init.sh) and `ship` (push+PR+merge+sync) |
-| `task-complete.sh` | Main agent one-command cleanup after subagent PR merge: delete branch, worktree, tags, sync main |
+| `subagent-lifecycle.sh` | Consolidated subagent commands: `init <task>` (delegates to safe-worktree-init.sh), `submit` (queue current branch), and `ship` (push+PR+merge+sync remote fallback) |
+| `task-complete.sh` | Main agent one-command cleanup: accepts local promotion (merge-base check) or remote PR merge; deletes branch, worktree, tags, syncs main |
+| `unity-queue.sh` | Local verification queue — serializes Unity compile/test jobs through a dedicated verifier worktree; commands: `submit`, `run`, `run-all`, `promote`, `status`, `init-verifier` |
 | `stream-status.sh` | Dashboard: commit count, push status, and PR state for all active streams |
 | `conflict-forecast.sh` | Detect files touched by multiple active worktree branches |
 | `syntax-check-csharp.sh` | Lightweight pre-commit C# checks: balanced braces, namespace, line limit |

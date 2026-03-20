@@ -32,38 +32,47 @@ if [ -n "$DIRTY" ]; then
     WARNINGS="${WARNINGS}$(echo "$DIRTY" | sed 's/^/  /')\n\n"
 fi
 
-# Check if branch has been pushed
-REMOTE_REF=$(git ls-remote --heads origin "$BRANCH" 2>/dev/null | head -1)
-if [ -z "$REMOTE_REF" ]; then
-    WARNINGS="${WARNINGS}BRANCH NOT PUSHED: '$BRANCH' has not been pushed to origin.\n"
-    WARNINGS="${WARNINGS}  Run: git push -u origin $BRANCH\n\n"
+# Check local verification queue status for this branch
+QUEUE_FILE="${CLAUDE_PROJECT_DIR}/Logs/automation/queue.json"
+QUEUE_STATUS="not submitted"
+if [ -f "$QUEUE_FILE" ] && command -v python3 >/dev/null 2>&1; then
+    QUEUE_STATUS=$(python3 -c "
+import json, sys
+branch = sys.argv[1]
+try:
+    with open(sys.argv[2]) as f:
+        data = json.load(f)
+    result = data.get('results', {}).get(branch, {}).get('status', '')
+    queue = [e for e in data.get('queue', []) if e.get('branch') == branch]
+    if result:
+        print(result)
+    elif queue:
+        print(queue[0].get('status', 'queued'))
+    else:
+        print('not submitted')
+except Exception:
+    print('unknown')
+" "$BRANCH" "$QUEUE_FILE" 2>/dev/null || echo "unknown")
 fi
 
-# Sync local main to origin/main if the PR is already merged
-# (post-merge sync only — use 'just ff-main' mid-development before the PR)
-if [ -n "$REMOTE_REF" ]; then
-    MERGED_CHECK=$(gh pr list --head "$BRANCH" --state merged --json number --limit 1 2>/dev/null || echo "[]")
-    MERGED_CHECK_NUM=$(echo "$MERGED_CHECK" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['number'] if d else '')" 2>/dev/null || echo "")
-    if [ -n "$MERGED_CHECK_NUM" ]; then
-        git fetch origin main --quiet 2>/dev/null || true
-        git update-ref refs/heads/main origin/main 2>/dev/null || true
-        echo "post-merge: local main synced to origin/main (PR #$MERGED_CHECK_NUM merged)"
+if [ "$QUEUE_STATUS" = "passed" ]; then
+    # Branch passed — check if main was promoted
+    if git merge-base --is-ancestor "$BRANCH" main 2>/dev/null; then
+        echo "queue: branch '${BRANCH}' passed and is already in local main"
+    else
+        WARNINGS="${WARNINGS}QUEUE PASSED — PROMOTE PENDING: Branch '${BRANCH}' passed verification but local main not yet updated.\n"
+        WARNINGS="${WARNINGS}  Run: just queue-promote ${BRANCH}\n\n"
     fi
-fi
-
-# Check if PR exists for this branch
-if command -v gh &>/dev/null && [ -n "$REMOTE_REF" ]; then
-    PR_JSON=$(gh pr list --head "$BRANCH" --state open --json number,title --limit 1 2>/dev/null || echo "[]")
-    PR_NUM=$(echo "$PR_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['number'] if d else '')" 2>/dev/null || echo "")
-    if [ -z "$PR_NUM" ]; then
-        # Check if merged already
-        MERGED_JSON=$(gh pr list --head "$BRANCH" --state merged --json number --limit 1 2>/dev/null || echo "[]")
-        MERGED_NUM=$(echo "$MERGED_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['number'] if d else '')" 2>/dev/null || echo "")
-        if [ -z "$MERGED_NUM" ]; then
-            WARNINGS="${WARNINGS}NO PR CREATED: Branch '$BRANCH' is pushed but has no pull request.\n"
-            WARNINGS="${WARNINGS}  Run: gh pr create --base main\n\n"
-        fi
-    fi
+elif [ "$QUEUE_STATUS" = "failed" ]; then
+    WARNINGS="${WARNINGS}QUEUE FAILED: Branch '${BRANCH}' failed verification.\n"
+    WARNINGS="${WARNINGS}  Check: ${QUEUE_FILE}\n"
+    WARNINGS="${WARNINGS}  Results: ${CLAUDE_PROJECT_DIR}/Logs/automation/results/\n\n"
+elif [ "$QUEUE_STATUS" = "running" ]; then
+    echo "queue: verification currently running for '${BRANCH}'"
+elif [ "$QUEUE_STATUS" = "not submitted" ] || [ "$QUEUE_STATUS" = "unknown" ]; then
+    WARNINGS="${WARNINGS}NOT SUBMITTED TO QUEUE: Branch '${BRANCH}' has not been submitted for verification.\n"
+    WARNINGS="${WARNINGS}  Run: just queue-submit ${BRANCH}\n"
+    WARNINGS="${WARNINGS}  Then: just queue-run\n\n"
 fi
 
 if [ -n "$WARNINGS" ]; then
@@ -73,7 +82,7 @@ if [ -n "$WARNINGS" ]; then
     echo "╚══════════════════════════════════════╝"
     echo ""
     echo -e "$WARNINGS"
-    echo "Definition of Done: PR open + CI green + ready-to-merge label applied."
+    echo "Definition of Done: branch committed + queue passed + local main promoted."
 fi
 
 # Clean-loop reminder
@@ -81,10 +90,9 @@ echo ""
 echo "REMINDER: Run /dev:clean-loop before declaring done."
 echo "  → Captures lessons learned, updates docs, checks memory, verifies clean state."
 
-# CI monitoring reminder
-echo "REMINDER: Watch CI through merge before exiting."
-echo "  → gh run watch && gh pr view --json state -q .state"
-echo "  → Then: git fetch origin main && git update-ref refs/heads/main origin/main"
+echo "REMINDER: Verify queue status before exiting."
+echo "  → just queue-status"
+echo "  → just queue-promote ${BRANCH}   (if passed)"
 
 # Never block — always exit 0
 exit 0

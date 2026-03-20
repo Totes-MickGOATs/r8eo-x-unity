@@ -392,6 +392,20 @@ task-complete task:
 assert-audit:
     uv run python scripts/tools/assert_audit.py --all
 
+# --- Local Verification Queue ---
+queue-submit branch:
+    bash scripts/tools/unity-queue.sh submit {{branch}}
+queue-run:
+    bash scripts/tools/unity-queue.sh run
+queue-run-all:
+    bash scripts/tools/unity-queue.sh run-all
+queue-promote branch:
+    bash scripts/tools/unity-queue.sh promote {{branch}}
+queue-status:
+    bash scripts/tools/unity-queue.sh status
+queue-init:
+    bash scripts/tools/unity-queue.sh init-verifier
+
 # --- Local Fast-Forward ---
 
 # Fast-forward local main to current branch after successful push (tested commits only)
