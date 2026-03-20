@@ -9,7 +9,7 @@ Use this skill when interacting with the Unity Editor from Claude Code via MCP t
 
 ## Setup
 
-Both servers are configured in `.mcp.json` at the project root:
+UnityMCP is configured in `.mcp.json` at the project root:
 
 ```json
 {
@@ -17,10 +17,6 @@ Both servers are configured in `.mcp.json` at the project root:
     "UnityMCP": {
       "command": "npx",
       "args": ["-y", "@anthropic/unity-mcp@latest"]
-    },
-    "coplay-mcp": {
-      "command": "npx",
-      "args": ["-y", "coplay-mcp@latest"]
     }
   }
 }
@@ -213,233 +209,6 @@ manage_vfx:
   # Particle systems, VFX Graph
 ```
 
-## coplay-mcp Tools
-
-coplay-mcp provides a broader set of tools including AI content generation and more granular object manipulation.
-
-### Object Creation and Manipulation
-
-```
-# Create a new GameObject
-create_game_object:
-  name: "Enemy"
-  parent_path: "/GameWorld/Enemies"  # hierarchy path
-
-# Set transform
-set_transform:
-  object_path: "/GameWorld/Enemies/Enemy"
-  position: { "x": 0, "y": 1, "z": 5 }
-  rotation: { "x": 0, "y": 180, "z": 0 }
-  scale: { "x": 1, "y": 1, "z": 1 }
-
-# Set any serialized property
-set_property:
-  object_path: "/Player"
-  component_type: "PlayerController"
-  property_name: "moveSpeed"
-  value: 7.5
-
-# Add component
-add_component:
-  object_path: "/Player"
-  component_type: "UnityEngine.AudioSource"
-
-# Remove component
-remove_component:
-  object_path: "/Player"
-  component_type: "UnityEngine.AudioSource"
-```
-
-### Prefabs
-
-```
-# Create prefab from scene object
-create_prefab:
-  source_object_path: "/Player"
-  prefab_path: "Assets/Prefabs/Player.prefab"
-
-# Place prefab in scene
-place_asset_in_scene:
-  asset_path: "Assets/Prefabs/Enemy.prefab"
-  position: { "x": 10, "y": 0, "z": 5 }
-  parent_path: "/GameWorld/Enemies"
-```
-
-### Scene Operations
-
-```
-create_scene:
-  scene_name: "Level02"
-  path: "Assets/Scenes"
-
-open_scene:
-  scene_path: "Assets/Scenes/Level02.unity"
-
-save_scene:
-  # saves current scene
-```
-
-### Materials and Rendering
-
-```
-create_material:
-  name: "EnemyMaterial"
-  shader: "Universal Render Pipeline/Lit"
-  path: "Assets/Materials"
-
-assign_material:
-  object_path: "/Enemy"
-  material_path: "Assets/Materials/EnemyMaterial.mat"
-
-assign_shader_to_material:
-  material_path: "Assets/Materials/EnemyMaterial.mat"
-  shader_name: "Universal Render Pipeline/Lit"
-```
-
-### Input System
-
-```
-create_input_action_asset:
-  name: "PlayerControls"
-  path: "Assets/Input"
-
-add_action_map:
-  asset_path: "Assets/Input/PlayerControls.inputactions"
-  map_name: "Gameplay"
-
-add_bindings:
-  asset_path: "Assets/Input/PlayerControls.inputactions"
-  action_map: "Gameplay"
-  action_name: "Move"
-  bindings: [
-    { "path": "<Keyboard>/w", "name": "up" },
-    { "path": "<Gamepad>/leftStick" }
-  ]
-```
-
-### Animation
-
-```
-create_animator_controller:
-  name: "EnemyAnimator"
-  path: "Assets/Animations"
-
-create_animation_clip:
-  name: "EnemyIdle"
-  path: "Assets/Animations"
-
-# Apply animation to a rigged model
-apply_animation_to_rigged_model:
-  model_path: "/Enemy"
-  controller_path: "Assets/Animations/EnemyAnimator.controller"
-```
-
-### Gameplay Testing
-
-```
-play_game:
-  # Enters Play mode
-
-stop_game:
-  # Exits Play mode
-
-# Visual feedback
-capture_scene_object:
-  object_path: "/Player"
-  # Returns screenshot of the object
-
-capture_ui_canvas:
-  canvas_path: "/UI/MainCanvas"
-  # Returns screenshot of the UI
-```
-
-### Execute Arbitrary C#
-
-The most powerful coplay-mcp tool — run any C# code in the editor:
-
-```
-execute_script:
-  code: |
-    var player = GameObject.Find("Player");
-    var rb = player.GetComponent<Rigidbody>();
-    Debug.Log($"Player mass: {rb.mass}, velocity: {rb.velocity}");
-
-execute_script:
-  code: |
-    // Batch operations
-    var enemies = GameObject.FindGameObjectsWithTag("Enemy");
-    foreach (var enemy in enemies)
-    {
-        var ai = enemy.GetComponent<EnemyAI>();
-        if (ai != null) ai.detectionRange = 15f;
-    }
-    Debug.Log($"Updated {enemies.Length} enemies");
-```
-
-### AI Content Generation
-
-coplay-mcp includes AI-powered content generation:
-
-```
-generate_3d_model_from_text:
-  prompt: "low-poly medieval sword"
-  output_path: "Assets/Models/Generated"
-
-generate_3d_model_from_image:
-  image_path: "Assets/References/concept_art.png"
-  output_path: "Assets/Models/Generated"
-
-generate_sfx:
-  prompt: "laser gun firing"
-  output_path: "Assets/Audio/SFX"
-
-generate_music:
-  prompt: "upbeat chiptune battle theme"
-  duration: 30
-  output_path: "Assets/Audio/Music"
-
-generate_or_edit_images:
-  prompt: "sci-fi metal floor texture, seamless, PBR"
-  output_path: "Assets/Textures/Generated"
-```
-
-### File Operations
-
-```
-list_files:
-  path: "Assets/Scripts"
-  recursive: true
-
-read_file:
-  path: "Assets/Scripts/PlayerController.cs"
-
-search_files:
-  query: "PlayerController"
-  path: "Assets/Scripts"
-
-list_game_objects_in_hierarchy:
-  # Returns full scene hierarchy
-```
-
-### Package Management
-
-```
-list_packages:
-  # Lists installed packages
-
-search_all_packages:
-  query: "cinemachine"
-
-install_unity_package:
-  package_name: "com.unity.cinemachine"
-
-install_git_package:
-  url: "https://github.com/user/repo.git"
-
-remove_unity_package:
-  package_name: "com.unity.cinemachine"
-```
-
 ## Additional UnityMCP Tools
 
 The following UnityMCP tools are available but not covered in detail above:
@@ -496,40 +265,31 @@ Step 3: Only proceed when compilation is complete
 - **Reading** scene hierarchy, component data, file contents → use resource endpoints when available (faster, cached)
 - **Modifying** objects, creating assets, changing properties → use tool endpoints (these modify state)
 
-### 6. Batch Operations with execute_script
+### 6. Use batch_execute for Multiple Operations
 
-When you need to modify many objects at once, `execute_script` is more efficient than calling individual tools:
+When you need to create multiple GameObjects or modify multiple components in sequence, use `batch_execute` to reduce round-trips:
 
 ```
-execute_script:
-  code: |
-    // Disable all enemies at once
-    foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
-    {
-        enemy.SetActive(false);
-    }
+batch_execute:
+  calls:
+    - tool: manage_gameobject
+      params: { action: "set_component_property", ... }
+    - tool: manage_gameobject
+      params: { action: "set_component_property", ... }
 ```
 
-### 7. Verify Changes Visually
+## UnityMCP Tool Selection Guide
 
-After significant changes, use `capture_scene_object` or `capture_ui_canvas` to verify the result looks correct before moving on.
-
-## Choosing Between UnityMCP and coplay-mcp
-
-| Task | Preferred Server |
-|------|-----------------|
-| Scene hierarchy queries | UnityMCP (`manage_scene` with paging) |
-| Component property reads | UnityMCP (`manage_gameobject` with include_properties) |
-| Creating/placing prefabs | coplay-mcp (`create_prefab`, `place_asset_in_scene`) |
-| Input System setup | coplay-mcp (full input action asset workflow) |
-| Animation setup | coplay-mcp (animator controllers, clips) |
-| Batch operations | coplay-mcp (`execute_script`) |
-| AI content generation | coplay-mcp (3D models, SFX, music, images) |
-| Visual verification | coplay-mcp (`capture_scene_object`) |
-| Material/shader work | Either (both have material tools) |
-| Script creation | Either (both can create/modify scripts) |
-
-When both servers can do a task, prefer the one with more specific tooling for that domain. For complex multi-step operations, coplay-mcp's `execute_script` is the most flexible option.
+| Task | Tool |
+|------|------|
+| Scene hierarchy queries | `manage_scene` with paging |
+| Component property reads | `manage_gameobject` with `include_properties` |
+| Script creation/modification | `manage_script` |
+| Running tests | `run_tests` |
+| Validating C# without saving | `validate_script` |
+| Multiple sequential operations | `batch_execute` |
+| ProBuilder mesh work | `manage_probuilder` |
+| Material/shader work | `manage_material` |
 
 ## Troubleshooting
 

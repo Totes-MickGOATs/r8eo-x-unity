@@ -77,7 +77,7 @@ Create asset: `Assets > Create > R8EOX > My Config`. Assign to `RCCar` or `Rayca
 
 ## MCP Servers
 
-`.mcp.json`: `UnityMCP` (editor automation) · `coplay-mcp` (component management) · `fathom` (`http://localhost:19876/mcp`)
+`.mcp.json`: `UnityMCP` (editor automation) · `fathom` (`http://localhost:19876/mcp`)
 
 After C# changes: wait 10-15s for domain reload. Avoid `Physics`/`UnityEngine.Physics` namespace collisions.
 
@@ -86,6 +86,6 @@ After C# changes: wait 10-15s for domain reload. Avoid `Physics`/`UnityEngine.Ph
 - `CLAUDE.md` — primary AI workflow rules
 - `resources/manifests/` — system file registry (`just validate-registry`)
 - `Assets/Tests/EditMode/` — 327 NUnit unit tests
-- `Packages/manifest.json` — Unity packages (`com.unity.inputsystem@1.8.2`, `com.coplaydev.unity-mcp`)
+- `Packages/manifest.json` — Unity packages (`com.unity.inputsystem@1.8.2`)
 - `.coverage-baseline.json` — coverage baseline (327 tests across Vehicle/Physics, Input, GameFlow, BlackBox)
 - `CI_LEARNINGS.md` — accumulated CI failure patterns and fixes

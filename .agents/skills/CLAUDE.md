@@ -37,7 +37,7 @@ These are lazy-loaded reference guides — Claude Code agents read them on-deman
 | `clean-loop` | Process | End-of-task checklist: lessons learned, doc sweep, memory sync, clean git state |
 | `feature-toggles` | Process | Compile-time defines, runtime SO flags, decision matrix, active toggles registry, toggle hygiene |
 | `swarm-development` | Process | Multi-agent orchestration, parallel review, convergence protocol |
-| `unity-mcp-workflows` | Tools | UnityMCP + coplay-mcp, paging, editor automation |
+| `unity-mcp-workflows` | Tools | UnityMCP, paging, editor automation |
 | `unity-save-load` | Data | JSON, Addressables, PlayerPrefs, cloud saves |
 | `unity-physics-tuning` | RC Racing | PhysX config for 1/10-scale RC: solver, timestep, layers, scale fixes, determinism, common bugs |
 | `unity-weather-conditions` | RC Racing | Dynamic weather, wet track physics, rain/dust/wind, time of day, track evolution |

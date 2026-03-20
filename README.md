@@ -54,7 +54,7 @@ All development happens on feature branches — Claude handles the branching, co
 - **Claude Code integration** — Hooks, commands, statusline, subagent quality gates
 - **TDD enforcement** — Red-Green-Commit workflow baked into project conventions
 - **Worktree-based branching** — Isolated feature branches
-- **Unity MCP integration** — UnityMCP + coplay-mcp for editor interaction from Claude Code
+- **Unity MCP integration** — UnityMCP for editor interaction from Claude Code
 
 ## Project Structure
 
