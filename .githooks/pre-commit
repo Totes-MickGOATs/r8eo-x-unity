@@ -46,17 +46,6 @@ fi
 # Warn if staged production C# scripts have no corresponding test file.
 STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM -- '*.cs')
 
-# ── Roslyn analyzer build (Layer 3: analyzer diagnostics) ────────────────────
-if [ -n "$STAGED_CS" ] && [ -z "${SKIP_ANALYZER_CHECK:-}" ]; then
-    echo "Running Roslyn analyzer build..."
-    if ! just analyze 2>&1; then
-        echo ""
-        echo "BLOCKED: Roslyn analyzer errors found. Fix diagnostics above."
-        echo "Bypass: SKIP_ANALYZER_CHECK=1 git commit ..."
-        exit 1
-    fi
-fi
-
 if [ -n "$STAGED_CS" ]; then
     MISSING_TESTS=0
     while IFS= read -r file; do
@@ -122,6 +111,24 @@ if [ -n "$STAGED_CS" ] && [ -z "${SKIP_COVERAGE_CHECK:-}" ]; then
         echo "BLOCKED: Pre-commit checks failed. See details above."
         echo "Bypass: SKIP_COVERAGE_CHECK=1 git commit ..."
         exit 1
+    fi
+fi
+
+# ── Roslyn analyzer check (Layer 3: Unity analyzer rules) ────────────────────
+if [ -n "$STAGED_CS" ] && [ -z "${SKIP_ROSLYN_CHECK:-}" ]; then
+    SLN_FILE=$(ls *.sln 2>/dev/null | head -1)
+    if [ -n "$SLN_FILE" ]; then
+        echo "Running Roslyn analyzer checks..."
+        if ! dotnet format "$SLN_FILE" --verify-no-changes --diagnostics UNT0004 UNT0005 UNT0006 UNT0007 UNT0008 UNT0010 UNT0011 UNT0023 --severity error 2>&1; then
+            echo ""
+            echo "BLOCKED: Roslyn analyzer errors found. Fix violations before committing."
+            echo "  Rules checked: UNT0004-0008 (timing), UNT0010-0011 (constructors), UNT0023 (null coalescing)"
+            echo "  Bypass: SKIP_ROSLYN_CHECK=1 git commit ..."
+            exit 1
+        fi
+    else
+        echo "NOTE: No .sln file found — Roslyn analyzer check skipped."
+        echo "  Generate project files in Unity: Edit > Preferences > External Tools > Regenerate"
     fi
 fi
 
