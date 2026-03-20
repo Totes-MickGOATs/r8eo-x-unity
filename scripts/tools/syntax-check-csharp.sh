@@ -26,8 +26,8 @@ check_file() {
 
   # 1. Balanced braces
   local open_braces close_braces
-  open_braces=$(grep -o '{' "$file" | wc -l | tr -d ' ')
-  close_braces=$(grep -o '}' "$file" | wc -l | tr -d ' ')
+  open_braces=$({ grep -o '{' "$file" || true; } | wc -l | tr -d ' ')
+  close_braces=$({ grep -o '}' "$file" || true; } | wc -l | tr -d ' ')
   if (( open_braces != close_braces )); then
     echo "ERROR: $file — unbalanced braces (open=$open_braces close=$close_braces)"
     errors=$((errors + 1))
@@ -35,8 +35,8 @@ check_file() {
 
   # 2. Balanced parentheses
   local open_parens close_parens
-  open_parens=$(grep -o '(' "$file" | wc -l | tr -d ' ')
-  close_parens=$(grep -o ')' "$file" | wc -l | tr -d ' ')
+  open_parens=$({ grep -o '(' "$file" || true; } | wc -l | tr -d ' ')
+  close_parens=$({ grep -o ')' "$file" || true; } | wc -l | tr -d ' ')
   if (( open_parens != close_parens )); then
     echo "ERROR: $file — unbalanced parentheses (open=$open_parens close=$close_parens)"
     errors=$((errors + 1))
@@ -68,7 +68,7 @@ check_file() {
   fi
 
   # 6. Common typos: doubled semicolons, missing using
-  if grep -n ';;' "$file" | grep -v ';;[[:space:]]*//' | head -3 | grep -q .; then
+  if grep -n ';;' "$file" | grep -v ';;[[:space:]]*//' | grep -qm1 .; then
     echo "WARN:  $file — doubled semicolons found"
     warnings=$((warnings + 1))
   fi
@@ -77,6 +77,10 @@ check_file() {
 # Determine which files to check
 files=()
 if [[ "${1:-}" == "--all" ]]; then
+  if [[ ! -d "Assets/Scripts" ]]; then
+    echo "ERROR: Assets/Scripts not found — run from the repo root" >&2
+    exit 1
+  fi
   while IFS= read -r -d '' f; do
     files+=("$f")
   done < <(find Assets/Scripts Assets/Tests -name '*.cs' -print0 2>/dev/null)
