@@ -8,6 +8,7 @@ test class names to run.
 Usage:
     git diff --name-only main..HEAD | uv run python scripts/tools/resolve_module_tests.py --format shell
     git diff --name-only main..HEAD | uv run python scripts/tools/resolve_module_tests.py --format json
+    git diff --name-only main..HEAD | uv run python scripts/tools/resolve_module_tests.py --format unity-filter
     git diff --name-only main..HEAD | uv run python scripts/tools/resolve_module_tests.py --no-transitive
     git diff --name-only main..HEAD | uv run python scripts/tools/resolve_module_tests.py --editmode-only
 
@@ -190,7 +191,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--format",
-        choices=["shell", "json"],
+        choices=["shell", "json", "unity-filter"],
         default="shell",
         help="Output format (default: shell)",
     )
@@ -239,6 +240,8 @@ def main() -> int:
         # No matched modules — no tests needed
         if args.format == "json":
             print(json.dumps({"modules": [], "editmode": [], "playmode": []}))
+        elif args.format == "unity-filter":
+            pass  # print nothing
         else:
             print("MODULES=")
             print("EDITMODE_FILTER=")
@@ -256,6 +259,10 @@ def main() -> int:
                 indent=2,
             )
         )
+    elif args.format == "unity-filter":
+        if editmode:
+            print("|".join(editmode))
+        # If no editmode tests, print nothing (exit 0 still — modules were found)
     else:
         modules_str = ",".join(sorted(modules))
         editmode_str = "|".join(editmode)
