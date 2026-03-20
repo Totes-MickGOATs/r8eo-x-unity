@@ -46,6 +46,17 @@ fi
 # Warn if staged production C# scripts have no corresponding test file.
 STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM -- '*.cs')
 
+# ── Roslyn analyzer build (Layer 3: analyzer diagnostics) ────────────────────
+if [ -n "$STAGED_CS" ] && [ -z "${SKIP_ANALYZER_CHECK:-}" ]; then
+    echo "Running Roslyn analyzer build..."
+    if ! just analyze 2>&1; then
+        echo ""
+        echo "BLOCKED: Roslyn analyzer errors found. Fix diagnostics above."
+        echo "Bypass: SKIP_ANALYZER_CHECK=1 git commit ..."
+        exit 1
+    fi
+fi
+
 if [ -n "$STAGED_CS" ]; then
     MISSING_TESTS=0
     while IFS= read -r file; do
@@ -138,6 +149,36 @@ if [ -n "$STAGED_CS" ] && [ -z "${SKIP_LINE_LIMIT:-}" ]; then
         echo ""
         echo "BLOCKED: $LINE_VIOLATIONS file(s) exceed the 200-line limit."
         echo "Split large files before committing. Bypass: SKIP_LINE_LIMIT=1 git commit ..."
+        exit 1
+    fi
+fi
+
+# ── C# Syntax check (Layer 5) ─────────────────────────────────────────────────
+if [ -n "$STAGED_CS" ] && [ -z "${SKIP_SYNTAX_CHECK:-}" ]; then
+    echo "Running C# syntax check..."
+    SYNTAX_ERRORS=0
+    while IFS= read -r file; do
+        if ! bash scripts/tools/syntax-check-csharp.sh "$file" 2>&1; then
+            SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
+        fi
+    done <<< "$STAGED_CS"
+    if [ "$SYNTAX_ERRORS" -gt 0 ]; then
+        echo ""
+        echo "BLOCKED: C# syntax check failed. See details above."
+        echo "Bypass: SKIP_SYNTAX_CHECK=1 git commit ..."
+        exit 1
+    fi
+fi
+
+# ── C# Policy lint (Layer 6) ──────────────────────────────────────────────────
+if [ -n "$STAGED_CS" ] && [ -z "${SKIP_POLICY_CHECK:-}" ]; then
+    echo "Running C# policy lint..."
+    if ! uv run python scripts/tools/lint_csharp_policy.py --staged 2>&1; then
+        echo ""
+        echo "BLOCKED: C# policy violations found. See details above."
+        echo "  Direct Debug.Log*, FindObject, Resources.Load, or GUID refs in runtime assemblies."
+        echo "  Use RuntimeLog from R8EOX.Shared instead of Debug.Log*."
+        echo "Bypass: SKIP_POLICY_CHECK=1 git commit ..."
         exit 1
     fi
 fi

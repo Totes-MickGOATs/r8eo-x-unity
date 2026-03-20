@@ -539,6 +539,103 @@ ship title="":
     done
     echo "--- PR still open after 5 minutes. Check merge queue status. ---"
 
+# --- C# Lint ---
+
+# Fast C# lint: syntax check + policy lint on changed files (no Unity)
+lint-fast:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM -- '*.cs' 2>/dev/null || true)
+	ALL_CHANGED_CS=$(bash scripts/tools/get_changed_files.sh --changed origin/main --cs 2>/dev/null || true)
+	# Use staged for pre-commit context, changed-against-main for broader checks
+	CS_FILES="${STAGED_CS:-$ALL_CHANGED_CS}"
+	if [ -z "$CS_FILES" ]; then
+	    echo "lint-fast: no .cs changes detected — skipping"
+	    exit 0
+	fi
+	echo "lint-fast: checking $(echo "$CS_FILES" | wc -l | tr -d ' ') C# file(s)..."
+	# 1. Portable syntax check
+	echo "=== Syntax check ==="
+	echo "$CS_FILES" | while IFS= read -r f; do
+	    [ -f "$f" ] && bash scripts/tools/syntax-check-csharp.sh "$f"
+	done
+	# 2. dotnet format --verify-no-changes (if dotnet is installed)
+	if command -v dotnet >/dev/null 2>&1; then
+	    echo "=== dotnet format check ==="
+	    echo "$CS_FILES" | tr '\n' ' ' | xargs dotnet format r8eo-x-unity.sln --verify-no-changes --include || {
+	        echo "BLOCKED: dotnet format violations. Run: dotnet format r8eo-x-unity.sln --include <files>"
+	        exit 1
+	    }
+	fi
+	# 3. Registry validation
+	echo "=== Registry validation ==="
+	uv run python scripts/tools/validate_registry.py
+	# 4. Policy lint on staged/changed files
+	echo "=== Policy lint ==="
+	if echo "$CS_FILES" | grep -q '.'; then
+	    uv run python scripts/tools/lint_csharp_policy.py --staged || {
+	        echo "BLOCKED: Policy violations found. See output above."
+	        exit 1
+	    }
+	fi
+	echo "lint-fast: all checks passed"
+
+# Full-repo C# static lint (all files, no Unity)
+lint-csharp:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	echo "=== Syntax check (all) ==="
+	bash scripts/tools/syntax-check-csharp.sh --all
+	if command -v dotnet >/dev/null 2>&1; then
+	    echo "=== dotnet format check (full solution) ==="
+	    dotnet format r8eo-x-unity.sln --verify-no-changes || {
+	        echo "Run: dotnet format r8eo-x-unity.sln"
+	        exit 1
+	    }
+	else
+	    echo "dotnet not installed — skipping dotnet format check"
+	fi
+	echo "lint-csharp: done"
+
+# Repo-policy lint: Debug.Log, FindObject, GUID, orphan manifest checks
+lint-policy:
+	uv run python scripts/tools/lint_csharp_policy.py --all
+
+# Advisory asset/scene lint via Unity batchmode (non-blocking — exit 0 on findings)
+lint-assets:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	if [ -z "${UNITY_PATH:-}" ]; then
+	    echo "lint-assets: UNITY_PATH not set — skipping asset lint"
+	    echo "  Set UNITY_PATH to your Unity installation to enable asset lint."
+	    exit 0
+	fi
+	if [ ! -f "$UNITY_PATH" ]; then
+	    echo "lint-assets: Unity binary not found at UNITY_PATH=$UNITY_PATH — skipping"
+	    exit 0
+	fi
+	mkdir -p Logs
+	echo "lint-assets: running Unity asset lint..."
+	"$UNITY_PATH" \
+	    -batchmode \
+	    -nographics \
+	    -quit \
+	    -projectPath "$(pwd)" \
+	    -executeMethod R8EOX.Editor.AssetLintRunner.RunFromCommandLine \
+	    -logFile Logs/unity_lint.log \
+	    2>&1 | tail -20 || true
+	echo "lint-assets: report written to Logs/asset_lint_report.json"
+	echo "lint-assets: done (exit 0 — findings are advisory)"
+	exit 0
+
+# Deep lint: full C# lint + registry + assert audit + advisory asset lint
+lint-deep: lint-csharp validate-registry lint-policy lint-assets
+	#!/usr/bin/env bash
+	set -euo pipefail
+	echo "=== Assert audit ==="
+	uv run python scripts/tools/assert_audit.py --all
+	echo "lint-deep: all checks complete"
+
 # Check CLAUDE.md freshness
 validate-docs:
     uv run python scripts/tools/validate_claude_md.py
