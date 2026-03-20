@@ -11,6 +11,14 @@
       "expiry": "2026-09-01"
     },
     {
+      "file": ".line-limit-exceptions.json",
+      "lines": 934,
+      "owner": "docs-core",
+      "reason": "Exception ledger file itself \u2014 grows with each violation entry; shrinks as violations are resolved",
+      "removal_batch": "final-cutover",
+      "expiry": "2026-09-01"
+    },
+    {
       "file": ".agents/skills/unity-replay-ghost/SKILL.md",
       "lines": 907,
       "owner": "docs-skills",
