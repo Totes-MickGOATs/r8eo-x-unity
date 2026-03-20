@@ -1,6 +1,7 @@
 namespace R8EOX.GameFlow
 {
     using UnityEngine;
+    using R8EOX.Shared;
 
     /// <summary>
     /// Place on a GameObject in every gameplay scene. On Awake, checks whether
@@ -33,7 +34,7 @@ namespace R8EOX.GameFlow
 
             // Standalone mode — create minimal manager
             IsStandaloneMode = true;
-            Debug.Log("[SceneBootstrapper] No GameFlowManager found. Creating standalone manager.");
+            RuntimeLog.Log("[SceneBootstrapper] No GameFlowManager found. Creating standalone manager.");
 
             var managerGo = new GameObject("[GameFlowManager]");
             var manager = managerGo.AddComponent<GameFlowManager>();

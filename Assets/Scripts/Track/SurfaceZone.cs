@@ -1,5 +1,6 @@
 using UnityEngine;
 using R8EOX.Core;
+using R8EOX.Shared;
 
 namespace R8EOX.Track
 {
@@ -33,12 +34,12 @@ namespace R8EOX.Track
             var col = GetComponent<Collider>();
             if (!col.isTrigger)
             {
-                Debug.LogWarning($"[SurfaceZone] Collider on '{name}' must be a trigger. Setting isTrigger=true.");
+                RuntimeLog.LogWarning($"[SurfaceZone] Collider on '{name}' must be a trigger. Setting isTrigger=true.");
                 col.isTrigger = true;
             }
 
             if (_surfaceConfig == null)
-                Debug.LogError($"[SurfaceZone] No SurfaceConfig assigned on '{name}'.");
+                RuntimeLog.LogError($"[SurfaceZone] No SurfaceConfig assigned on '{name}'.");
         }
     }
 }

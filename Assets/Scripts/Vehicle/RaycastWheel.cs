@@ -1,5 +1,6 @@
 using UnityEngine;
 using PhysicsMath = R8EOX.Vehicle.Physics;
+using R8EOX.Shared;
 
 namespace R8EOX.Vehicle
 {
@@ -155,8 +156,8 @@ namespace R8EOX.Vehicle
             _debugLogTimer += dt;
             if (_debugLogTimer >= 0.5f)
             {
-                Debug.Log($"[suspension] wheel={name} springLen={_lastResult.SpringLen:F4}m suspForce={_lastResult.SuspensionForceMag:F2}N gripLoad={_lastResult.GripLoad:F3}");
-                Debug.Log($"[grip] wheel={name} slip={SlipRatio:F4} gripFactor={GripFactor:F3} lat={_lastResult.LateralForce.magnitude:F2}N long={_lastResult.LongitudinalForce.magnitude:F2}N motor={_lastResult.MotorForce.magnitude:F2}N");
+                RuntimeLog.Log($"[suspension] wheel={name} springLen={_lastResult.SpringLen:F4}m suspForce={_lastResult.SuspensionForceMag:F2}N gripLoad={_lastResult.GripLoad:F3}");
+                RuntimeLog.Log($"[grip] wheel={name} slip={SlipRatio:F4} gripFactor={GripFactor:F3} lat={_lastResult.LateralForce.magnitude:F2}N long={_lastResult.LongitudinalForce.magnitude:F2}N motor={_lastResult.MotorForce.magnitude:F2}N");
                 _debugLogTimer = 0f;
             }
 #endif

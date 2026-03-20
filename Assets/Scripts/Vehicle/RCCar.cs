@@ -1,5 +1,6 @@
 using UnityEngine;
 using PhysicsMath = R8EOX.Vehicle.Physics;
+using R8EOX.Shared;
 
 namespace R8EOX.Vehicle
 {
@@ -136,7 +137,7 @@ namespace R8EOX.Vehicle
             _wheels.Configure(gameObject.layer, _drivetrain,
                 _frontSpringStrength, _frontSpringDamping, _rearSpringStrength, _rearSpringDamping, _gripCoeff);
 
-            Debug.Log($"[RCCar] Motor={_motorPreset} engine={_engineForceMax}N max={_maxSpeed}m/s " +
+            RuntimeLog.Log($"[RCCar] Motor={_motorPreset} engine={_engineForceMax}N max={_maxSpeed}m/s " +
                       $"mass={_rb.mass}kg frontSpring={_frontSpringStrength} rearSpring={_rearSpringStrength} grip={_gripCoeff}");
         }
 
@@ -187,7 +188,7 @@ namespace R8EOX.Vehicle
             }
 #if UNITY_EDITOR || DEBUG
             _debugLogTimer += dt;
-            if (_debugLogTimer >= 0.5f) { Debug.Log($"[esc] throttle={SmoothThrottle:F3} engineForce={CurrentEngineForce:F2}N brake={CurrentBrakeForce:F2}N reverse={ReverseEngaged} airborne={IsAirborne}"); _debugLogTimer = 0f; }
+            if (_debugLogTimer >= 0.5f) { RuntimeLog.Log($"[esc] throttle={SmoothThrottle:F3} engineForce={CurrentEngineForce:F2}N brake={CurrentBrakeForce:F2}N reverse={ReverseEngaged} airborne={IsAirborne}"); _debugLogTimer = 0f; }
 #endif
         }
 
