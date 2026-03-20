@@ -1,3 +1,8 @@
+---
+name: unity-3d-materials
+description: Unity 3D Materials and Shaders
+---
+
 # Unity 3D Materials and Shaders
 
 Use this skill when creating or configuring materials, assigning textures, or setting up shader properties on 3D objects in Unity.

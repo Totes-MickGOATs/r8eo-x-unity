@@ -1,3 +1,8 @@
+---
+name: unity-graphics-pipeline
+description: Unity Graphics Pipeline
+---
+
 # Unity Graphics Pipeline
 
 Use this skill when configuring the Unity 6 URP rendering pipeline, optimizing draw calls, setting up lighting, or profiling GPU performance for a racing game.

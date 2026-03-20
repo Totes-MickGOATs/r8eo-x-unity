@@ -1,3 +1,8 @@
+---
+name: unity-mcp-workflows
+description: Unity MCP Workflows
+---
+
 # Unity MCP Workflows
 
 Use this skill when interacting with the Unity Editor from Claude Code via MCP tools, including scene manipulation, script management, test execution, and asset operations.

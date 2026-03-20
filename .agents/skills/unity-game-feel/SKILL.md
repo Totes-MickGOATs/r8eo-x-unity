@@ -1,3 +1,8 @@
+---
+name: unity-game-feel
+description: Unity Game Feel
+---
+
 # Unity Game Feel
 
 Use this skill when adding camera juice, controller haptics, screen effects, audio feedback, or visual polish to make the RC racing game feel responsive and satisfying.

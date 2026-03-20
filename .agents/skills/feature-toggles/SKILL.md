@@ -1,3 +1,8 @@
+---
+name: feature-toggles
+description: Feature Toggles
+---
+
 # Feature Toggles
 
 Control feature visibility and availability through compile-time and runtime toggles. Use this skill when merging partial features, gating debug tools, or enabling gradual rollout.

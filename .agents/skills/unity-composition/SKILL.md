@@ -1,3 +1,8 @@
+---
+name: unity-composition
+description: Unity Composition Patterns
+---
+
 # Unity Composition Patterns
 
 Use this skill when structuring Unity code with component architecture, interface-based design, dependency injection, or cross-object communication patterns.

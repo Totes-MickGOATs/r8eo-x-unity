@@ -1,3 +1,8 @@
+---
+name: unity-shaders
+description: Unity Shaders
+---
+
 # Unity Shaders
 
 Use this skill when writing custom HLSL shaders, building Shader Graph materials, creating compute shaders, or implementing custom render features in Unity.

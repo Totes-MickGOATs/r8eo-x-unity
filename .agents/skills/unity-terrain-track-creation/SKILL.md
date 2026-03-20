@@ -1,3 +1,8 @@
+---
+name: unity-terrain-track-creation
+description: Unity Terrain & Track Creation for RC Racing
+---
+
 # Unity Terrain & Track Creation for RC Racing
 
 Use this skill when building RC racing tracks and terrain in Unity. Covers terrain configuration, terrain layers, spline-based track layout, jump geometry, surface detection, physics materials, ProBuilder hard surfaces, track-side objects, lighting, and performance tuning.

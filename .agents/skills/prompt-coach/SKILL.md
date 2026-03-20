@@ -1,3 +1,8 @@
+---
+name: prompt-coach
+description: Prompt Coach — Subagent Prompt Quality
+---
+
 # Prompt Coach — Subagent Prompt Quality
 
 ## When to Use

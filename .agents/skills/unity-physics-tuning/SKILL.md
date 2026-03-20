@@ -1,3 +1,8 @@
+---
+name: unity-physics-tuning
+description: Unity PhysX Tuning for RC Racing
+---
+
 # Unity PhysX Tuning for RC Racing
 
 Use this skill when configuring Unity's PhysX engine for realistic 1/10-scale RC car simulation. Covers project settings, timestep, collision layers, Rigidbody configuration, raycast vs WheelCollider, scale fixes, determinism, and common physics bugs.

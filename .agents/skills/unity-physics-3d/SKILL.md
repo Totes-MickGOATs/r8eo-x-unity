@@ -1,3 +1,8 @@
+---
+name: unity-physics-3d
+description: Unity 3D Physics
+---
+
 # Unity 3D Physics
 
 Use this skill when configuring Rigidbodies, colliders, joints, raycasts, or physics materials in Unity's PhysX-based 3D physics system.

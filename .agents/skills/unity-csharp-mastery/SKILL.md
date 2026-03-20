@@ -1,3 +1,8 @@
+---
+name: unity-csharp-mastery
+description: Unity C# Mastery
+---
+
 # Unity C# Mastery
 
 Use this skill when writing C# in Unity and you need guidance on naming conventions, memory management, async patterns, serialization, or Unity-specific C# pitfalls.

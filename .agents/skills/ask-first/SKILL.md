@@ -1,3 +1,8 @@
+---
+name: ask-first
+description: Ask-First: Mandatory Pre-Implementation Workflow
+---
+
 # Ask-First: Mandatory Pre-Implementation Workflow
 
 Use this skill when starting any new dev task to clarify requirements and write failing tests before implementation. Covers the three-phase interrogate-test-implement cycle that every bug fix, feature, and refactor must follow.

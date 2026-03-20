@@ -1,3 +1,8 @@
+---
+name: unity-particles-vfx
+description: Unity Particles and VFX
+---
+
 # Unity Particles and VFX
 
 Use this skill when creating particle effects, configuring the Shuriken Particle System, building VFX Graph effects, or optimizing visual effects performance.

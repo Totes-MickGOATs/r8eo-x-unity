@@ -1,3 +1,8 @@
+---
+name: unity-project-foundations
+description: Unity Project Foundations
+---
+
 # Unity Project Foundations
 
 Use this skill when setting up project folder structure, configuring assembly definitions, managing packages, or establishing code style and version control conventions for a Unity project.

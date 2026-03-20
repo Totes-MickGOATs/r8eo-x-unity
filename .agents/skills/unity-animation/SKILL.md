@@ -1,3 +1,8 @@
+---
+name: unity-animation
+description: Unity Animation
+---
+
 # Unity Animation
 
 Use this skill when working with Animator Controllers, Blend Trees, animation layers, IK, root motion, Timeline, or procedural tweening in Unity.

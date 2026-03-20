@@ -1,3 +1,8 @@
+---
+name: unity-input-debugging
+description: Unity Input Debugging: Phantom Input & Platform Quirks
+---
+
 # Unity Input Debugging: Phantom Input & Platform Quirks
 
 Use this skill when diagnosing phantom input values, platform-specific input quirks, or unexpected axis readings in Unity's Legacy Input Manager, especially on Windows.

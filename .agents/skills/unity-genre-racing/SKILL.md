@@ -1,3 +1,8 @@
+---
+name: unity-genre-racing
+description: Unity Genre: Racing
+---
+
 # Unity Genre: Racing
 
 Use this skill when building racing game systems — vehicle physics architecture, track design, race management, AI opponents, multiplayer, and input handling. Focuses on RC racing but patterns apply to any vehicle-based game.

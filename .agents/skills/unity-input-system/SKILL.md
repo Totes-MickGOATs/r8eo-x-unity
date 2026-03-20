@@ -1,3 +1,8 @@
+---
+name: unity-input-system
+description: Unity Input System
+---
+
 # Unity Input System
 
 Use this skill when configuring input actions, reading player input, implementing rebinding, or migrating from Unity's legacy Input Manager to the New Input System.

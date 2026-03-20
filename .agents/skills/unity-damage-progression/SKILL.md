@@ -1,3 +1,8 @@
+---
+name: unity-damage-progression
+description: Unity Damage, Wear & Progression for RC Racing
+---
+
 # Unity Damage, Wear & Progression for RC Racing
 
 Use this skill when implementing collision damage, tire wear, battery discharge, repair economies, career progression, or vehicle upgrade systems for RC racing.

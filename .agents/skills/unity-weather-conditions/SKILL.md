@@ -1,3 +1,8 @@
+---
+name: unity-weather-conditions
+description: Unity Weather & Track Conditions for RC Racing
+---
+
 # Unity Weather & Track Conditions for RC Racing
 
 Use this skill when implementing dynamic weather systems and track condition modeling for an RC racing simulator. Covers weather state machines, global wetness, rain/dust/mud effects, wind physics, time of day, temperature models, track evolution, and wet surface shaders.

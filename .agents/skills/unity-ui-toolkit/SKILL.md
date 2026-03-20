@@ -1,3 +1,8 @@
+---
+name: unity-ui-toolkit
+description: Unity UI Toolkit
+---
+
 # Unity UI Toolkit
 
 Use this skill when building UI with Unity's UI Toolkit system, including UXML structure, USS styling, C# bindings, custom inspectors, or runtime game UI panels.

@@ -1,3 +1,8 @@
+---
+name: unity-save-settings
+description: Unity Save & Settings Persistence
+---
+
 # Unity Save & Settings Persistence
 
 Use this skill when implementing player settings persistence, preferences files, career save data, or modular save file architecture in Unity.

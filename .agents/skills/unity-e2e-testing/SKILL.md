@@ -1,3 +1,8 @@
+---
+name: unity-e2e-testing
+description: Unity E2E Testing Automation
+---
+
 # Unity E2E Testing Automation
 
 Use this skill when writing PlayMode end-to-end tests that simulate full user journeys from input to visible outcome in a running game loop.
