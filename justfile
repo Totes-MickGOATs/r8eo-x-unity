@@ -644,6 +644,14 @@ validate-docs:
 validate-docs-ci:
     uv run python scripts/tools/validate_claude_md.py --ci --threshold 30
 
+# Report-only repo-wide 150-line audit (always exits 0)
+audit-lines:
+    bash scripts/tools/audit_line_limit.sh
+
+# Strict 150-line audit: exits 1 if non-excepted files violate limit (used by final-cutover)
+audit-lines-strict:
+    bash scripts/tools/audit_line_limit.sh --strict
+
 # Audit skill usage over recent git history
 audit-skills days="30":
     bash tools/audit-skill-usage.sh {{days}}
