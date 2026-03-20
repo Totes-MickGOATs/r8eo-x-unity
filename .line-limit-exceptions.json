@@ -1,0 +1,934 @@
+{
+  "target": 150,
+  "note": "Temporary exception ledger. Every entry must have owner, reason, removal_batch, and expiry. Goal: zero permanent exceptions.",
+  "exceptions": [
+    {
+      "file": ".agents/skills/unity-architecture-patterns/SKILL.md",
+      "lines": 1167,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-replay-ghost/SKILL.md",
+      "lines": 907,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-game-feel/SKILL.md",
+      "lines": 883,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-testing-debugging-qa/SKILL.md",
+      "lines": 793,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-networking/SKILL.md",
+      "lines": 789,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-save-load/SKILL.md",
+      "lines": 734,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-damage-progression/SKILL.md",
+      "lines": 718,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-editor-scripting/SKILL.md",
+      "lines": 709,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-state-machines/SKILL.md",
+      "lines": 694,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-shaders/SKILL.md",
+      "lines": 692,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-composition/SKILL.md",
+      "lines": 664,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-testing-patterns/SKILL.md",
+      "lines": 662,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-genre-racing/SKILL.md",
+      "lines": 661,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-workflows/SKILL.md",
+      "lines": 637,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-project-foundations/SKILL.md",
+      "lines": 617,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-3d-world-building/SKILL.md",
+      "lines": 614,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/research/rc-tire-guide.md",
+      "lines": 597,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-ui-design/SKILL.md",
+      "lines": 590,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Input/R8EOXInputActions.cs",
+      "lines": 580,
+      "owner": "input-generation",
+      "reason": "Auto-generated from Unity Input System asset \u2014 remove allowlist by changing input consumption strategy",
+      "removal_batch": "input-generation",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-weather-conditions/SKILL.md",
+      "lines": 578,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/swarm-development/SKILL.md",
+      "lines": 573,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-rc-audio/SKILL.md",
+      "lines": 571,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-audio-systems/SKILL.md",
+      "lines": 568,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-e2e-testing/SKILL.md",
+      "lines": 557,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-ui-toolkit/SKILL.md",
+      "lines": 543,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-scene-management/SKILL.md",
+      "lines": 539,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-scriptable-objects/SKILL.md",
+      "lines": 539,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-3d-materials/SKILL.md",
+      "lines": 526,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-performance-optimization/SKILL.md",
+      "lines": 525,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-physics-tuning/SKILL.md",
+      "lines": 524,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-debugging-profiling/SKILL.md",
+      "lines": 520,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-physics-3d/SKILL.md",
+      "lines": 518,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-input-system/SKILL.md",
+      "lines": 495,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-particles-vfx/SKILL.md",
+      "lines": 489,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-3d-lighting/SKILL.md",
+      "lines": 488,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-camera-systems/SKILL.md",
+      "lines": 473,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-csharp-mastery/SKILL.md",
+      "lines": 468,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-graphics-pipeline/SKILL.md",
+      "lines": 462,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-animation/SKILL.md",
+      "lines": 450,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/ask-first/SKILL.md",
+      "lines": 447,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/architecture/coding-standards.md",
+      "lines": 427,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-build-distribution/SKILL.md",
+      "lines": 407,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".claude/commands/dev/bulletproof.md",
+      "lines": 384,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/user-test-monitoring/SKILL.md",
+      "lines": 382,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "GDD.md",
+      "lines": 363,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/user-interaction-testing/SKILL.md",
+      "lines": 359,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/debug-system/SKILL.md",
+      "lines": 338,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "CLAUDE.md",
+      "lines": 333,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-terrain-track-creation/SKILL.md",
+      "lines": 330,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-racing-ui/SKILL.md",
+      "lines": 327,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-save-settings/SKILL.md",
+      "lines": 327,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/architecture/e2e-testing-guide.md",
+      "lines": 307,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-input-debugging/SKILL.md",
+      "lines": 305,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-mcp-workflows/SKILL.md",
+      "lines": 303,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/branch-workflow/SKILL.md",
+      "lines": 273,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/editor-script-authoring/SKILL.md",
+      "lines": 260,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Vehicle/RCCar.cs",
+      "lines": 256,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/reverse-engineering/SKILL.md",
+      "lines": 250,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-developer/SKILL.md",
+      "lines": 230,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/status/project-status.md",
+      "lines": 222,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/architecture/audit-physics-conformance.md",
+      "lines": 210,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/tdd-edit-mode-test/SKILL.md",
+      "lines": 205,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Vehicle/RaycastWheel.cs",
+      "lines": 201,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Editor/Builders/TerrainBuilder.cs",
+      "lines": 200,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/PlayMode/ConformanceDynamicsTests.cs",
+      "lines": 200,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Debug/ContractDebugger.cs",
+      "lines": 199,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Editor/RCCarEditor.cs",
+      "lines": 199,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/ForceDirectionTests.cs",
+      "lines": 199,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/Physics/BlackBoxDrivetrainTests.cs",
+      "lines": 199,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/Physics/BlackBoxInputTests.cs",
+      "lines": 199,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/ReverseESCTests.cs",
+      "lines": 199,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Debug/Diagnostics/TerrainDiagnosticChecks.cs",
+      "lines": 197,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".claude/commands/dev/e2e-test.md",
+      "lines": 196,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Debug/Audit/ConformanceRecorder.cs",
+      "lines": 195,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/GyroscopicMathTests.cs",
+      "lines": 195,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/SuspensionStabilityTests.cs",
+      "lines": 195,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/TuningApiTests.cs",
+      "lines": 195,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/PlayMode/ConformanceAtRestTests.cs",
+      "lines": 195,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/Physics/BlackBoxAirPhysicsTests.cs",
+      "lines": 193,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/clean-room-qa/SKILL.md",
+      "lines": 193,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".claude/settings.json",
+      "lines": 193,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/UI/UIManager.cs",
+      "lines": 192,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/ContractDebuggerTests.cs",
+      "lines": 192,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/TerrainDiagnosticChecksTests.cs",
+      "lines": 192,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Editor/Builders/RCBuggyBuilder.cs",
+      "lines": 191,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/GripMathTests.cs",
+      "lines": 191,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/TuningChassisTests.cs",
+      "lines": 190,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Debug/Audit/AuditDb.cs",
+      "lines": 189,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/PlayMode/VehicleDriveTests.cs",
+      "lines": 189,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".claude/commands/dev/init-project.md",
+      "lines": 188,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/TumbleMathTests.cs",
+      "lines": 187,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Debug/Audit/DebugLogSink.cs",
+      "lines": 185,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Debug/TuningPanel.cs",
+      "lines": 185,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/GameFlowStateMachineTests.cs",
+      "lines": 185,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/SuspensionMathTests.cs",
+      "lines": 182,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/DrivetrainMathTests.cs",
+      "lines": 180,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/PlayMode/DebugLoggingTests.cs",
+      "lines": 180,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Debug/TelemetryHUD.cs",
+      "lines": 177,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/PlayMode/ConformanceTransitionTests.cs",
+      "lines": 176,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/GroundDriveTests.cs",
+      "lines": 172,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/PlayMode/TerrainSeamTests.cs",
+      "lines": 172,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/Physics/BlackBoxSuspensionTests.cs",
+      "lines": 171,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/PlayMode/Helpers/ConformanceSceneSetup.cs",
+      "lines": 171,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Vehicle/Drivetrain.cs",
+      "lines": 170,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/physics-conformance-audit/SKILL.md",
+      "lines": 170,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/unity-system-manifest/SKILL.md",
+      "lines": 168,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/GripTractionCriticalTests.cs",
+      "lines": 163,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/SteeringTests.cs",
+      "lines": 163,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Tests/EditMode/GameFlowManagerTests.cs",
+      "lines": 161,
+      "owner": "physics-tests",
+      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
+      "removal_batch": "physics-tests",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/architecture/system-overview.md",
+      "lines": 161,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/changelog/SKILL.md",
+      "lines": 160,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".agents/skills/rc-vehicle-physics/SKILL.md",
+      "lines": 159,
+      "owner": "docs-skills",
+      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
+      "removal_batch": "docs-skills",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/architecture/subagent-patterns.md",
+      "lines": 157,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Editor/AssetLintRunner.cs",
+      "lines": 156,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scripts/Camera/CameraController.cs",
+      "lines": 155,
+      "owner": "vehicle-runtime",
+      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
+      "removal_batch": "vehicle-runtime",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": ".ai/knowledge/research/unity-docs-reference-map.md",
+      "lines": 153,
+      "owner": "docs-core",
+      "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
+      "removal_batch": "docs-core",
+      "expiry": "2026-09-01"
+    }
+  ]
+}
