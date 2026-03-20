@@ -11,10 +11,10 @@ This file provides guidance to Claude Code when working with this repository.
 > **If you are the main agent:**
 > 1. **Do NOT edit any files yet.** You are on `main` and commits will be blocked.
 > 2. **Dispatch a subagent WITHOUT `isolation: "worktree"`** — the subagent calls `safe-worktree-init.sh` itself.
-> 3. The subagent handles: worktree setup → code changes → commit → push → PR → merge.
-> 4. You verify the PR merged successfully, then run `just task-complete <task>`.
+> 3. The subagent handles: worktree setup -> code changes -> commit -> submit for verification.
+> 4. You verify the queue promoted the branch, then run `just task-complete <task>`.
 >
-> **Why this matters:** Three enforcement layers block main branch commits (PreToolUse hook, git pre-commit hook, GitHub branch protection). If you edit files on main, you'll waste work that can't be committed.
+> **Why this matters:** Two enforcement layers block main branch commits (PreToolUse hook, git pre-commit hook). If you edit files on main, you'll waste work that can't be committed.
 >
 > **Full workflow guide:** `.agents/skills/branch-workflow/SKILL.md`
 
@@ -120,18 +120,22 @@ If this is a fresh clone or a new project created from the template, see **`SETU
 
 Current state: _Update `.ai/knowledge/status/project-status.md` with phase tracking._
 
-## Git — Branch Workflow
+## Git — Branch Workflow (Local-First)
 
-> **MANDATORY:** All changes go through feature branches + PRs. Direct commits to main are blocked.
+> **MANDATORY:** All changes go through feature branches. Direct commits to main are blocked.
 > Full details: `.agents/skills/branch-workflow/SKILL.md`
 
 ### Quick Reference
 
 ```
-just lifecycle init <task>     # Create worktree + feature branch (subagent first action)
-# ... TDD develop, commit ...  # Write tests, implement, commit
-just lifecycle ship            # Push, create PR, merge, sync main
-just task-complete <task>      # Main agent: cleanup after merge
+just lifecycle init <task>       # Create worktree + feature branch (subagent first action)
+# ... TDD develop, commit ...    # Write tests, implement, commit
+just queue-submit <branch>       # Submit branch to local verification queue
+just queue-run                   # Run next queued verification (compile + targeted tests)
+just queue-promote <branch>      # Fast-forward local main after verification passes
+just task-complete <task>        # Main agent: cleanup after promotion
+# --- Remote fallback (optional) ---
+just lifecycle ship              # Push, create PR, merge, sync remote main
 ```
 
 ### Agent Rules (Hard)
@@ -141,20 +145,30 @@ just task-complete <task>      # Main agent: cleanup after merge
 - **NEVER** use `isolation: "worktree"` — subagents call `safe-worktree-init.sh`
 - **ALWAYS** set `model` on Agent calls: `haiku` for Explore, `opus` for Plan, `sonnet` for general-purpose
 - **ALWAYS** commit every file immediately after creating or modifying it
+- **ALWAYS** complete the Task Intake checklist before writing any code (see above)
+- **ALWAYS** reference `CLAUDE_SKILLS.md` for available skills before starting
 
 ### Sequential Task Coordination
 
 When the main agent decomposes work into multiple tasks:
 1. Dispatch ONE subagent at a time — each performs one atomic, non-breaking task
-2. After each PR merges: remove in-flight memories, update permanent memories
+2. After each branch is promoted: remove in-flight memories, update permanent memories
 3. Full protocol: `.agents/skills/swarm-development/SKILL.md`
 
 ### Definition of Done
 
-1. **PR is open** with all commits pushed
+1. **Branch committed** with all changes
 2. **Local tests pass** — coverage ratchet is a FAIL gate
-3. **PR merged** — confirmed with `gh pr view --json state -q .state`
-4. **Local main updated** — `just lifecycle ship` syncs automatically
+3. **Branch promoted** — `just queue-promote <branch>` succeeded (local main fast-forwarded)
+
+### Remote — Dormant Fallback
+
+Remote push and PRs are available as a fallback when:
+- CI validation or audit is required
+- Collaborating with non-local agents
+- Publishing a release
+
+Use `just lifecycle ship` to push, create a PR, and merge. Confirm with `gh pr view --json state -q .state`.
 
 ### Commit Rules
 
@@ -171,6 +185,8 @@ When the main agent decomposes work into multiple tasks:
 **Test naming:** `MethodName_Scenario_ExpectedOutcome`
 
 **Module-based test gating:** Pre-push detects changed `.cs` files and resolves affected modules. Tests only run if `UNITY_PATH` is set. Bypass: `SKIP_TEST_CHECK=1 git push`.
+
+**Local verification queue:** All Unity compile/test jobs are serialized through one verifier worktree. Subagent worktrees do NOT run Unity directly — they submit to the queue after committing. See `scripts/tools/unity-queue.sh`.
 
 **Autonomous debugging:** Agents drive the entire debug cycle via MCP tools. NEVER defer to user. Prefer unit tests over play-mode debugging.
 
@@ -196,6 +212,13 @@ uv run python <script.py>        # Run a script
 - **Type annotations** — always annotate function signatures and return types
 
 See `.ai/knowledge/architecture/coding-standards.md` for full coding standards.
+
+### Unity-Specific Rules for AI Development
+
+- **Deterministic scene boot** — all scene state must be set in code, not via Inspector serialization
+- **Minimize inspector wiring** — resolve dependencies via `GetComponent` or service locators, not drag-and-drop fields
+- **Code-built test fixtures** — create GameObjects and components programmatically in test setup, never rely on scene prefabs
+- **Keep gameplay logic testable in pure static classes** — pure C# with no MonoBehaviour dependency can be tested in EditMode without a Unity runtime
 
 ## RC Car Physics Domain
 
@@ -241,8 +264,16 @@ Unity domain reload temporarily disconnects MCP. Wait 10-15s, retry. If still fa
 
 Call `read_console` after modifying C# scripts. Common traps: `Physics` vs `UnityEngine.Physics`, `Camera` ambiguity. Fix ALL errors before proceeding.
 
+### Compiler Errors When Opening the Game
+
+Three common causes:
+- **main not promoted** — a feature branch was committed but never fast-forwarded into main via `just queue-promote`
+- **stale Library** — delete `Library/` and let Unity reimport (slow but reliable)
+- **missing .meta files** — every new asset or script needs a paired `.meta` file committed alongside it
+
 ## Key Reference Files
 
+- `CLAUDE_SKILLS.md` — **Index of all available skills and when to use them (READ FIRST)**
 - `.agents/skills/branch-workflow/SKILL.md` — **Branch workflow, worktree recipes, gotchas (READ FIRST)**
 - `.ai/knowledge/architecture/system-overview.md` — scene graph, signal map, data flow, ADRs
 - `.ai/knowledge/architecture/coding-standards.md` — coding conventions for this project

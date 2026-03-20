@@ -5,17 +5,17 @@ unity_path := env("UNITY_PATH", "Unity")
 
 # Run EditMode tests via CLI
 test:
-    {{unity_path}} -batchmode -nographics -runTests -testPlatform EditMode -projectPath . -testResults test-results/editmode.xml
+    {{unity_path}} -batchmode -nographics -accept-apiupdate -runTests -testPlatform EditMode -projectPath . -testResults test-results/editmode.xml
     @echo "Results: test-results/editmode.xml"
 
 # Run PlayMode tests via CLI
 test-play:
-    {{unity_path}} -batchmode -nographics -runTests -testPlatform PlayMode -projectPath . -testResults test-results/playmode.xml
+    {{unity_path}} -batchmode -nographics -accept-apiupdate -runTests -testPlatform PlayMode -projectPath . -testResults test-results/playmode.xml
     @echo "Results: test-results/playmode.xml"
 
 # Run a specific test by name
 test-fast filter:
-    {{unity_path}} -batchmode -nographics -runTests -testPlatform EditMode -projectPath . -testFilter "{{filter}}" -testResults test-results/editmode.xml
+    {{unity_path}} -batchmode -nographics -accept-apiupdate -runTests -testPlatform EditMode -projectPath . -testFilter "{{filter}}" -testResults test-results/editmode.xml
 
 # Open project in Unity Editor
 editor:
@@ -31,7 +31,7 @@ build-linux:
 
 # Check for compilation errors (headless)
 compile-check:
-    {{unity_path}} -batchmode -nographics -projectPath . -quit -logFile - 2>&1 | grep -E "(error|Error|ERROR)" || echo "No compilation errors"
+    {{unity_path}} -batchmode -nographics -accept-apiupdate -projectPath . -quit -logFile - 2>&1 | grep -E "(error|Error|ERROR)" || echo "No compilation errors"
 
 # Generate .csproj files for IDE
 generate-project-files:
@@ -97,7 +97,7 @@ diagnose:
         echo "SKIP: UNITY_PATH not set — set it to run compile check"
         echo "  export UNITY_PATH=\"/Applications/Unity/Hub/Editor/<version>/Unity.app/Contents/MacOS/Unity\""
     else
-        "$UNITY_BIN" -batchmode -nographics -projectPath . -quit -logFile - 2>&1 \
+        "$UNITY_BIN" -batchmode -nographics -accept-apiupdate -projectPath . -quit -logFile - 2>&1 \
             | grep -E "(error|Error|ERROR)" || echo "No compilation errors detected"
     fi
 
@@ -126,7 +126,7 @@ diagnose:
         echo "=== diagnose: PARTIAL (compile + tests skipped — set UNITY_PATH) ==="
         exit 0
     fi
-    "$UNITY_BIN" -batchmode -nographics -runTests -testPlatform EditMode \
+    "$UNITY_BIN" -batchmode -nographics -accept-apiupdate -runTests -testPlatform EditMode \
         -projectPath . -testFilter "$RESOLVE_OUT" \
         -testResults test-results/diagnose-editmode.xml \
         && echo "" && echo "=== diagnose: PASS ===" \

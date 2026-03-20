@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# subagent-lifecycle.sh — Consolidates subagent workflow into 2 commands
+# subagent-lifecycle.sh — Consolidates subagent workflow into 3 commands
 # Usage:
 #   subagent-lifecycle.sh init <task>   — create worktree (delegates to safe-worktree-init.sh)
-#   subagent-lifecycle.sh ship          — push, create PR, merge, sync main
+#   subagent-lifecycle.sh submit        — submit current branch to local verification queue
+#   subagent-lifecycle.sh ship          — push, create PR, merge, sync main (remote fallback)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +14,18 @@ case "$cmd" in
   init)
     task="${2:?Usage: subagent-lifecycle.sh init <task>}"
     exec bash "${SCRIPT_DIR}/safe-worktree-init.sh" "$task"
+    ;;
+
+  submit)
+    # ── Derive branch from current HEAD ────────────────────────────────────
+    BRANCH=$(git branch --show-current)
+    if [ -z "$BRANCH" ] || [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+      echo "ERROR: Must be on a feature branch, not '${BRANCH:-detached HEAD}'" >&2
+      exit 1
+    fi
+
+    echo "subagent-lifecycle submit: branch=${BRANCH}"
+    exec bash "${SCRIPT_DIR}/unity-queue.sh" submit "$BRANCH"
     ;;
 
   ship)
@@ -80,10 +93,11 @@ case "$cmd" in
     ;;
 
   *)
-    echo "Usage: subagent-lifecycle.sh <init|ship> [args...]" >&2
+    echo "Usage: subagent-lifecycle.sh <init|submit|ship> [args...]" >&2
     echo "" >&2
     echo "  init <task>   Create worktree for task (delegates to safe-worktree-init.sh)" >&2
-    echo "  ship          Push, create PR, merge, sync local main" >&2
+    echo "  submit        Submit current branch to local verification queue" >&2
+    echo "  ship          Push, create PR, merge, sync local main (remote fallback)" >&2
     exit 1
     ;;
 esac

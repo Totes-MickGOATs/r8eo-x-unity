@@ -12,15 +12,20 @@ if [ "$HOOKS_PATH" != ".githooks" ]; then
     git config core.hooksPath .githooks
 fi
 
-# Fetch ALL remote state (branches + tags) so worktree/branch creation
-# always starts from the latest remote main, regardless of current branch.
-git fetch origin --tags --prune-tags --quiet 2>/dev/null || true
-git update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
-
-# Fast-forward working tree if currently on main
+# Sync from remote only if origin is reachable (best-effort — local-first workflow)
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-if [ "$CURRENT_BRANCH" = "main" ]; then
-    git pull --ff-only origin main 2>/dev/null || true
+HAS_ORIGIN=$(git remote | grep -q '^origin$' && echo "yes" || echo "no")
+if [ "$HAS_ORIGIN" = "yes" ]; then
+    git fetch origin --tags --prune-tags --quiet 2>/dev/null || true
+    # Only update local main if remote is ahead (ff-only, never rewrite history)
+    REMOTE_MAIN=$(git rev-parse refs/remotes/origin/main 2>/dev/null || echo "")
+    LOCAL_MAIN=$(git rev-parse refs/heads/main 2>/dev/null || echo "")
+    if [ -n "$REMOTE_MAIN" ] && [ -n "$LOCAL_MAIN" ] && [ "$REMOTE_MAIN" != "$LOCAL_MAIN" ]; then
+        if git merge-base --is-ancestor "$LOCAL_MAIN" "$REMOTE_MAIN" 2>/dev/null; then
+            git update-ref refs/heads/main "$REMOTE_MAIN" 2>/dev/null || true
+            echo "session-start: local main fast-forwarded to origin/main"
+        fi
+    fi
 fi
 
 # Auto-cleanup worktrees marked as done
@@ -76,6 +81,31 @@ if [ -n "$INFLIGHT_FILES" ]; then
         echo "  - $NAME (read $F for details)"
     done
     echo "session-start: Check these before starting new work on related systems."
+fi
+
+# Report local verification queue status
+QUEUE_FILE="${CLAUDE_PROJECT_DIR}/Logs/automation/queue.json"
+if [ -f "$QUEUE_FILE" ] && command -v python3 >/dev/null 2>&1; then
+    python3 - "$QUEUE_FILE" <<'PYEOF'
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        data = json.load(f)
+    queue = data.get('queue', [])
+    results = data.get('results', {})
+    queued = [e for e in queue if e.get('status') == 'queued']
+    passed = [b for b, r in results.items() if r.get('status') == 'passed']
+    if queued or passed:
+        print("session-start: verification queue —", end=" ")
+        parts = []
+        if queued:
+            parts.append(f"{len(queued)} queued (run: just queue-run)")
+        if passed:
+            parts.append(f"{len(passed)} passed (promote: just queue-promote <branch>)")
+        print(", ".join(parts))
+except Exception:
+    pass
+PYEOF
 fi
 
 # Source engine-specific session start if it exists
