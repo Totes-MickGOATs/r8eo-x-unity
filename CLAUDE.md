@@ -136,6 +136,12 @@ just queue-promote <branch>      # Fast-forward local main after verification pa
 just task-complete <task>        # Main agent: cleanup after promotion
 # --- Remote fallback (optional) ---
 just lifecycle ship              # Push, create PR, merge, sync remote main
+# --- Lint ---
+just lint-fast                   # Blocking: C# syntax + policy on staged/changed files
+just lint-csharp                 # Advisory: full-repo syntax + dotnet format
+just lint-policy                 # Advisory: policy linter across all files
+just lint-assets                 # Advisory: scene/asset lint (requires UNITY_PATH)
+just lint-deep                   # Advisory: lint-csharp + registry + policy + assets
 ```
 
 ### Agent Rules (Hard)
@@ -174,6 +180,48 @@ Use `just lifecycle ship` to push, create a PR, and merge. Confirm with `gh pr v
 
 - Commit message format: `type: short description` (e.g., `feat: add surface friction zone`)
 - Conventional commit types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`, `perf`, `style`, `build`
+
+## Lint Stack
+
+All C# lint is local (no GitHub Actions). The stack has two tiers:
+
+### Blocking (runs on every commit)
+
+| Layer | Command | What it checks |
+|-------|---------|----------------|
+| 1 | Main branch guard | Blocks commits directly to `main` |
+| 2 | Python ruff | Staged `.py` files |
+| 3 | Engine hook | `.githooks/pre-commit-engine.sh` |
+| 4 | C# line limit | 200-line limit per `.cs` file |
+| 5 | C# syntax | Balanced braces, namespace presence (staged .cs files) |
+| 6 | C# policy | Debug.Log*, FindObject, GUID refs, manifest orphans in runtime assemblies |
+| — | Coverage ratchet | Per-module test count must not drop |
+| — | Assert audit | Every test method must contain an assertion |
+
+Run `just lint-fast` to invoke layers 5 and 6 manually on staged/changed files.
+
+### Advisory (run explicitly, never block commits)
+
+| Command | What it checks |
+|---------|----------------|
+| `just lint-csharp` | Full-repo syntax + dotnet format (requires dotnet SDK) |
+| `just lint-policy` | Policy linter across all files |
+| `just lint-assets` | Missing scripts, broken scene refs, layer audit (requires UNITY_PATH) |
+| `just lint-deep` | lint-csharp + registry + policy + asset lint + assert audit |
+
+### Why runtime logging is banned
+
+Direct `UnityEngine.Debug.Log*` calls in runtime assemblies (Vehicle, Input, Camera, Core, GameFlow, Track, UI, Shared) are blocked by the policy linter (Layer 6). Reasons:
+1. Debug logs ship in development builds and flood the player log
+2. `[Conditional]` attributes on `RuntimeLog` methods ensure calls are compiled out in production builds at zero cost
+3. The ban enforces a single logging API so log volume can be controlled centrally
+
+Use `RuntimeLog.Log/LogWarning/LogError` from `R8EOX.Shared` instead.
+Direct `Debug.Log*` is allowed in: `Assets/Scripts/Editor/`, `Assets/Scripts/Debug/`, `Assets/Tests/`.
+
+### Why FindObjectOfType / GameObject.Find are banned
+
+These runtime-cost APIs scan the entire scene graph. In runtime assemblies, use injected references (SerializeField or Initialize method) instead.
 
 ## Testing (TDD)
 

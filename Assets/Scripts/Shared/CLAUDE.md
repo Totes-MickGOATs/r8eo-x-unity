@@ -7,6 +7,7 @@ Runtime-safe utility classes shared between game code and editor tooling.
 | File | Role |
 |------|------|
 | `UnitConversion.cs` | Unit conversion helpers (speed, angle, spring rate, force) — no UnityEditor dependency |
+| `RuntimeLog.cs` | Runtime-safe logging facade. Only active in Editor and Development builds. Use instead of direct Debug.Log* in all runtime assemblies. |
 | `R8EOX.Shared.asmdef` | Assembly definition — all platforms, no editor-only restriction |
 
 ## Notes
