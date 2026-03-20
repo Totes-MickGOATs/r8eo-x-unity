@@ -76,11 +76,15 @@ python-format:
     uv run ruff format scripts/tools/
 
 # Auto-format then lint (pre-push check)
-check: python-lint validate-registry validate-docs
+check: python-lint validate-registry validate-docs validate-frontmatter
 
 # Validate system manifests (file existence, ownership, dependencies)
 validate-registry:
     uv run python scripts/tools/validate_registry.py
+
+# Validate YAML frontmatter in loader-consumed markdown (commands + skills)
+validate-frontmatter:
+    uv run python scripts/tools/validate_frontmatter.py
 
 # --- Testing ---
 
@@ -93,7 +97,7 @@ test-coverage-ci:
     uv run python scripts/tools/test_coverage_report.py --ci
 
 # Full preflight: lint + validate (run before pushing)
-preflight: python-lint validate-registry validate-docs
+preflight: python-lint validate-registry validate-docs validate-frontmatter
     @echo "--- Preflight passed ---"
 
 # --- Changelog ---
