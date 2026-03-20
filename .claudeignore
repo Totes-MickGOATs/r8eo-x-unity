@@ -1,0 +1,43 @@
+# .claudeignore — Files excluded from Claude context by default
+# These are generated, build, or large binary files that add noise without value.
+# Claude should not load these unless the task explicitly requires it.
+
+# Unity build outputs and caches
+Library/
+Temp/
+Logs/
+obj/
+Builds/
+.vsconfig
+
+# Test results
+test-results/
+
+# Python bytecode and virtual env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Generated Unity files
+*.csproj
+*.sln
+ProjectSettings/PackageManagerSettings.asset
+
+# Large binary/media assets (reference by filename only)
+Assets/Terrain/
+Assets/Plugins/
+
+# Git internals
+.git/
+
+# Node/package managers (not used here, but common)
+node_modules/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Analytics and telemetry logs
+.claude/analytics/
+.xenon/

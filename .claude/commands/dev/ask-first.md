@@ -7,6 +7,17 @@ Mandatory pre-implementation workflow. Run this before starting any dev task.
 /dev:ask-first
 ```
 
+a## Pre-Alignment Checkpoint
+
+Before executing any phase, answer these four questions:
+
+1. **Clear plan?** — Is the goal stated in one sentence with acceptance criteria?
+2. **Minimal scope?** — Is this one function / one view / one bounded fix?
+3. **Correct model?** — Is the model assigned appropriate for this phase? (See `CLAUDE_SKILLS.md`)
+4. **Only relevant context?** — Are only the necessary files loaded (not the full codebase)?
+
+If any answer is "no" or "unclear" → **return to planning, do not proceed to implementation.**
+
 ## Process
 
 1. Read the full skill guide: `.agents/skills/ask-first/SKILL.md`

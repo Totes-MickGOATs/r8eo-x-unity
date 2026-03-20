@@ -188,6 +188,30 @@ Be honest with yourself:
 
 Summarize your approach in 3-5 bullet points, incorporating lessons from steps 1.1-1.11. This plan is your contract with yourself. If you deviate significantly during implementation, come back to Phase 1.
 
+## Pre-Phase-2 Gate: Task Packet Completeness
+
+> **Do not start test writing or implementation until this packet is complete.**
+
+Fill in every field. Missing fields mean planning is incomplete — stay in Phase 1.
+
+```
+Task:        <one sentence>
+Acceptance:  <observable done condition>
+Pattern:     <reference file or method>
+Allow:       <files to touch>
+Exclude:     <files that must not change>
+Tests:       <test class + scenario names>
+Done when:   <specific verifiable state>
+```
+
+**Check:**
+- [ ] All seven fields filled
+- [ ] Scope fits in one chunk (one function / one view / one fix)
+- [ ] Model assignment stated and matches `CLAUDE_SKILLS.md` routing
+- [ ] Context loaded is minimal (root CLAUDE.md + local CLAUDE.md + relevant files only)
+
+If any field is empty or scope is too large → decompose further before proceeding.
+
 ---
 
 ## Phase 2: Test-First (Black Box, Separate Agent)
