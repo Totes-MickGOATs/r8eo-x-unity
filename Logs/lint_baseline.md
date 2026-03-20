@@ -51,15 +51,23 @@ All occurrences of `FindObjectOfType` and `GameObject.Find` are in `Assets/Scrip
 
 ## 3. Raw GUID References in .asmdef Files
 
-**None found.**
+**Verified clean on 2026-03-20** — All 12 `.asmdef` files use assembly-name references. No `"GUID:"` prefixes present in any `"references"` array.
 
-All `.asmdef` files under `Assets/Scripts/` use name-based assembly references only. No `"guid"` or `"GUID:"` fields are present.
+Files checked:
+- `Assets/Scripts/Vehicle/R8EOX.Vehicle.asmdef` — references: `R8EOX.Vehicle.Physics`, `R8EOX.Input`, `R8EOX.Core` ✓
+- `Assets/Scripts/Vehicle/Physics/R8EOX.Vehicle.Physics.asmdef` — references: (none) ✓
+- `Assets/Scripts/Input/R8EOX.Input.asmdef` — references: `Unity.InputSystem` ✓
+- `Assets/Scripts/Camera/R8EOX.Camera.asmdef` — references: `Unity.InputSystem` ✓
+- `Assets/Scripts/Core/R8EOX.Core.asmdef` — references: (none) ✓
+- `Assets/Scripts/GameFlow/R8EOX.GameFlow.asmdef` — references: `R8EOX.Core` ✓
+- `Assets/Scripts/Track/R8EOX.Track.asmdef` — references: `R8EOX.Core` ✓
+- `Assets/Scripts/UI/R8EOX.UI.asmdef` — references: `R8EOX.Core`, `R8EOX.GameFlow` ✓
+- `Assets/Scripts/Shared/R8EOX.Shared.asmdef` — references: (none) ✓
+- `Assets/Scripts/Debug/R8EOX.Debug.asmdef` — references: `R8EOX.Vehicle`, `R8EOX.Input`, `Unity.InputSystem` ✓
+- `Assets/Scripts/Debug/Audit/R8EOX.Debug.Audit.asmdef` — references: `R8EOX.Debug` ✓
+- `Assets/Scripts/Editor/R8EOX.Editor.asmdef` — references: `R8EOX.Vehicle`, `R8EOX.Input`, `R8EOX.Camera`, `R8EOX.Debug`, `R8EOX.Core`, `R8EOX.Track`, `R8EOX.GameFlow`, `R8EOX.Shared` ✓
 
-Checked files:
-- `R8EOX.Vehicle.asmdef`, `R8EOX.Vehicle.Physics.asmdef`, `R8EOX.Input.asmdef`, `R8EOX.Camera.asmdef`
-- `R8EOX.Core.asmdef`, `R8EOX.GameFlow.asmdef`, `R8EOX.Track.asmdef`, `R8EOX.UI.asmdef`
-- `R8EOX.Shared.asmdef`, `R8EOX.Debug.asmdef`, `R8EOX.Debug.Audit.asmdef`, `R8EOX.Editor.asmdef`
-- `R8EOX.Tests.PlayMode.asmdef`, `R8EOX.Tests.EditMode.asmdef`
+The policy linter rule `GUID_ASMDEF` will enforce this going forward.
 
 ---
 
