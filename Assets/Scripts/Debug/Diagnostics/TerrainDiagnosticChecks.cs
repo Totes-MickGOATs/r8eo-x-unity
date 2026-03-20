@@ -18,7 +18,7 @@ namespace R8EOX.Debug.Diagnostics
         // ---- Nested Types ----
 
         /// <summary>Per-wheel frame-over-frame tracking state.</summary>
-        internal struct WheelState
+        public struct WheelState
         {
             public float PrevSuspensionForce;
             public Vector3 PrevTireVelocity;

@@ -1,20 +1,16 @@
 {
   "mcpServers": {
     "UnityMCP": {
-      "command": "cmd",
+      "command": "npx",
       "args": [
-        "/c",
-        "npx",
         "-y",
         "@anthropic/unity-mcp@latest"
       ],
       "env": {}
     },
     "coplay-mcp": {
-      "command": "cmd",
+      "command": "npx",
       "args": [
-        "/c",
-        "npx",
         "-y",
         "coplay-mcp@latest"
       ],
