@@ -11,6 +11,7 @@ Runtime debug overlays for vehicle development and tuning.
 | `ContractDebugger.cs` | Runtime chain-of-custody assertions: validates input/vehicle/wheel/observable contracts every frame. Stripped in release builds. |
 | `WheelTerrainDiagnostics.cs` | Runtime terrain snag detector: monitors per-wheel contact normals, suspension spikes, velocity discontinuities, contact jumps, ground flicker. Logs tagged warnings to DebugLogSink. |
 | `DebugBootstrap.cs` | Auto-attaches `ContractDebugger`, `WheelTerrainDiagnostics`, and `InputDiagnostics` to the RCCar at runtime via `[RuntimeInitializeOnLoadMethod]`. Stripped from release builds. |
+| `InputDiagnostics.cs` | Runtime diagnostic tool — logs raw input device state, trigger values, and processed RCInput outputs every 30 frames for phantom input diagnosis. |
 | `R8EOX.Debug.asmdef` | Assembly definition referencing R8EOX.Vehicle and R8EOX.Input |
 
 ## Subdirectories
