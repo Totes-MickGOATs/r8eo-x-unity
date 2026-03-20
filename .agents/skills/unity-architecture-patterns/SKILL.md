@@ -1,3 +1,8 @@
+---
+name: unity-architecture-patterns
+description: Unity Design Patterns
+---
+
 # Unity Design Patterns
 
 Use this skill when choosing, implementing, or combining design patterns in Unity. Covers SOLID principles and 11 patterns with RC racing examples, Unity-specific implementation details, advanced combination techniques, and guidance on when each pattern helps vs. when it is overkill.

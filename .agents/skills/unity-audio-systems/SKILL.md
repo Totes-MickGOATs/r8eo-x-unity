@@ -1,3 +1,8 @@
+---
+name: unity-audio-systems
+description: Unity Audio Systems
+---
+
 # Unity Audio Systems
 
 Use this skill when implementing audio playback, configuring AudioMixers, setting up spatial audio, or building music and sound effect systems in Unity.

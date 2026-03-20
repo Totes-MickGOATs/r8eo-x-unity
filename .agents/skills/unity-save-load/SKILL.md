@@ -1,3 +1,8 @@
+---
+name: unity-save-load
+description: Unity Save/Load and Data Persistence
+---
+
 # Unity Save/Load and Data Persistence
 
 Use this skill when implementing save/load systems, persisting game state to disk, managing PlayerPrefs, or building serialization pipelines for game data.

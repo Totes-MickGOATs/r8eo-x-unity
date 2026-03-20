@@ -1,3 +1,8 @@
+---
+name: unity-testing-patterns
+description: Unity Testing Patterns
+---
+
 # Unity Testing Patterns
 
 Use this skill when writing unit tests, integration tests, or PlayMode tests using the Unity Test Framework and NUnit, following the project's TDD red-green-commit cycle.

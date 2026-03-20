@@ -1,3 +1,8 @@
+---
+name: reverse-engineering
+description: Reverse Engineering & Debug Methodology Skill
+---
+
 # Reverse Engineering & Debug Methodology Skill
 
 Use this skill when diagnosing bugs through systematic chain-of-custody debugging, or when you need to understand how an unfamiliar system works before modifying it.

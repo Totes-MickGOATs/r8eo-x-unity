@@ -1,3 +1,8 @@
+---
+name: physics-conformance-audit
+description: Physics Conformance Audit
+---
+
 # Physics Conformance Audit
 
 Use this skill when validating that the RC car physics simulation produces physically correct results. Covers the full catalogue of 93 conformance checks across 12 categories, the ConformanceRecorder API, tolerance tiers, and how to add new checks.

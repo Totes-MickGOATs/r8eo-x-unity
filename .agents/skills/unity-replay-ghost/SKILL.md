@@ -1,3 +1,8 @@
+---
+name: unity-replay-ghost
+description: Unity Replay & Ghost System -- RC Racing
+---
+
 # Unity Replay & Ghost System -- RC Racing
 
 Use this skill when implementing replay recording, ghost car playback, lap ghost storage/sharing, or replay camera systems. Covers the full pipeline from state capture through compressed storage to interpolated playback with Cinemachine cameras.

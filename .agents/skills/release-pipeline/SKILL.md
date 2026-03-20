@@ -1,3 +1,8 @@
+---
+name: release-pipeline
+description: Release Pipeline — Non-Code Deliverables
+---
+
 # Release Pipeline — Non-Code Deliverables
 
 > **Status:** SKELETON — flesh out when approaching release (Phase 5).

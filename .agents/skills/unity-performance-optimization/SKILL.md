@@ -1,3 +1,8 @@
+---
+name: unity-performance-optimization
+description: Unity Performance Optimization
+---
+
 # Unity Performance Optimization
 
 Use this skill when profiling frame rate issues, reducing draw calls, optimizing memory usage, or addressing CPU/GPU bottlenecks in Unity.

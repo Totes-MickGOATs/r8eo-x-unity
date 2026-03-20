@@ -1,3 +1,8 @@
+---
+name: branch-workflow
+description: Branch Workflow & Merge Queue Skill
+---
+
 # Branch Workflow & Merge Queue Skill
 
 Use this skill when creating feature branches, managing worktrees, pushing code, opening PRs, or handling merges. Covers the full branch lifecycle from worktree creation through merge.

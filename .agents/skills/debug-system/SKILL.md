@@ -1,3 +1,8 @@
+---
+name: debug-system
+description: Debug System Skill
+---
+
 # Debug System Skill
 
 Use this skill when building debug overlays, structured logging, runtime inspection tools, or F-key diagnostic displays. Covers the debug autoload pattern, overlay management, and CI integration.

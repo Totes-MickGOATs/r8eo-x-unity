@@ -1,3 +1,8 @@
+---
+name: unity-editor-scripting
+description: Unity Editor Scripting
+---
+
 # Unity Editor Scripting
 
 Use this skill when building custom inspectors, editor windows, property drawers, build pipeline extensions, or other tools using the UnityEditor API.

@@ -1,3 +1,8 @@
+---
+name: unity-3d-lighting
+description: Unity 3D Lighting
+---
+
 # Unity 3D Lighting
 
 Use this skill when configuring lights, shadows, global illumination, or baked lighting in Unity across URP and HDRP render pipelines.

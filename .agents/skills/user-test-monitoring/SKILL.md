@@ -1,3 +1,8 @@
+---
+name: user-test-monitoring
+description: User Test Monitoring Skill
+---
+
 # User Test Monitoring Skill
 
 Use this skill when setting up user testing sessions, recording player behavior, capturing performance telemetry, or analyzing session data for actionable insights.

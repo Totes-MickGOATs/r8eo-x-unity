@@ -1,3 +1,8 @@
+---
+name: unity-state-machines
+description: Unity State Machines
+---
+
 # Unity State Machines
 
 Use this skill when implementing state machines for game logic, AI behavior, animation control, or UI flow, whether using Unity's Animator or custom FSM code.

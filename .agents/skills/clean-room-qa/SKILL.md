@@ -1,3 +1,8 @@
+---
+name: clean-room-qa
+description: Clean Room QA Skill
+---
+
 # Clean Room QA Skill
 
 Use this skill when writing black-box tests with zero implementation knowledge, deriving test cases purely from function signatures and domain expectations. Enforces strict separation between test-writing and implementation.

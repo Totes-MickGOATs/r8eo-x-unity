@@ -1,3 +1,8 @@
+---
+name: unity-scene-management
+description: Unity Scene Management
+---
+
 # Unity Scene Management
 
 Use this skill when loading, unloading, or organizing scenes, implementing additive scene architectures, or building scene transition flows in Unity.

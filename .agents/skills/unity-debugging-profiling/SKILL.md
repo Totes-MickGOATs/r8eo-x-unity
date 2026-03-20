@@ -1,3 +1,8 @@
+---
+name: unity-debugging-profiling
+description: Unity Debugging and Profiling
+---
+
 # Unity Debugging and Profiling
 
 Use this skill when diagnosing bugs with Debug.Log, profiling frame time or memory usage, or building custom debug visualization tools in Unity.

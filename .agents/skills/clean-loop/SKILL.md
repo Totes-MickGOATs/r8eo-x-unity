@@ -1,3 +1,8 @@
+---
+name: clean-loop
+description: Clean Loop — End-of-Task Knowledge Capture
+---
+
 # Clean Loop — End-of-Task Knowledge Capture
 
 Use this skill at the end of every task to run cleanup, capture lessons learned, update documentation, sync memories, and verify clean git state before declaring done.

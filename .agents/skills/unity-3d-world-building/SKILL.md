@@ -1,3 +1,8 @@
+---
+name: unity-3d-world-building
+description: Unity 3D World Building
+---
+
 # Unity 3D World Building
 
 Use this skill when building 3D environments, sculpting terrain, placing props, or setting up scene geometry in Unity.

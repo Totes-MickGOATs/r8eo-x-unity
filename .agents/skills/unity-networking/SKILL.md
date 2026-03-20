@@ -1,3 +1,8 @@
+---
+name: unity-networking
+description: Unity Networking
+---
+
 # Unity Networking
 
 Use this skill when implementing multiplayer networking with Netcode for GameObjects, including RPCs, state synchronization, network spawning, and lobby/relay setup.

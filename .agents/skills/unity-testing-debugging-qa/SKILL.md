@@ -1,3 +1,8 @@
+---
+name: unity-testing-debugging-qa
+description: Unity Testing, Debugging & QA
+---
+
 # Unity Testing, Debugging & QA
 
 Comprehensive guide to testing, debugging, and quality assurance for Unity games. Use this skill as the unified entry point when planning QA strategy, setting up test infrastructure, debugging issues, or integrating quality checks into CI/CD. For deep dives into specific areas, see the Related Skills section.

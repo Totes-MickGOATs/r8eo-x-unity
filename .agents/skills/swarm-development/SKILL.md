@@ -1,3 +1,8 @@
+---
+name: swarm-development
+description: Swarm Development
+---
+
 # Swarm Development
 
 Orchestrate multiple subagents to execute, review, and converge on complex tasks. Use this skill when a task is large enough that parallel execution and continuous objective review will produce higher quality than a single agent working alone.

@@ -1,3 +1,8 @@
+---
+name: changelog
+description: Changelog Generation
+---
+
 # Changelog Generation
 
 ## When to Use

@@ -1,3 +1,8 @@
+---
+name: user-interaction-testing
+description: User Interaction Testing Skill
+---
+
 # User Interaction Testing Skill
 
 Use this skill when writing automated tests that simulate user-facing interactions such as input handling, menu navigation, button clicks, and full user journeys.

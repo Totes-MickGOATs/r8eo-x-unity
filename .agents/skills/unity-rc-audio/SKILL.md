@@ -1,3 +1,8 @@
+---
+name: unity-rc-audio
+description: Unity RC Audio
+---
+
 # Unity RC Audio
 
 Use this skill when implementing audio for an RC car racing game. RC cars sound nothing like full-size vehicles -- brushless motors produce a high-pitched whine, not engine rumble. Covers motor audio synthesis, RPM crossfade, ESC/servo/tire/impact sounds, AudioMixer architecture, Doppler configuration, opponent audio LOD, and compression settings.

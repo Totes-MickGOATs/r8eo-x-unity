@@ -1,3 +1,8 @@
+---
+name: unity-racing-ui
+description: Unity Racing UI — HUD, Menus, and Race Management
+---
+
 # Unity Racing UI — HUD, Menus, and Race Management
 
 Use this skill when building racing game UI systems including in-race HUD, menu flow, minimap, split-screen viewports, leaderboards, ghost data display, race start sequences, and accessibility features.

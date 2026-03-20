@@ -1,3 +1,8 @@
+---
+name: unity-build-distribution
+description: Unity Build & Distribution
+---
+
 # Unity Build & Distribution
 
 Use this skill when configuring build settings, setting up IL2CPP/Mono backends, integrating with Steam, or building CI/CD pipelines for Unity game distribution.

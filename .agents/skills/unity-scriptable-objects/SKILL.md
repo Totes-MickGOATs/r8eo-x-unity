@@ -1,3 +1,8 @@
+---
+name: unity-scriptable-objects
+description: Unity ScriptableObject Architecture
+---
+
 # Unity ScriptableObject Architecture
 
 Use this skill when designing data-driven systems with ScriptableObjects for configuration assets, event channels, shared runtime state, or runtime sets.

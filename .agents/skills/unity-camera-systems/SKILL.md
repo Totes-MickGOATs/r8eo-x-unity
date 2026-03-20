@@ -1,3 +1,8 @@
+---
+name: unity-camera-systems
+description: Unity Camera Systems
+---
+
 # Unity Camera Systems
 
 Use this skill when setting up cameras, configuring Cinemachine virtual cameras, implementing camera blending, or building state-driven camera rigs in Unity.
