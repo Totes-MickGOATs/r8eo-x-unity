@@ -1,3 +1,7 @@
+---
+description: Mandatory ask-first pre-implementation workflow — Interrogate, Test-First, Implement
+---
+
 # Ask-First Pre-Implementation Workflow
 
 Mandatory pre-implementation workflow. Run this before starting any dev task.
@@ -7,7 +11,7 @@ Mandatory pre-implementation workflow. Run this before starting any dev task.
 /dev:ask-first
 ```
 
-a## Pre-Alignment Checkpoint
+## Pre-Alignment Checkpoint
 
 Before executing any phase, answer these four questions:
 

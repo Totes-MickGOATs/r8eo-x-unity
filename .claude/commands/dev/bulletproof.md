@@ -1,3 +1,9 @@
+---
+description: Multi-pass quality assurance — requirements alignment, implementation quality, convergence, knowledge hygiene
+---
+
+# Bulletproof Quality Assurance
+
 Multi-pass quality assurance for code changes. Ensures requirements alignment, implementation quality, convergence, and knowledge hygiene before declaring done.
 
 User's task: $ARGUMENTS

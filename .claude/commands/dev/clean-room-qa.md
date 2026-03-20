@@ -1,3 +1,7 @@
+---
+description: Black-box QA testing with zero implementation knowledge — domain-physics-derived assertions
+---
+
 # Clean Room QA
 
 Run black-box tests against a system with zero implementation knowledge.
