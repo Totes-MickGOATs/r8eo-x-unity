@@ -7,6 +7,15 @@ Orchestrate parallel subagents to build, review, and converge on complex tasks. 
 | File | Role |
 |------|------|
 | `SKILL.md` | Swarm protocol, reviewer roster, dispatch templates, convergence criteria, anti-patterns |
+| `skill-core-principles.md` | Core Principles |
+| `skill-output-format.md` | Output Format |
+| `skill-sequential-coordination-mode.md` | Sequential Coordination Mode |
+| `skill-cleanup.md` | Cleanup |
+| `skill-example-skill-creation-swarm.md` | Example: Skill Creation Swarm |
+| `skill-convergence-criteria.md` | Convergence Criteria |
+| `skill-anti-patterns.md` | Anti-Patterns |
+| `skill-when-to-use.md` | When to Use |
+| `skill-model-routing.md` | Model Routing |
 
 ## When to Use
 
