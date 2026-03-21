@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace R8EOX.Input
 {
@@ -37,43 +36,43 @@ namespace R8EOX.Input
 
         // ---- Private Fields ----
 
-        private R8EOXInputActions _actions;
+        private InputBridge _input;
 
 
         // ---- Unity Lifecycle ----
 
         void Awake()
         {
-            _actions = new R8EOXInputActions();
+            _input = new InputBridge(new R8EOXInputActions());
         }
 
         void OnEnable()
         {
-            _actions.Gameplay.Enable();
+            _input.Enable();
         }
 
         void OnDisable()
         {
-            _actions.Gameplay.Disable();
+            _input.Disable();
         }
 
         void OnDestroy()
         {
-            _actions?.Dispose();
+            _input?.Dispose();
         }
 
         void Update()
         {
-            Throttle = _actions.Gameplay.Throttle.ReadValue<float>();
-            Brake = _actions.Gameplay.Brake.ReadValue<float>();
+            Throttle = _input.Throttle;
+            Brake    = _input.Brake;
 
-            float rawSteer = _actions.Gameplay.Steer.ReadValue<float>();
+            float rawSteer = _input.Steer;
             Steer = InputMath.ApplySteeringCurve(rawSteer, _steerCurveExponent);
 
-            ResetPressed = _actions.Gameplay.Reset.WasPressedThisFrame();
-            DebugTogglePressed = _actions.Gameplay.DebugToggle.WasPressedThisFrame();
-            CameraCyclePressed = _actions.Gameplay.CameraCycle.WasPressedThisFrame();
-            PausePressed = _actions.Gameplay.Pause.WasPressedThisFrame();
+            ResetPressed       = _input.WasResetPressedThisFrame;
+            DebugTogglePressed = _input.WasDebugTogglePressedThisFrame;
+            CameraCyclePressed = _input.WasCameraCyclePressedThisFrame;
+            PausePressed       = _input.WasPausePressedThisFrame;
         }
     }
 }
