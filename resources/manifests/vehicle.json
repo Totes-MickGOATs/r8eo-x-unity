@@ -12,6 +12,7 @@
     "Assets/Scripts/Vehicle/RaycastWheel.cs",
     "Assets/Scripts/Vehicle/WheelVisuals.cs",
     "Assets/Scripts/Vehicle/Drivetrain.cs",
+    "Assets/Scripts/Vehicle/DrivetrainDiff.cs",
     "Assets/Scripts/Vehicle/RCAirPhysics.cs",
     "Assets/Scripts/Vehicle/R8EOX.Vehicle.asmdef",
     "Assets/Scripts/Vehicle/Physics/R8EOX.Vehicle.Physics.asmdef",
