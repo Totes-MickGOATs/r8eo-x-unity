@@ -14,6 +14,11 @@ Used by test fixtures and the `OutpostTrackSetup` scene builder.
 | `TerrainBuilder.cs` | Creates and configures terrain objects with surface layers and height maps |
 | `TerrainLayerBuilder.cs` | Builds terrain layer assets (texture, normal map, friction settings) |
 | `TestTrackBuilder.cs` | Assembles a complete test track scene from primitive components |
+| `RCBuggyModularBuilder.cs` | Entry points (menu + batchmode) for nested-prefab decomposition of RCBuggy.prefab |
+| `RCBuggyNestedPrefabExtractor.cs` | Low-level prefab extraction helpers used by RCBuggyModularBuilder |
+| `TrackSceneModularBuilder.cs` | Entry points (menu + batchmode) for additive-scene decomposition of TestTrack/OutpostTrack |
+| `SceneDecomposer.cs` | Low-level scene decomposition utilities used by TrackSceneModularBuilder |
+| `SceneModularizationRunner.cs` | Unified batchmode entry point — runs all modularization builders in order |
 
 ## Relevant Skills
 

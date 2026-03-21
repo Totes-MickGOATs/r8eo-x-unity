@@ -20,7 +20,12 @@
     "Assets/Scripts/Editor/Builders/EnvironmentBuilder.cs",
     "Assets/Scripts/Editor/Builders/AssetHelper.cs",
     "Assets/Scripts/Editor/Builders/TerrainLayerBuilder.cs",
-    "Assets/Scripts/Editor/AssetLintRunner.cs"
+    "Assets/Scripts/Editor/AssetLintRunner.cs",
+    "Assets/Scripts/Editor/Builders/RCBuggyModularBuilder.cs",
+    "Assets/Scripts/Editor/Builders/RCBuggyNestedPrefabExtractor.cs",
+    "Assets/Scripts/Editor/Builders/TrackSceneModularBuilder.cs",
+    "Assets/Scripts/Editor/Builders/SceneDecomposer.cs",
+    "Assets/Scripts/Editor/Builders/SceneModularizationRunner.cs"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],
   "replaced_by": "",
