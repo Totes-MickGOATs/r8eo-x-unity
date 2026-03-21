@@ -10,3 +10,9 @@ Independent black-box QA testing skill. Writes tests with ZERO implementation kn
 
 ## Key Principle
 > If you know how the code works, you can't objectively test whether it works correctly.
+
+## New Topic Pages
+
+| File | Purpose |
+|------|----------|
+| `skill-process.md` | Process |
