@@ -16,3 +16,6 @@ Dynamic weather, track conditions, and environmental effects for RC racing simul
 | `unity-physics-tuning` | PhysX configuration for the vehicle that weather modifiers apply to |
 | `unity-particles-vfx` | Particle system fundamentals for rain, dust, and mud effects |
 | `unity-3d-materials` | Shader and material basics for wet surface rendering |
+| `skill-weather-state-machine.md` | Weather State Machine |
+| `skill-rain-system.md` | Rain System |
+| `skill-performance-considerations.md` | Performance Considerations |
