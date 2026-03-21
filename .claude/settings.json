@@ -74,7 +74,7 @@
       "mcp__UnityMCP__debug_request_context",
       "mcp__ide__getDiagnostics"
     ],
-      "defaultMode": "bypassPermissions"
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PreToolUse": [
@@ -88,6 +88,15 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/guard-master-commit.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/guard-main-edit.sh\""
           }
         ]
       }
@@ -104,17 +113,21 @@
       },
       {
         "matcher": "EnterPlanMode",
-        "hooks": [{
-          "type": "command",
-          "command": "touch /tmp/cc-plan-mode-active"
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "touch /tmp/cc-plan-mode-active"
+          }
+        ]
       },
       {
         "matcher": "ExitPlanMode",
-        "hooks": [{
-          "type": "command",
-          "command": "rm -f /tmp/cc-plan-mode-active"
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rm -f /tmp/cc-plan-mode-active"
+          }
+        ]
       }
     ],
     "SubagentStop": [
@@ -189,5 +202,5 @@
     "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/statusline.sh\"",
     "padding": 0
   },
-    "model": "opusplan"
+  "model": "opusplan"
 }

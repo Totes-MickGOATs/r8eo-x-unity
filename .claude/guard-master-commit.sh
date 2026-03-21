@@ -1,14 +1,9 @@
 #!/bin/bash
-# Claude Code PreToolUse hook: block git commit on main branch.
+# Claude Code PreToolUse hook: block git commit and branch-switch on main branch.
 # This hook cannot be bypassed by --no-verify or any git flag.
 # It runs BEFORE the command executes.
 
 CMD=$(jq -r ".tool_input.command // empty")
-
-# Only check git commit commands
-if ! echo "$CMD" | grep -qE '\bgit\b.*\bcommit\b'; then
-    exit 0
-fi
 
 # Block --no-verify (never allowed in this project)
 if echo "$CMD" | grep -qE '\-\-no-verify'; then
@@ -17,10 +12,50 @@ if echo "$CMD" | grep -qE '\-\-no-verify'; then
     exit 1
 fi
 
-# Check current branch
+# Detect branch-switch commands:
+#   git switch <branch>               — always a branch switch
+#   git checkout <branch>             — branch switch when no ' -- ' separator
+# We do NOT flag: git checkout -- file, git checkout . (file restore patterns)
+IS_BRANCH_SWITCH=0
+if echo "$CMD" | grep -qE '\bgit\b.*\bswitch\b'; then
+    IS_BRANCH_SWITCH=1
+fi
+if echo "$CMD" | grep -qE '\bgit\b.*\bcheckout\b' && \
+   ! echo "$CMD" | grep -qF ' -- ' && \
+   ! echo "$CMD" | grep -qE '\bcheckout\s+\.'; then
+    IS_BRANCH_SWITCH=1
+fi
+
+# Detect commit commands
+IS_COMMIT=0
+if echo "$CMD" | grep -qE '\bgit\b.*\bcommit\b'; then
+    IS_COMMIT=1
+fi
+
+# Nothing to check — allow
+if [ "$IS_BRANCH_SWITCH" = "0" ] && [ "$IS_COMMIT" = "0" ]; then
+    exit 0
+fi
+
+# Check current branch (main working tree)
 BRANCH=$(git -C "$CLAUDE_PROJECT_DIR" branch --show-current 2>/dev/null)
 
-if [ "$BRANCH" = "main" ]; then
+# Block branch switch in main working tree
+if [ "$IS_BRANCH_SWITCH" = "1" ] && [ "$BRANCH" = "main" ]; then
+    echo "BLOCKED: Cannot switch branches in the main working tree." >&2
+    echo "" >&2
+    echo "  Command attempted: $CMD" >&2
+    echo "" >&2
+    echo "The main working tree must stay on 'main' at all times." >&2
+    echo "Use worktrees for all feature work:" >&2
+    echo "  bash scripts/tools/safe-worktree-init.sh <task-name>" >&2
+    echo "" >&2
+    echo "Full guide: .agents/skills/branch-workflow/SKILL.md" >&2
+    exit 1
+fi
+
+# Block commit on main branch
+if [ "$IS_COMMIT" = "1" ] && [ "$BRANCH" = "main" ]; then
     # Allow if ALLOW_MASTER_COMMIT is set in the command
     if echo "$CMD" | grep -qE 'ALLOW_MASTER_COMMIT=1'; then
         exit 0
