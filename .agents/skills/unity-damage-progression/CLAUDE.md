@@ -15,3 +15,4 @@ Vehicle damage modeling, component wear simulation, and career progression syste
 | `unity-scriptable-objects` | Template pattern for `TireCompoundSO`, `VehicleUpgradeSO`, `MotorSpecSO`, `DamageZoneConfig` |
 | `unity-save-load` | Persisting career state, battery degradation, upgrade inventory, tuning presets to JSON |
 | `unity-physics-3d` | Collision detection, contact point processing, force-based damage calculation |
+| `skill-1-visual-damage-system.md` | 1. Visual Damage System |
