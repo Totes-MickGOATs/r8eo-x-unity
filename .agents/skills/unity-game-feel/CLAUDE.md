@@ -32,3 +32,4 @@ Camera juice, controller haptics, screen effects, input curves, landing impact, 
 | `unity-input-system` | Input System setup before curves are applied |
 | `unity-particles-vfx` | Particle System fundamentals for smoke/dust/speed lines |
 | `unity-graphics-pipeline` | URP post-processing and Volume configuration |
+| `skill-1-speed-based-fov.md` | 1. Speed-Based FOV |
