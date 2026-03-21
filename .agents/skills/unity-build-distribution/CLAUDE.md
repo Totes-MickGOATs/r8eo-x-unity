@@ -14,3 +14,11 @@ Build configuration, platform shipping, Steam integration, and CI/CD pipelines f
 |-------|-------------|
 | `unity-project-foundations` | Project structure, assembly definitions, Unity settings (this skill focuses on build and distribution) |
 | `unity-performance-optimization` | Runtime performance profiling (this skill covers build-time optimization and shipping config) |
+| `skill-build-size-optimization.md` | Build Size Optimization |
+| `skill-steam-integration.md` | Steam Integration |
+| `skill-gameci-pipeline.md` | GameCI Pipeline |
+| `skill-quality-presets.md` | Quality Presets |
+| `skill-managed-stripping-levels.md` | Managed Stripping Levels |
+| `skill-addressables.md` | Addressables |
+| `skill-startup-optimization.md` | Startup Optimization |
+| `skill-platform-specifics.md` | Platform Specifics |

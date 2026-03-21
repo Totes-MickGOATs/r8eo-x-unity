@@ -7,6 +7,7 @@ Unified entry point for Unity testing, debugging, and QA strategy. Covers the te
 | File | Role |
 |------|------|
 | `SKILL.md` | Comprehensive testing/debugging/QA reference — philosophy, tools, patterns, CI integration |
+| `skill-testing-philosophy.md` | Testing Philosophy |
 
 ## Related Skills
 

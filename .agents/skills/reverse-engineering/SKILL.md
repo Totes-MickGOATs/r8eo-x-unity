@@ -3,6 +3,7 @@ name: reverse-engineering
 description: Reverse Engineering & Debug Methodology Skill
 ---
 
+
 # Reverse Engineering & Debug Methodology Skill
 
 Use this skill when diagnosing bugs through systematic chain-of-custody debugging, or when you need to understand how an unfamiliar system works before modifying it.
@@ -16,66 +17,6 @@ Symptom → Proximate Cause → Intermediate Steps → Root Cause
 ```
 
 **Never fix the symptom.** Always trace to the root cause. A symptom fix creates a new bug waiting to happen.
-
-## The Debugging Protocol
-
-### Phase 1: Observe the Symptom
-
-Before forming any hypothesis, collect raw facts:
-
-1. **What exactly happens?** — Not "it's broken" but "the player falls through the floor at position (12, 0, -5) when landing from a jump"
-2. **When does it happen?** — Always? Sometimes? Only after a specific sequence of actions?
-3. **What changed recently?** — `git log --oneline -20` to see recent commits. `git diff HEAD~5` for recent changes.
-4. **What are the exact error messages?** — Copy them verbatim. Don't paraphrase.
-5. **Is it reproducible?** — If yes, write down the exact reproduction steps.
-
-### Phase 2: Form a Hypothesis
-
-Based on the symptoms, propose a specific, testable explanation:
-
-- **Good hypothesis:** "The collision shape is not updating its transform after the animation plays, so the physics body uses stale collision geometry"
-- **Bad hypothesis:** "Something is wrong with the physics"
-
-A hypothesis must be:
-- **Specific** — points to a particular mechanism or code path
-- **Testable** — you can design an experiment to confirm or refute it
-- **Falsifiable** — there exists evidence that would prove it wrong
-
-### Phase 3: Gather Evidence
-
-Test your hypothesis with the **minimum intervention** that produces useful data:
-
-```
-Read code → Add targeted logging → Inspect runtime state → Check config
-```
-
-**Do NOT** start changing code to "try things." That introduces new variables and makes the problem harder to diagnose.
-
-#### Evidence-Gathering Techniques
-
-| Technique | When to Use | Example |
-|-----------|-------------|---------|
-| **Read the code** | Always start here | Trace the call chain from symptom to origin |
-| **Add logging** | When you need runtime values | `Debug.log("physics", "velocity: %s" % velocity)` |
-| **Inspect state** | When values look wrong | Check variable values at breakpoints or via debug overlay |
-| **Check config** | When behavior differs from expectation | Verify project settings, export values, config files |
-| **Binary search** | When the failure is in a large change set | Bisect commits or comment out code blocks |
-| **Minimal reproduction** | When the bug is intermittent | Strip the scenario to the simplest case that still fails |
-
-### Phase 4: Confirm or Refute
-
-Your evidence either supports or contradicts your hypothesis:
-
-- **Supported:** Proceed to Phase 5 (fix). But verify with a second independent piece of evidence if possible — one data point can be coincidence.
-- **Contradicted:** Go back to Phase 2 with a new hypothesis. The failed hypothesis is still valuable — it rules out a possibility.
-
-### Phase 5: Fix and Verify
-
-1. Write a failing test that captures the bug (TDD red phase)
-2. Implement the minimum fix
-3. Run the test — confirm it passes (TDD green phase)
-4. Run related tests — confirm no regressions
-5. Commit with a message that explains the root cause, not just the symptom
 
 ## Binary Search Technique
 
@@ -104,38 +45,6 @@ When the bug is in a single file or function:
 5. Repeat until you've narrowed to a few lines.
 
 **Important:** Undo all your bisect changes before implementing the fix. Bisecting is diagnostic, not therapeutic.
-
-## Signal Tracing in Event-Driven Architectures
-
-Event-driven systems (signals, events, callbacks) make bugs harder to trace because the call stack doesn't show the full story. The connection between emitter and receiver is configured at runtime, not visible in static code.
-
-### Tracing Strategy
-
-1. **Start from the symptom** — which handler is misbehaving?
-2. **Find the signal connection** — search for `.connect(` with the handler name, or the signal name
-3. **Find the emission point** — search for `.emit(` or `emit_signal(` with the signal name
-4. **Trace the emission context** — what state is the emitter in when it fires?
-5. **Check connection timing** — is the signal connected before or after the first emission?
-
-### Common Signal Bugs
-
-| Bug | Symptom | Root Cause |
-|-----|---------|------------|
-| **Late connection** | Handler never fires | Signal emitted before `connect()` runs |
-| **Double connection** | Handler fires twice | `connect()` called twice without `is_connected()` guard |
-| **Wrong signal** | Handler fires at wrong time | Connected to similar-named signal (e.g., `changed` vs `value_changed`) |
-| **Stale reference** | Crash on signal emit | Connected object was freed but signal wasn't disconnected |
-| **Argument mismatch** | Wrong data in handler | Signal emits different args than handler expects |
-
-### Mapping Signal Flow
-
-For complex systems, draw the signal flow:
-
-```
-ObjectA.signal_x → ObjectB.handler_y → ObjectB.signal_z → ObjectC.handler_w
-```
-
-This makes it visible where the chain breaks. Check each arrow independently.
 
 ## State Inspection Patterns
 
@@ -188,46 +97,6 @@ Debug.log("physics", "wheel %d slip: lateral=%.2f longitudinal=%.2f" % [i, lat, 
 print("slip is " + str(slip))
 ```
 
-## Common Pitfalls
-
-### Correlation vs Causation
-
-"The bug started happening after I changed X" does not mean X caused the bug. It might be:
-- A pre-existing bug that X's change made visible
-- A timing change that surfaced a race condition
-- An unrelated change that was merged around the same time
-
-**Test:** Revert X. Does the bug go away? If yes, X is involved (but may not be the root cause). If no, X is a red herring.
-
-### Confirmation Bias
-
-Once you have a hypothesis, you'll unconsciously filter evidence to support it. Counter this by:
-- **Actively trying to disprove your hypothesis** — what evidence would contradict it?
-- **Asking "what else could cause this?"** before committing to a fix
-- **Having a second pair of eyes** review your diagnosis
-
-### Fixing Symptoms, Not Causes
-
-| Symptom Fix (Wrong) | Root Cause Fix (Right) |
-|---------------------|----------------------|
-| Add a null check before the crash | Fix why the variable is null |
-| Clamp the value to a safe range | Fix why the value goes out of range |
-| Add a retry loop | Fix why the operation fails |
-| Catch and ignore the exception | Fix the condition that throws |
-
-Symptom fixes are sometimes necessary as **temporary stopgaps** (to unblock a release), but they must always be followed by a root cause fix. Leave a `# TODO: root cause fix needed` comment with a description.
-
-### Premature Code Changes
-
-The most common debugging anti-pattern:
-
-1. See a bug
-2. Immediately start changing code to "fix" it
-3. The change doesn't work, or introduces a new bug
-4. Now you're debugging two problems
-
-**Rule:** Do not change production code until you can explain the root cause in one sentence. If you can't articulate it, you haven't found it yet.
-
 ## Post-Mortem Process
 
 After fixing a significant bug, document:
@@ -248,3 +117,11 @@ Update project memory or documentation with any new gotchas, patterns, or rules 
 - [ ] I checked for similar patterns elsewhere in the codebase that might have the same bug
 - [ ] I updated documentation/memory with the finding
 - [ ] The commit message explains the root cause, not just "fix bug"
+
+
+## Topic Pages
+
+- [The Debugging Protocol](skill-the-debugging-protocol.md)
+- [Signal Tracing in Event-Driven Architectures](skill-signal-tracing-in-event-driven-architectures.md)
+- [Common Pitfalls](skill-common-pitfalls.md)
+

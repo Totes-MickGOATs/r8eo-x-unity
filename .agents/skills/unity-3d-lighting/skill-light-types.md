@@ -1,0 +1,286 @@
+# Light Types
+
+> Part of the `unity-3d-lighting` skill. See [SKILL.md](SKILL.md) for the overview.
+
+## Light Types
+
+### Directional Light
+
+Simulates distant light (sun/moon). Affects the entire scene uniformly.
+
+```
+- No position falloff — only rotation matters
+- One directional light is "free" in forward rendering
+- Additional directional lights are expensive
+- Controls shadow cascades
+```
+
+### Point Light
+
+Emits in all directions from a position. Falloff by distance.
+
+```
+- Good for: lamps, torches, explosions, fireflies
+- Shadow maps require 6 faces (cubemap) — expensive
+- URP: limited number of per-object additional lights
+```
+
+### Spot Light
+
+Cone-shaped emission. Position + direction + angle.
+
+```
+- Good for: flashlights, stage lights, car headlights
+- Inner/outer angle controls falloff softness
+- Single shadow map face — cheaper than point light shadows
+```
+
+### Area Light
+
+Rectangular or disc-shaped emitter. Soft, realistic shadows.
+
+```
+- URP: baked only (no realtime area lights)
+- HDRP: realtime area lights supported (rect, disc, tube)
+- Most physically accurate light type
+- Expensive — use sparingly for realtime
+```
+
+## Realtime vs Mixed vs Baked
+
+### Realtime Lighting
+
+```
+Pros:
+  - Dynamic — moves, changes color/intensity at runtime
+  - No bake time, instant iteration
+  - Shadows update every frame
+Cons:
+  - Most expensive at runtime
+  - No global illumination (light bounces)
+  - Shadow quality limited by resolution budget
+Use for: player flashlight, moving sun, dynamic effects
+```
+
+### Baked Lighting
+
+```
+Pros:
+  - Zero runtime cost for light calculation
+  - Includes global illumination (light bounces, color bleeding)
+  - Soft, high-quality shadows
+Cons:
+  - Static only — cannot move lights or shadow casters
+  - Long bake times for large scenes
+  - Lightmap memory (textures stored on disk)
+Use for: architectural visualization, static environments, mobile games
+```
+
+### Mixed Lighting
+
+```
+Modes (set per-light):
+  - Baked Indirect: Direct light is realtime, indirect (bounced) is baked
+  - Shadowmask: Baked shadows for static objects, realtime for dynamic
+  - Subtractive: Everything baked, one directional light for dynamic shadows
+
+Best balance for most games: Baked Indirect or Shadowmask
+```
+
+### Setting Light Mode
+
+```csharp
+// In Inspector: Light component > Mode dropdown
+// Or via script:
+Light light = GetComponent<Light>();
+light.lightmapBakeType = LightmapBakeType.Mixed;
+```
+
+## URP Lighting Specifics
+
+### Additional Lights Limit
+
+```
+URP Asset > Lighting:
+  - Main Light: single directional (sun)
+  - Additional Lights:
+    - Per Vertex: cheapest, low quality
+    - Per Pixel: better quality, limited count
+    - Max Additional Lights: default 4 (mobile) or 8 (desktop)
+```
+
+### Forward+ Rendering (Unity 2022.2+)
+
+```
+URP Asset > Rendering > Rendering Path: Forward+
+  - Removes per-object light limit
+  - Cluster-based light culling (similar to deferred)
+  - Hundreds of lights possible with good performance
+  - Recommended for desktop/console with many lights
+```
+
+### URP Light Configuration
+
+```csharp
+// Access URP additional light data
+var additionalData = light.GetComponent<UniversalAdditionalLightData>();
+additionalData.usePipelineSettings = false;  // Override pipeline defaults
+```
+
+## HDRP Lighting Specifics
+
+### Physical Light Units
+
+HDRP uses real-world light measurements:
+
+| Unit | Used By | Example Values |
+|------|---------|---------------|
+| Lux | Directional | 120,000 (noon sun), 400 (overcast) |
+| Lumen | Point, Spot | 800 (60W bulb), 12,000 (streetlight) |
+| Candela | Spot | Luminous intensity in a direction |
+| Nits | Area | 1,500 (fluorescent panel) |
+| EV | Exposure | 14.5 (sunny day), 8 (interior) |
+
+### Volumetric Fog
+
+```
+HDRP exclusive feature:
+  - Fog Volume component with Density Volume
+  - Lights contribute to fog scattering
+  - Configurable: scattering, extinction, anisotropy
+  - Performance: controlled by volumetric fog quality in HDRP Asset
+```
+
+### HDRP Area Lights (Realtime)
+
+```
+Supported shapes: Rectangle, Disc, Tube
+  - Soft shadows with area shape
+  - Screen-space shadow option for performance
+  - Emission mesh visualization
+```
+
+## Light Probes
+
+> **Unity 6: Adaptive Probe Volumes (APV)** replace manual Light Probe Groups. APV automatically places probes with adaptive density -- denser near geometry boundaries and lighting transitions, sparser in open areas. Enable in **Lighting Settings > Light Probe System > Adaptive Probe Volumes**. APV supports sky occlusion (directional ambient shadowing) and lighting scenarios (multiple baked states for time-of-day switching). For new projects on Unity 6, use APV instead of manual Light Probe Groups. Manual probe placement is still supported as a fallback.
+
+Light Probes capture baked lighting at points in space for dynamic objects.
+
+### Placement Strategy (Manual Light Probe Groups -- Legacy)
+
+```
+- Place probes in a 3D grid throughout the playable area
+- Denser near lighting transitions (shadow edges, color changes)
+- Inside and outside doorways/windows
+- At different heights for multi-floor areas
+- Avoid placing inside geometry (invalid data)
+```
+
+### Light Probe Group
+
+```csharp
+// Add via Component > Rendering > Light Probe Group
+// Edit in Scene view: select group, use editing tools
+
+// Dynamic objects automatically sample nearby probes
+// Ensure Mesh Renderer > Light Probes = Blend Probes
+renderer.lightProbeUsage = LightProbeUsage.BlendProbes;
+
+// For large objects that span multiple probes:
+renderer.lightProbeUsage = LightProbeUsage.UseProxyVolume;
+// Add Light Probe Proxy Volume component
+```
+
+### Scripted Probe Sampling
+
+```csharp
+// Sample probes at a specific position
+SphericalHarmonicsL2 sh;
+LightProbes.GetInterpolatedProbe(worldPosition, null, out sh);
+
+// Apply to a material
+MaterialPropertyBlock props = new MaterialPropertyBlock();
+renderer.GetPropertyBlock(props);
+// SH data is automatically applied to renderers using probes
+```
+
+## Reflection Probes
+
+Capture the environment for reflective surfaces (metals, water, glass).
+
+### Types
+
+```
+Baked:
+  - Captured once at bake time
+  - Zero runtime cost
+  - Cannot reflect dynamic objects
+
+Realtime:
+  - Re-renders cubemap at runtime
+  - Can reflect dynamic objects
+  - Very expensive — limit to 1-2 per scene
+  - Set refresh mode: On Awake, Every Frame, or Via Scripting
+
+Custom:
+  - User-supplied cubemap texture
+  - Zero cost, full control
+```
+
+### Projection Modes
+
+```
+Standard (infinite):
+  - Default, no parallax correction
+  - Good for outdoor open areas
+
+Box Projection:
+  - Parallax-corrected reflections
+  - Accurate for interior rooms
+  - Set Bounds to match room dimensions
+  - Enable: Reflection Probe > Box Projection checkbox
+```
+
+### Blending
+
+```
+Overlapping probes blend automatically based on renderer position.
+  - Mesh Renderer > Reflection Probes: Blend Probes / Simple
+  - URP: max 2 probes blended per object
+  - Weight falloff based on probe bounds
+```
+
+## Lightmapping
+
+### Setup
+
+1. Mark static objects: **GameObject > Static > Contribute GI** (or just Static)
+2. Set light mode to Baked or Mixed
+3. Open **Window > Rendering > Lighting**
+4. Configure and click **Generate Lighting**
+
+### Key Settings
+
+| Setting | Recommended | Notes |
+|---------|-------------|-------|
+| Lightmap Resolution | 20-40 texels/unit | Higher = better quality, longer bake, more memory |
+| Max Lightmap Size | 1024-2048 | Larger = fewer lightmaps, more VRAM per map |
+| Lightmapper | Progressive GPU | Much faster than CPU, nearly identical quality |
+| Direct Samples | 32 | Increase to reduce noise in direct lighting |
+| Indirect Samples | 512 | Increase to reduce noise in bounced lighting |
+| Bounces | 2-3 | More bounces = more realistic, diminishing returns past 3 |
+| Compress Lightmaps | true | Halves memory, slight quality loss |
+
+### UV Charts
+
+Objects need lightmap UVs. Unity auto-generates them, but you can control quality:
+
+```
+Mesh Import Settings > Generate Lightmap UVs: true
+  - Pack Margin: 4-8 (texels between UV islands)
+  - Angle Error: 8% (UV distortion tolerance)
+  - Area Error: 15% (area distortion tolerance)
+```
+
+For best results, create lightmap UVs in your DCC tool (Blender, Maya) with no overlaps.
+

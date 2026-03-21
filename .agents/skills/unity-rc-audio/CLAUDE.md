@@ -7,6 +7,12 @@ Audio design skill for RC car racing games in Unity. Covers brushless motor soun
 | File | Role |
 |------|------|
 | `SKILL.md` | Full reference: motor audio, RPM crossfade, ESC/servo/tire/impact sounds, mixer setup, compression settings, implementation priority |
+| `skill-brushless-motor-audio.md` | Brushless Motor Audio |
+| `skill-tire-surface-audio.md` | Tire / Surface Audio |
+| `skill-opponent-lod-audio.md` | Opponent LOD Audio |
+| `skill-implementation-priority.md` | Implementation Priority |
+| `skill-servo-audio.md` | Servo Audio |
+| `skill-doppler-effect.md` | Doppler Effect |
 
 ## Key Topics
 

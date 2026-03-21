@@ -7,6 +7,7 @@ Physics conformance testing framework -- 93 checks across 12 categories validati
 | File | Role |
 |------|------|
 | `SKILL.md` | Full conformance methodology, check categories, recorder API, how to add checks |
+| `skill-using-conformancerecorder.md` | Using ConformanceRecorder |
 
 ## Key Concepts
 

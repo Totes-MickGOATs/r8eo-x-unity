@@ -32,3 +32,11 @@ Unity 6 URP rendering pipeline configuration, GPU optimization, lighting setup, 
 | `unity-performance-optimization` | CPU-side optimization (GC, pooling, batching) |
 | `unity-shaders` | Custom HLSL and Shader Graph authoring |
 | `unity-game-feel` | Post-processing as game feel (uses Volumes configured here) |
+| `skill-3-adaptive-probe-volumes-apv.md` | 3. Adaptive Probe Volumes (APV) |
+| `skill-7-shadow-cascades.md` | 7. Shadow Cascades |
+| `skill-9-draw-call-budget.md` | 9. Draw Call Budget |
+| `skill-11-vfx-graph-instancing.md` | 11. VFX Graph Instancing |
+| `skill-12-profiling-workflow.md` | 12. Profiling Workflow |
+| `skill-2-gpu-resident-drawer-grd.md` | 2. GPU Resident Drawer (GRD) |
+| `skill-8-post-processing-budget.md` | 8. Post-Processing Budget |
+| `skill-5-shader-graph-terrain.md` | 5. Shader Graph Terrain |

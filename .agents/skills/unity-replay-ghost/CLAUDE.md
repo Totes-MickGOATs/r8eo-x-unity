@@ -28,3 +28,4 @@ State-based replay recording and ghost playback system for RC racing.
 | `unity-camera-systems` | Cinemachine setup, virtual camera configuration, camera blending |
 | `unity-save-load` | Persistence patterns, binary serialization, file I/O conventions |
 | `unity-performance-optimization` | Profiling, GC-free patterns, async threading |
+| `skill-2-ghostframe-struct.md` | 2. GhostFrame Struct |

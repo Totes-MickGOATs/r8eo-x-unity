@@ -7,3 +7,4 @@ Debugging phantom input values on Windows with Unity's Legacy Input Manager. Cov
 | File | Role |
 |------|------|
 | `SKILL.md` | Full skill guide: phantom values, three-layer defense, diagnostics, TDD matrix, gotchas |
+| `skill-section-2-three-layer-input-defense.md` | Section 2: Three-Layer Input Defense |

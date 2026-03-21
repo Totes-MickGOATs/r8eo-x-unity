@@ -3,139 +3,11 @@
   "note": "Temporary exception ledger. Every entry must have owner, reason, removal_batch, and expiry. Goal: zero permanent exceptions.",
   "exceptions": [
     {
-      "file": ".agents/skills/unity-architecture-patterns/SKILL.md",
-      "lines": 1167,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": ".line-limit-exceptions.json",
       "lines": 934,
       "owner": "docs-core",
       "reason": "Exception ledger file itself \u2014 grows with each violation entry; shrinks as violations are resolved",
       "removal_batch": "final-cutover",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-replay-ghost/SKILL.md",
-      "lines": 907,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-game-feel/SKILL.md",
-      "lines": 883,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-testing-debugging-qa/SKILL.md",
-      "lines": 793,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-networking/SKILL.md",
-      "lines": 789,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-save-load/SKILL.md",
-      "lines": 734,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-damage-progression/SKILL.md",
-      "lines": 718,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-editor-scripting/SKILL.md",
-      "lines": 709,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-state-machines/SKILL.md",
-      "lines": 694,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-shaders/SKILL.md",
-      "lines": 692,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-composition/SKILL.md",
-      "lines": 664,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-testing-patterns/SKILL.md",
-      "lines": 662,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-genre-racing/SKILL.md",
-      "lines": 661,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-workflows/SKILL.md",
-      "lines": 637,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-project-foundations/SKILL.md",
-      "lines": 617,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-3d-world-building/SKILL.md",
-      "lines": 614,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {
@@ -147,187 +19,11 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": ".agents/skills/unity-ui-design/SKILL.md",
-      "lines": 590,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Scripts/Input/R8EOXInputActions.cs",
       "lines": 580,
       "owner": "input-generation",
       "reason": "Auto-generated from Unity Input System asset \u2014 remove allowlist by changing input consumption strategy",
       "removal_batch": "input-generation",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-weather-conditions/SKILL.md",
-      "lines": 578,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/swarm-development/SKILL.md",
-      "lines": 573,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-rc-audio/SKILL.md",
-      "lines": 571,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-audio-systems/SKILL.md",
-      "lines": 568,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-e2e-testing/SKILL.md",
-      "lines": 557,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-ui-toolkit/SKILL.md",
-      "lines": 543,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-scene-management/SKILL.md",
-      "lines": 539,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-scriptable-objects/SKILL.md",
-      "lines": 539,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-3d-materials/SKILL.md",
-      "lines": 526,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-performance-optimization/SKILL.md",
-      "lines": 525,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-physics-tuning/SKILL.md",
-      "lines": 524,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-debugging-profiling/SKILL.md",
-      "lines": 520,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-physics-3d/SKILL.md",
-      "lines": 518,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-input-system/SKILL.md",
-      "lines": 495,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-particles-vfx/SKILL.md",
-      "lines": 489,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-3d-lighting/SKILL.md",
-      "lines": 488,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-camera-systems/SKILL.md",
-      "lines": 473,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-csharp-mastery/SKILL.md",
-      "lines": 468,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-graphics-pipeline/SKILL.md",
-      "lines": 462,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-animation/SKILL.md",
-      "lines": 450,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/ask-first/SKILL.md",
-      "lines": 447,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {
@@ -339,27 +35,11 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": ".agents/skills/unity-build-distribution/SKILL.md",
-      "lines": 407,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": ".claude/commands/dev/bulletproof.md",
       "lines": 384,
       "owner": "docs-core",
       "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
       "removal_batch": "docs-core",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/user-test-monitoring/SKILL.md",
-      "lines": 382,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {
@@ -371,51 +51,11 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": ".agents/skills/user-interaction-testing/SKILL.md",
-      "lines": 359,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/debug-system/SKILL.md",
-      "lines": 338,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "CLAUDE.md",
       "lines": 333,
       "owner": "docs-core",
       "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
       "removal_batch": "docs-core",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-terrain-track-creation/SKILL.md",
-      "lines": 330,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-racing-ui/SKILL.md",
-      "lines": 327,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-save-settings/SKILL.md",
-      "lines": 327,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {
@@ -427,59 +67,11 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": ".agents/skills/unity-input-debugging/SKILL.md",
-      "lines": 305,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-mcp-workflows/SKILL.md",
-      "lines": 303,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/branch-workflow/SKILL.md",
-      "lines": 273,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/editor-script-authoring/SKILL.md",
-      "lines": 260,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Scripts/Vehicle/RCCar.cs",
       "lines": 256,
       "owner": "vehicle-runtime",
       "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
       "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/reverse-engineering/SKILL.md",
-      "lines": 250,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-developer/SKILL.md",
-      "lines": 230,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {
@@ -496,14 +88,6 @@
       "owner": "docs-core",
       "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
       "removal_batch": "docs-core",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/tdd-edit-mode-test/SKILL.md",
-      "lines": 205,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {
@@ -640,14 +224,6 @@
       "owner": "physics-tests",
       "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
       "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/clean-room-qa/SKILL.md",
-      "lines": 193,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {
@@ -843,22 +419,6 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": ".agents/skills/physics-conformance-audit/SKILL.md",
-      "lines": 170,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/unity-system-manifest/SKILL.md",
-      "lines": 168,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Tests/EditMode/GripTractionCriticalTests.cs",
       "lines": 163,
       "owner": "physics-tests",
@@ -888,22 +448,6 @@
       "owner": "docs-core",
       "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
       "removal_batch": "docs-core",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/changelog/SKILL.md",
-      "lines": 160,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": ".agents/skills/rc-vehicle-physics/SKILL.md",
-      "lines": 159,
-      "owner": "docs-skills",
-      "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
-      "removal_batch": "docs-skills",
       "expiry": "2026-09-01"
     },
     {

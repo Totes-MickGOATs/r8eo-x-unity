@@ -3,6 +3,7 @@ name: physics-conformance-audit
 description: Physics Conformance Audit
 ---
 
+
 # Physics Conformance Audit
 
 Use this skill when validating that the RC car physics simulation produces physically correct results. Covers the full catalogue of 93 conformance checks across 12 categories, the ConformanceRecorder API, tolerance tiers, and how to add new checks.
@@ -77,45 +78,6 @@ The overall conformance score is a weighted average:
 
 ---
 
-## Using ConformanceRecorder
-
-```csharp
-using R8EOX.Debug.Audit;
-
-// Start a conformance run
-ConformanceRecorder.BeginRun();
-
-// Record individual checks
-ConformanceRecorder.Record(
-    category: "B",
-    checkId: "B6",
-    checkName: "Normal force sum at rest",
-    expected: 14.715,  // mg = 1.5 * 9.81
-    actual: measuredForceSum
-);
-
-ConformanceRecorder.Record(
-    category: "A",
-    checkId: "A3",
-    checkName: "Wheel rotation vs distance traveled",
-    expected: 2.0 * Mathf.PI * 0.166,  // one rotation = circumference
-    actual: measuredDistance,
-    metadata: "{\"wheelIndex\": 0, \"rotations\": 1}"
-);
-
-// End the run -- flushes to DB and logs summary
-ConformanceRecorder.EndRun();
-
-// Query results from the latest run
-var summaries = ConformanceRecorder.GetLatestRunSummary();
-foreach (var s in summaries)
-{
-    Debug.Log($"Category {s.Category}: {s.Passed}/{s.Total} passed, worst: {s.WorstTier}");
-}
-```
-
----
-
 ## How to Add a New Conformance Check
 
 1. **Identify the physics law** that governs the behaviour you want to validate.
@@ -168,3 +130,9 @@ The complete catalogue of 93 checks with analytical prediction formulas is maint
 | `unity-physics-tuning` | PhysX configuration for RC racing |
 | `clean-room-qa` | Black-box testing methodology |
 | `unity-testing-patterns` | Unity Test Framework patterns (EditMode/PlayMode) |
+
+
+## Topic Pages
+
+- [Using ConformanceRecorder](skill-using-conformancerecorder.md)
+

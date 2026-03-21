@@ -16,3 +16,4 @@ Comprehensive skill for building racing games in Unity — vehicle physics, trac
 | `unity-input-system` | Input System setup, action maps, processors |
 | `unity-camera-systems` | Cinemachine virtual cameras, blending, impulse |
 | `unity-networking` | Netcode for GameObjects, state sync patterns |
+| `skill-vehicle-physics-architecture.md` | Vehicle Physics Architecture |
