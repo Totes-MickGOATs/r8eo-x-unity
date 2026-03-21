@@ -459,14 +459,6 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Scripts/Vehicle/RCCar.cs",
-      "lines": 256,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": ".agents/skills/reverse-engineering/SKILL.md",
       "lines": 250,
       "owner": "docs-skills",
@@ -504,14 +496,6 @@
       "owner": "docs-skills",
       "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
       "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Scripts/Vehicle/RaycastWheel.cs",
-      "lines": 201,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
       "expiry": "2026-09-01"
     },
     {
@@ -832,14 +816,6 @@
       "owner": "physics-tests",
       "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
       "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Scripts/Vehicle/Drivetrain.cs",
-      "lines": 170,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
       "expiry": "2026-09-01"
     },
     {

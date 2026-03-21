@@ -9,11 +9,6 @@ namespace R8EOX.Vehicle
     /// </summary>
     public class Drivetrain : MonoBehaviour
     {
-        // ---- Constants ----
-
-        const float k_DiffStiffness = 5000f;
-
-
         // ---- Enums ----
 
         public enum DiffType { Open, BallDiff, Spool }
@@ -95,28 +90,28 @@ namespace R8EOX.Vehicle
             {
                 foreach (var w in frontWheels)
                     w.MotorForceShare = 0f;
-                ApplyAxleDiff(rearWheels[0], rearWheels[1], engineForce, _rearDiffType, _rearPreload);
+                DrivetrainDiff.Apply(rearWheels[0], rearWheels[1], engineForce, _rearDiffType, _rearPreload);
             }
             else
             {
                 float frontForce = engineForce * _centerFrontBias;
-                float rearForce = engineForce * (1f - _centerFrontBias);
+                float rearForce  = engineForce * (1f - _centerFrontBias);
 
                 if (_centerDiffType != DiffType.Open)
                 {
-                    float frontAvgRpm = (frontWheels[0].WheelRpm + frontWheels[1].WheelRpm) * 0.5f;
-                    float rearAvgRpm = (rearWheels[0].WheelRpm + rearWheels[1].WheelRpm) * 0.5f;
+                    float frontAvgRpm    = (frontWheels[0].WheelRpm + frontWheels[1].WheelRpm) * 0.5f;
+                    float rearAvgRpm     = (rearWheels[0].WheelRpm  + rearWheels[1].WheelRpm)  * 0.5f;
                     float centerSpeedDiff = frontAvgRpm - rearAvgRpm;
-                    float maxCoupling = _centerDiffType == DiffType.BallDiff
+                    float maxCoupling    = _centerDiffType == DiffType.BallDiff
                         ? _centerPreload
                         : Mathf.Abs(engineForce) * 0.5f;
-                    float centerCoupling = Mathf.Clamp(centerSpeedDiff * k_DiffStiffness, -maxCoupling, maxCoupling);
+                    float centerCoupling = Mathf.Clamp(centerSpeedDiff * DrivetrainDiff.DiffStiffness, -maxCoupling, maxCoupling);
                     frontForce -= centerCoupling;
-                    rearForce += centerCoupling;
+                    rearForce  += centerCoupling;
                 }
 
-                ApplyAxleDiff(frontWheels[0], frontWheels[1], frontForce, _frontDiffType, _frontPreload);
-                ApplyAxleDiff(rearWheels[0], rearWheels[1], rearForce, _rearDiffType, _rearPreload);
+                DrivetrainDiff.Apply(frontWheels[0], frontWheels[1], frontForce, _frontDiffType, _frontPreload);
+                DrivetrainDiff.Apply(rearWheels[0], rearWheels[1], rearForce, _rearDiffType, _rearPreload);
             }
 
 #if UNITY_EDITOR || DEBUG
@@ -127,44 +122,6 @@ namespace R8EOX.Vehicle
                 _debugLogTimer = 0f;
             }
 #endif
-        }
-
-
-        // ---- Private Methods ----
-
-        private void ApplyAxleDiff(RaycastWheel left, RaycastWheel right, float axleForce,
-                                   DiffType diffType, float couplingPreload)
-        {
-            // One wheel off ground: all force to grounded wheel
-            if (!left.IsOnGround && right.IsOnGround)
-            {
-                left.MotorForceShare = 0f;
-                right.MotorForceShare = axleForce;
-                return;
-            }
-            if (left.IsOnGround && !right.IsOnGround)
-            {
-                left.MotorForceShare = axleForce;
-                right.MotorForceShare = 0f;
-                return;
-            }
-
-            float leftShare = axleForce * 0.5f;
-            float rightShare = axleForce * 0.5f;
-
-            if (diffType != DiffType.Open && left.IsOnGround && right.IsOnGround)
-            {
-                float speedDiff = left.WheelRpm - right.WheelRpm;
-                float maxCoupling = diffType == DiffType.BallDiff
-                    ? couplingPreload
-                    : Mathf.Abs(axleForce) * 0.5f;
-                float coupling = Mathf.Clamp(speedDiff * k_DiffStiffness, -maxCoupling, maxCoupling);
-                leftShare -= coupling;
-                rightShare += coupling;
-            }
-
-            left.MotorForceShare = leftShare;
-            right.MotorForceShare = rightShare;
         }
     }
 }
