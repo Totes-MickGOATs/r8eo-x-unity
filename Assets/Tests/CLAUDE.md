@@ -7,6 +7,7 @@ Unity Test Framework test suites organized by test mode.
 | Dir | Assembly | Purpose |
 |-----|----------|---------|
 | `EditMode/` | `R8EOX.Tests.EditMode` | Pure logic tests — no Play mode required |
+| `PlayMode/` | `R8EOX.Tests.PlayMode` | Runtime integration and conformance tests (physics, conformance checks) |
 
 ## Conventions
 

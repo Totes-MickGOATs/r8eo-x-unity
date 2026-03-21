@@ -11,7 +11,7 @@ The registry validates file ownership, detects orphans, and tracks system depend
 
 | File | Role |
 |------|------|
-| (Add your core scripts here) |
+| *(no scripts yet)* | |
 
 ## How It Works
 

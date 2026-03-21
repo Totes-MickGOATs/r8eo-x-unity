@@ -11,6 +11,7 @@ Unity project Assets folder. All game content, scripts, and test suites live her
 | `Terrain/` | Terrain data assets and layers |
 | `Tests/` | Unity Test Framework suites (EditMode) |
 | `Prefabs/` | Reusable prefab assets (RCBuggy) |
+| `Shared/` | Runtime-safe utilities shared across assemblies (RuntimeLog, UnitConversion) |
 | `Plugins/` | Third-party plugin assemblies |
 
 ## Assembly Definitions
@@ -23,6 +24,7 @@ Each script subdirectory has its own `.asmdef` to enforce dependency boundaries:
 - `R8EOX.Debug` — references Vehicle
 - `R8EOX.Track` — references Core
 - `R8EOX.Editor` — editor-only platform
+- `R8EOX.Shared` — runtime utilities (UnitConversion, RuntimeLog), all platforms, no editor-only restriction
 
 ## Relevant Skills
 

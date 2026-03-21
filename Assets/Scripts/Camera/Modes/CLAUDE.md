@@ -14,4 +14,4 @@ implements `ICameraMode` and provides a distinct viewpoint behavior.
 
 ## Relevant Skills
 
-- **`unity-developer`** — Unity MonoBehaviour and component patterns
+- **`unity-camera-systems`** — Camera modes, follow logic, and cinematic patterns
