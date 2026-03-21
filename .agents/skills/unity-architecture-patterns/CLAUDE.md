@@ -18,3 +18,5 @@ Unity design patterns skill covering 11 patterns (Observer, State, Factory, Comm
 | `unity-composition` | Component architecture, dependency injection, interfaces |
 | `unity-project-foundations` | .asmdef setup, folder structure, YAML serialization, workflow optimization |
 | `unity-3d-world-building` | NavMesh, terrain, level design, AI navigation |
+| `skill-observer-pattern.md` | Observer Pattern |
+| `skill-quick-reference-which-pattern-do-i-need.md` | Quick Reference: Which Pattern Do I Need? |
