@@ -192,7 +192,7 @@ All C# lint is local (no GitHub Actions). The stack has two tiers:
 | 1 | Main branch guard | Blocks commits directly to `main` |
 | 2 | Python ruff | Staged `.py` files |
 | 3 | Engine hook | `.githooks/pre-commit-engine.sh` |
-| 4 | C# line limit | 200-line limit per `.cs` file |
+| 4 | Line limit | 150-line limit, all governed file types (`.cs`, `.md`, `.json`, `.yml`, `.yaml`, `.txt`, `.asmdef`, `.uxml`, `.uss`); exceptions in `.line-limit-exceptions.json` |
 | 5 | C# syntax | Balanced braces, namespace presence (staged .cs files) |
 | 6 | C# policy | Debug.Log*, FindObject, GUID refs, manifest orphans in runtime assemblies |
 | — | Coverage ratchet | Per-module test count must not drop |
