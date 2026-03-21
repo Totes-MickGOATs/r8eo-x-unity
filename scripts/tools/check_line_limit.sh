@@ -6,8 +6,10 @@ LIMIT=200
 SEARCH_DIRS=("Assets/Scripts" "Assets/Tests")
 
 # Auto-generated files exempt from the limit
+# NOTE: R8EOXInputActions.cs was removed from this list in batch 150-input-generation.
+# It is now tracked in .line-limit-exceptions.json (visible to audit) rather than
+# silently bypassing the check here.
 ALLOWLIST=(
-  "R8EOXInputActions.cs"
 )
 
 violations=0
