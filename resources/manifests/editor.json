@@ -6,26 +6,37 @@
     "Assets/Scripts/Editor/SceneSetup.cs",
     "Assets/Scripts/Editor/Builders/PhysicsConfigurator.cs",
     "Assets/Scripts/Editor/Builders/RCBuggyBuilder.cs",
+    "Assets/Scripts/Editor/Builders/RCBuggyMeshBuilder.cs",
     "Assets/Scripts/Editor/Builders/TestTrackBuilder.cs",
     "Assets/Scripts/Editor/OutpostTrackSetup.cs",
     "Assets/Scripts/Editor/TerrainDebug.cs",
     "Assets/Scripts/Editor/TerrainSpawnCheck.cs",
     "Assets/Scripts/Editor/RCCarEditor.cs",
+    "Assets/Scripts/Editor/RCCarEditorProperties.cs",
     "Assets/Scripts/Editor/RCCarEditorHelpers.cs",
     "Assets/Scripts/Editor/DrivetrainEditor.cs",
     "Assets/Scripts/Editor/R8EOX.Editor.asmdef",
     "Assets/Terrain/Outpost/Textures/Skybox/goegap_2k.hdr",
     "Assets/Scripts/Editor/AddBuggyMaterials.cs",
     "Assets/Scripts/Editor/Builders/TerrainBuilder.cs",
+    "Assets/Scripts/Editor/Builders/TerrainTextureBuilder.cs",
     "Assets/Scripts/Editor/Builders/EnvironmentBuilder.cs",
     "Assets/Scripts/Editor/Builders/AssetHelper.cs",
     "Assets/Scripts/Editor/Builders/TerrainLayerBuilder.cs",
-    "Assets/Scripts/Editor/AssetLintRunner.cs"
+    "Assets/Scripts/Editor/AssetLintRunner.cs",
+    "Assets/Scripts/Editor/LintModels.cs"
   ],
   "dependencies": ["vehicle", "input", "camera", "debug"],
   "replaced_by": "",
   "tests": {
-    "editmode": ["OutpostTrackSetupTests", "BuggyMaterialsTests", "AssetLintRunnerTests"],
+    "editmode": [
+      "OutpostTrackSetupTests",
+      "BuggyMaterialsTests",
+      "AssetLintRunnerTests",
+      "LintModelsTests",
+      "TerrainTextureBuilderTests",
+      "RCBuggyMeshBuilderTests"
+    ],
     "playmode": []
   }
 }

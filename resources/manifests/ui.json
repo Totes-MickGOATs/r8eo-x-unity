@@ -15,7 +15,8 @@
   "tests": {
     "editmode": [
       "ScreenRegistryTests",
-      "UIManagerTests"
+      "UIManagerTests",
+      "UIManagerTransitionsTests"
     ],
     "playmode": []
   }

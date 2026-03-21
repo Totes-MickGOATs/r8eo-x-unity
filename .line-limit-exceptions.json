@@ -515,14 +515,6 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Scripts/Editor/Builders/TerrainBuilder.cs",
-      "lines": 200,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Tests/PlayMode/ConformanceDynamicsTests.cs",
       "lines": 200,
       "owner": "physics-tests",
@@ -532,14 +524,6 @@
     },
     {
       "file": "Assets/Scripts/Debug/ContractDebugger.cs",
-      "lines": 199,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Scripts/Editor/RCCarEditor.cs",
       "lines": 199,
       "owner": "vehicle-runtime",
       "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
@@ -659,14 +643,6 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Scripts/UI/UIManager.cs",
-      "lines": 192,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Tests/EditMode/ContractDebuggerTests.cs",
       "lines": 192,
       "owner": "physics-tests",
@@ -680,14 +656,6 @@
       "owner": "physics-tests",
       "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
       "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Scripts/Editor/Builders/RCBuggyBuilder.cs",
-      "lines": 191,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
       "expiry": "2026-09-01"
     },
     {
@@ -912,22 +880,6 @@
       "owner": "docs-core",
       "reason": "Documentation \u2014 decompose into landing page + focused deep dives",
       "removal_batch": "docs-core",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Scripts/Editor/AssetLintRunner.cs",
-      "lines": 156,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Scripts/Camera/CameraController.cs",
-      "lines": 155,
-      "owner": "vehicle-runtime",
-      "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
-      "removal_batch": "vehicle-runtime",
       "expiry": "2026-09-01"
     },
     {
