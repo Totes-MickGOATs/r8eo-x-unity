@@ -13,6 +13,7 @@ Development slash commands for Claude Code.
 | `check-performance` | Performance audit for game systems |
 | `e2e-test` | End-to-end test planning and execution |
 | `init-project` | Interactive first-time project setup walkthrough |
+| `orchestrate-fast` | Fast, hardware-aware Claude workflow orchestration |
 | `next-task` | Find the next task to work on |
 | `review-code` | Code review checklist |
 | `run-tests` | Run tests for specific files or systems |
