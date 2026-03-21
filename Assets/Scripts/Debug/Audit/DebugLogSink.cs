@@ -11,30 +11,16 @@ namespace R8EOX.Debug.Audit
     /// Only messages with a recognised system tag (e.g. [physics], [grip]) are captured.
     /// Each persisted log receives a correlation hash appended to the console output as [db:HASH].
     /// Log parsing and hash logic live in <see cref="LogParser"/>.
+    /// Persistence logic lives in <see cref="DebugLogWriter"/>.
     /// </summary>
     public class DebugLogSink : MonoBehaviour
     {
         // ---- Private Fields ----
 
-        private readonly List<LogEntry> _buffer = new List<LogEntry>();
+        private readonly List<DebugLogWriter.Entry> _buffer = new List<DebugLogWriter.Entry>();
         private readonly object _bufferLock = new object();
         private float _lastFlushTime;
         private SHA256 _hasher;
-
-
-        // ---- Nested Types ----
-
-        private struct LogEntry
-        {
-            public string Timestamp;
-            public int Frame;
-            public string Level;
-            public string System;
-            public string Message;
-            public string StackTrace;
-            public string Context;
-            public string LogHash;
-        }
 
 
         // ---- Runtime Bootstrap ----
@@ -94,7 +80,7 @@ namespace R8EOX.Debug.Audit
             string logHash = LogParser.ComputeHash(_hasher, level, tag, messageBody);
             string context = LogParser.ExtractJsonContext(messageBody);
 
-            var entry = new LogEntry
+            var entry = new DebugLogWriter.Entry
             {
                 Timestamp  = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                 Frame      = Time.frameCount,
@@ -128,56 +114,14 @@ namespace R8EOX.Debug.Audit
             }
         }
 
-        /// <summary>
-        /// Writes all buffered entries to the database. Must be called under <see cref="_bufferLock"/>.
-        /// </summary>
+        /// <summary>Writes all buffered entries to the database. Must be called under _bufferLock.</summary>
         private void FlushLocked()
         {
             if (_buffer.Count == 0)
                 return;
 
             _lastFlushTime = Time.realtimeSinceStartup;
-
-            try
-            {
-                var conn = AuditDb.GetConnection();
-
-                const string insertSql = @"
-INSERT INTO debug_logs
-    (timestamp, frame, level, system, message, stack_trace, context, log_hash)
-VALUES
-    (@timestamp, @frame, @level, @system, @message, @stack_trace, @context, @log_hash)";
-
-                using (var transaction = conn.BeginTransaction())
-                {
-                    foreach (var entry in _buffer)
-                    {
-                        using (var cmd = conn.CreateCommand())
-                        {
-                            cmd.Transaction = transaction;
-                            cmd.CommandText = insertSql;
-                            cmd.Parameters.AddWithValue("@timestamp",   entry.Timestamp);
-                            cmd.Parameters.AddWithValue("@frame",       entry.Frame);
-                            cmd.Parameters.AddWithValue("@level",       entry.Level);
-                            cmd.Parameters.AddWithValue("@system",      entry.System);
-                            cmd.Parameters.AddWithValue("@message",     entry.Message);
-                            cmd.Parameters.AddWithValue("@stack_trace",
-                                (object)entry.StackTrace ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@context",
-                                (object)entry.Context ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@log_hash",    entry.LogHash);
-                        }
-                    }
-
-                    transaction.Commit();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Avoid infinite recursion — don't use tagged logging here.
-                UnityEngine.Debug.LogWarning($"[AuditDb] Flush failed: {ex.Message}");
-            }
-
+            DebugLogWriter.WriteEntries(_buffer);
             _buffer.Clear();
         }
     }

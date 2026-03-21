@@ -9,8 +9,8 @@ namespace R8EOX.Debug
     /// Runtime chain-of-custody assertion monitor.
     /// Validates input-to-physics-to-visual contracts every frame during development.
     /// Catches contract violations immediately in the console rather than letting bugs
-    /// silently produce bad behavior.
-    /// All assertions are stripped from release builds.
+    /// silently produce bad behavior. All assertions are stripped from release builds.
+    /// Violation counts live in <see cref="ContractViolationCounters"/>.
     /// </summary>
     public class ContractDebugger : MonoBehaviour
     {
@@ -39,17 +39,11 @@ namespace R8EOX.Debug
         private IVehicleInput _input;
         private Rigidbody _rb;
         private RaycastWheel[] _wheels;
-
         private ObservableContractValidator _observableValidator = new ObservableContractValidator();
-
-        // Violation counters for summary
-        private int _inputViolations;
-        private int _vehicleViolations;
-        private int _wheelViolations;
-        private int _observableViolations;
+        private ContractViolationCounters _counters;
 
 
-        // ---- Public Properties (for testing) ----
+        // ---- Public Properties ----
 
         /// <summary>Whether input contracts are enabled.</summary>
         public bool EnableInputContracts
@@ -57,21 +51,18 @@ namespace R8EOX.Debug
             get => _enableInputContracts;
             set => _enableInputContracts = value;
         }
-
         /// <summary>Whether vehicle contracts are enabled.</summary>
         public bool EnableVehicleContracts
         {
             get => _enableVehicleContracts;
             set => _enableVehicleContracts = value;
         }
-
         /// <summary>Whether wheel contracts are enabled.</summary>
         public bool EnableWheelContracts
         {
             get => _enableWheelContracts;
             set => _enableWheelContracts = value;
         }
-
         /// <summary>Whether observable contracts are enabled.</summary>
         public bool EnableObservableContracts
         {
@@ -80,103 +71,59 @@ namespace R8EOX.Debug
         }
 
         /// <summary>Total input violations detected this session.</summary>
-        public int InputViolationCount => _inputViolations;
-
+        public int InputViolationCount      => _counters.Input;
         /// <summary>Total vehicle violations detected this session.</summary>
-        public int VehicleViolationCount => _vehicleViolations;
-
+        public int VehicleViolationCount    => _counters.Vehicle;
         /// <summary>Total wheel violations detected this session.</summary>
-        public int WheelViolationCount => _wheelViolations;
-
+        public int WheelViolationCount      => _counters.Wheel;
         /// <summary>Total observable violations detected this session.</summary>
-        public int ObservableViolationCount => _observableViolations;
+        public int ObservableViolationCount => _counters.Observable;
 
 
         // ---- Unity Lifecycle ----
 
-        void Start()
-        {
-            AcquireReferences();
-        }
+        void Start()  => AcquireReferences();
 
         void Update()
         {
-            if (_enableInputContracts)
-                ValidateInputContracts();
+            if (_enableInputContracts) ValidateInputContracts();
         }
 
         void FixedUpdate()
         {
-            if (_enableVehicleContracts)
-                ValidateVehicleContracts();
-
-            if (_enableWheelContracts)
-                ValidateWheelContracts();
+            if (_enableVehicleContracts) ValidateVehicleContracts();
+            if (_enableWheelContracts)   ValidateWheelContracts();
         }
 
         void LateUpdate()
         {
-            if (_enableObservableContracts)
-                ValidateObservableContracts();
+            if (_enableObservableContracts) ValidateObservableContracts();
         }
 
 
         // ---- Public API ----
 
-        /// <summary>
-        /// Manually set the car reference (useful for testing or late binding).
-        /// Reacquires all dependent references.
-        /// </summary>
-        /// <param name="car">The RCCar to monitor</param>
-        public void SetTarget(RCCar car)
-        {
-            _car = car;
-            AcquireReferences();
-        }
+        /// <summary>Manually set the car reference; reacquires all dependent references.</summary>
+        public void SetTarget(RCCar car) { _car = car; AcquireReferences(); }
 
-        /// <summary>
-        /// Reset all violation counters. Useful at start of a new test run.
-        /// </summary>
-        public void ResetCounters()
-        {
-            _inputViolations = 0;
-            _vehicleViolations = 0;
-            _wheelViolations = 0;
-            _observableViolations = 0;
-            _observableValidator.Reset();
-        }
+        /// <summary>Reset all violation counters and observable state. Useful before a new test run.</summary>
+        public void ResetCounters() { _counters.Reset(); _observableValidator.Reset(); }
 
-        /// <summary>
-        /// Validates all input contracts. Public for direct invocation in tests.
-        /// </summary>
+        /// <summary>Validates all input contracts. Public for direct invocation in tests.</summary>
         public void ValidateInputContracts()
-        {
-            _inputViolations += InputContractValidator.ValidateInputContracts(_input, _logAllValues);
-        }
+            => _counters.AddInput(InputContractValidator.ValidateInputContracts(_input, _logAllValues));
 
-        /// <summary>
-        /// Validates all vehicle contracts. Public for direct invocation in tests.
-        /// </summary>
+        /// <summary>Validates all vehicle contracts. Public for direct invocation in tests.</summary>
         public void ValidateVehicleContracts()
-        {
-            _vehicleViolations += VehicleContractValidator.ValidateVehicleContracts(_car, _input, _logAllValues);
-        }
+            => _counters.AddVehicle(VehicleContractValidator.ValidateVehicleContracts(_car, _input, _logAllValues));
 
-        /// <summary>
-        /// Validates all wheel contracts. Public for direct invocation in tests.
-        /// </summary>
+        /// <summary>Validates all wheel contracts. Public for direct invocation in tests.</summary>
         public void ValidateWheelContracts()
-        {
-            _wheelViolations += WheelContractValidator.ValidateWheelContracts(_wheels, _logAllValues);
-        }
+            => _counters.AddWheel(WheelContractValidator.ValidateWheelContracts(_wheels, _logAllValues));
 
-        /// <summary>
-        /// Validates observable consistency contracts. Public for direct invocation in tests.
-        /// </summary>
+        /// <summary>Validates observable consistency contracts. Public for direct invocation in tests.</summary>
         public void ValidateObservableContracts()
-        {
-            _observableViolations += _observableValidator.Validate(_car, _rb, _input, _logAllValues);
-        }
+            => _counters.AddObservable(_observableValidator.Validate(_car, _rb, _input, _logAllValues));
 
 
         // ---- Private Helpers ----
@@ -188,8 +135,8 @@ namespace R8EOX.Debug
 
             if (_car != null)
             {
-                _input = _car.GetComponent<IVehicleInput>();
-                _rb = _car.GetComponent<Rigidbody>();
+                _input  = _car.GetComponent<IVehicleInput>();
+                _rb     = _car.GetComponent<Rigidbody>();
                 _wheels = _car.GetAllWheels();
             }
         }

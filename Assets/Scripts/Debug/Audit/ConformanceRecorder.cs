@@ -1,7 +1,6 @@
 #if UNITY_EDITOR || DEBUG
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace R8EOX.Debug.Audit
 {
@@ -47,8 +46,8 @@ namespace R8EOX.Debug.Audit
             lock (_lock)
             {
                 _runId = Guid.NewGuid().ToString("N");
-                _gitSha = CaptureGitOutput("rev-parse --short HEAD");
-                _branch = CaptureGitOutput("branch --show-current");
+                _gitSha = ConformanceDbWriter.CaptureGitOutput("rev-parse --short HEAD");
+                _branch = ConformanceDbWriter.CaptureGitOutput("branch --show-current");
                 _pendingRecords.Clear();
             }
         }
@@ -112,83 +111,32 @@ namespace R8EOX.Debug.Audit
 
         private static void FlushToDatabase()
         {
-            var conn = AuditDb.GetConnection();
-            string ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-            const string sql = @"
-INSERT INTO conformance_runs
-    (run_id, timestamp, git_sha, branch, category, check_id, check_name,
-     expected, actual, tolerance, tier, passed, metadata)
-VALUES
-    (@run_id, @timestamp, @git_sha, @branch, @category, @check_id, @check_name,
-     @expected, @actual, @tolerance, @tier, @passed, @metadata)";
-
-            using (var transaction = conn.BeginTransaction())
+            var rows = new List<ConformanceDbWriter.Row>(_pendingRecords.Count);
+            foreach (var r in _pendingRecords)
             {
-                foreach (var r in _pendingRecords)
+                rows.Add(new ConformanceDbWriter.Row
                 {
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = sql;
-                        cmd.Parameters.AddWithValue("@run_id",     _runId);
-                        cmd.Parameters.AddWithValue("@timestamp",  ts);
-                        cmd.Parameters.AddWithValue("@git_sha",    _gitSha ?? "unknown");
-                        cmd.Parameters.AddWithValue("@branch",     _branch ?? "unknown");
-                        cmd.Parameters.AddWithValue("@category",   r.Category);
-                        cmd.Parameters.AddWithValue("@check_id",   r.CheckId);
-                        cmd.Parameters.AddWithValue("@check_name", r.CheckName);
-                        cmd.Parameters.AddWithValue("@expected",   r.Expected);
-                        cmd.Parameters.AddWithValue("@actual",     r.Actual);
-                        cmd.Parameters.AddWithValue("@tolerance",  r.Tolerance);
-                        cmd.Parameters.AddWithValue("@tier",       r.Tier);
-                        cmd.Parameters.AddWithValue("@passed",     r.Passed ? 1 : 0);
-                        cmd.Parameters.AddWithValue("@metadata",   (object)r.Metadata ?? DBNull.Value);
-                    }
-                }
-                transaction.Commit();
+                    Category  = r.Category,
+                    CheckId   = r.CheckId,
+                    CheckName = r.CheckName,
+                    Expected  = r.Expected,
+                    Actual    = r.Actual,
+                    Tolerance = r.Tolerance,
+                    Tier      = r.Tier,
+                    Passed    = r.Passed,
+                    Metadata  = r.Metadata
+                });
             }
+            ConformanceDbWriter.Flush(_runId, _gitSha, _branch, rows);
         }
 
         private static void LogSummary()
         {
-            int passed = 0;
-            int total  = _pendingRecords.Count;
-            int worstRank = 5;
-            string worstTier = AuditConstants.k_Excellent;
+            var snapshots = new List<ConformanceSummaryLogger.RecordSnapshot>(_pendingRecords.Count);
+            foreach (var r in _pendingRecords)
+                snapshots.Add(new ConformanceSummaryLogger.RecordSnapshot { Passed = r.Passed, Tier = r.Tier });
 
-            foreach (var record in _pendingRecords)
-            {
-                if (record.Passed)
-                    passed++;
-
-                int rank = ConformanceQuery.TierToRank(record.Tier);
-                if (rank < worstRank)
-                {
-                    worstRank = rank;
-                    worstTier = record.Tier;
-                }
-            }
-
-            UnityEngine.Debug.Log($"[conformance] Run {_runId[..AuditConstants.k_HashLength]}: {passed}/{total} passed, worst tier: {worstTier}");
-        }
-
-        private static string CaptureGitOutput(string arguments)
-        {
-            try
-            {
-                var process = new Process { StartInfo = new ProcessStartInfo {
-                    FileName = "git", Arguments = arguments,
-                    RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true
-                } };
-                process.Start();
-                string output = process.StandardOutput.ReadToEnd().Trim();
-                process.WaitForExit();
-                return string.IsNullOrEmpty(output) ? "unknown" : output;
-            }
-            catch
-            {
-                return "unknown";
-            }
+            ConformanceSummaryLogger.LogSummary(_runId, snapshots);
         }
     }
 }

@@ -9,12 +9,6 @@ namespace R8EOX.Debug.Diagnostics
     /// </summary>
     public static class TerrainDiagnosticChecks
     {
-        // ---- Constants ----
-
-        const float k_VerySteepThreshold = 0.7f;
-        const int k_HighResHeightmap = 513;
-
-
         // ---- Nested Types ----
 
         /// <summary>Per-wheel frame-over-frame tracking state.</summary>
@@ -122,65 +116,22 @@ namespace R8EOX.Debug.Diagnostics
         }
 
 
-        // ---- Startup Checks ----
+        // ---- Startup Checks (forwarded to TerrainStartupChecks) ----
 
         /// <summary>Warns if the Rigidbody is not using ContinuousSpeculative or ContinuousDynamic.</summary>
         public static void CheckCollisionDetectionMode(Rigidbody rb, string carName)
-        {
-            if (rb == null) return;
-
-            if (rb.collisionDetectionMode != CollisionDetectionMode.ContinuousSpeculative
-                && rb.collisionDetectionMode != CollisionDetectionMode.ContinuousDynamic)
-            {
-                UnityEngine.Debug.LogWarning(
-                    $"[physics] {carName} Rigidbody uses {rb.collisionDetectionMode} collision detection " +
-                    $"— consider ContinuousSpeculative or ContinuousDynamic for terrain snag prevention");
-            }
-        }
+            => TerrainStartupChecks.CheckCollisionDetectionMode(rb, carName);
 
         /// <summary>Logs heightmap resolution; warns if it exceeds highResThreshold (micro-seam risk).</summary>
         public static void CheckTerrainCollider(int highResThreshold)
-        {
-            var terrain = Terrain.activeTerrain;
-            if (terrain == null) return;
+            => TerrainStartupChecks.CheckTerrainCollider(highResThreshold);
 
-            var terrainCollider = terrain.GetComponent<TerrainCollider>();
-            if (terrainCollider == null)
-            {
-                UnityEngine.Debug.LogWarning(
-                    "[physics] Active terrain has no TerrainCollider — wheel raycasts will miss it");
-                return;
-            }
-
-            var terrainData = terrain.terrainData;
-            if (terrainData == null) return;
-
-            int resolution = terrainData.heightmapResolution;
-            UnityEngine.Debug.Log($"[physics] Terrain heightmap resolution: {resolution}x{resolution}");
-
-            if (resolution > highResThreshold)
-            {
-                UnityEngine.Debug.Log(
-                    $"[physics] High-res heightmap ({resolution}) may cause micro-seams — " +
-                    "consider a simplified collider mesh for RC-scale vehicles");
-            }
-        }
-
-
-        // ---- Debug Drawing ----
+        // ---- Debug Drawing (forwarded to TerrainDiagnosticDrawing) ----
 
         /// <summary>Draws contact normal ray: green = ok, yellow = steep, red = very steep.</summary>
         public static void DrawContactNormal(
             RaycastWheel wheel, float deviationThreshold, float steepThreshold)
-        {
-            float normalY = wheel.ContactNormal.y;
-            Color color = normalY < steepThreshold ? Color.red
-                        : normalY < deviationThreshold ? Color.yellow
-                        : Color.green;
-
-            UnityEngine.Debug.DrawRay(wheel.ContactPoint, wheel.ContactNormal * 0.3f, color);
-        }
-
+            => TerrainDiagnosticDrawing.DrawContactNormal(wheel, deviationThreshold, steepThreshold);
 
         // ---- Helpers ----
 
