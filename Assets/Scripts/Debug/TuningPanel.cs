@@ -6,25 +6,19 @@ using R8EOX.Vehicle;
 namespace R8EOX.Debug
 {
     /// <summary>
-    /// Runtime tuning panel for live adjustment of all RC buggy parameters.
-    /// Toggle visibility with Tab key. Organised into collapsible sections.
-    /// Uses OnGUI sliders to push values directly to vehicle components.
+    /// Runtime tuning panel — Tab to toggle. Organised into collapsible sections.
+    /// Pushes values live to vehicle components via OnGUI sliders.
+    /// Styles: <see cref="TuningPanelStyles"/>.
     /// </summary>
     public class TuningPanel : MonoBehaviour
     {
         // ---- Constants ----
-
-        const int k_FontSize = 13;
-        const int k_HeaderFontSize = 15;
-        const float k_LineHeight = 22f;
-        const float k_Margin = 10f;
-        const float k_PanelWidth = 420f;
-        const float k_LabelWidth = 180f;
-        const float k_SliderWidth = 160f;
-        const float k_ValueWidth = 60f;
+        const float k_LineHeight = 22f;   const float k_Margin = 10f;
+        const float k_PanelWidth = 420f;  const float k_LabelWidth = 180f;
+        const float k_SliderWidth = 160f; const float k_ValueWidth = 60f;
         const float k_BackgroundAlpha = 0.85f;
         const float k_SectionSpacing = 6f;
-        const float k_HeaderSpacing = 4f;
+        const float k_HeaderSpacing  = 4f;
         const float k_ScrollBarWidth = 16f;
 
 
@@ -45,10 +39,8 @@ namespace R8EOX.Debug
 
         // ---- Private Fields ----
 
-        private GUIStyle _labelStyle;
-        private GUIStyle _headerStyle;
-        private GUIStyle _valueStyle;
-        private bool _isInitialised;
+        private TuningPanelStyles _styles;
+        private bool _stylesBuilt;
         private UnityEngine.Vector2 _scrollPosition;
         private float _panelHeight;
 
@@ -56,19 +48,16 @@ namespace R8EOX.Debug
 
 
         // ---- Unity Lifecycle ----
-
         void OnEnable()
         {
             if (_toggleAction != null && _toggleAction.action != null)
                 _toggleAction.action.Enable();
         }
-
         void OnDisable()
         {
             if (_toggleAction != null && _toggleAction.action != null)
                 _toggleAction.action.Disable();
         }
-
         void Update()
         {
             if (_toggleAction != null && _toggleAction.action.WasPressedThisFrame())
@@ -83,7 +72,7 @@ namespace R8EOX.Debug
         {
             if (!_showPanel || _car == null) return;
 
-            InitStyles();
+            if (!_stylesBuilt) { _styles = TuningPanelStyles.Build(); _stylesBuilt = true; }
 
             float screenRight = Screen.width;
             float panelX = screenRight - k_PanelWidth - k_Margin;
@@ -98,15 +87,15 @@ namespace R8EOX.Debug
             GUI.color = UnityEngine.Color.white;
 
             // Scroll view
-            Rect viewRect = new Rect(panelX, panelY, k_PanelWidth, maxPanelHeight);
+            Rect viewRect    = new Rect(panelX, panelY, k_PanelWidth, maxPanelHeight);
             Rect contentRect = new Rect(0f, 0f, k_PanelWidth - k_ScrollBarWidth, _panelHeight);
-            _scrollPosition = GUI.BeginScrollView(viewRect, _scrollPosition, contentRect);
+            _scrollPosition  = GUI.BeginScrollView(viewRect, _scrollPosition, contentRect);
 
             float x = 0f;
             float y = 0f;
 
             GUI.Label(new Rect(x, y, k_PanelWidth, k_LineHeight),
-                "=== TUNING PANEL (Tab to hide) ===", _headerStyle);
+                "=== TUNING PANEL (Tab to hide) ===", _styles.Header);
             y += k_LineHeight + k_HeaderSpacing;
 
             if (_sections != null)
@@ -118,12 +107,11 @@ namespace R8EOX.Debug
                         k_LineHeight, k_SectionSpacing, k_HeaderSpacing,
                         k_PanelWidth, k_ScrollBarWidth,
                         k_LabelWidth, k_SliderWidth, k_ValueWidth,
-                        _headerStyle, _labelStyle, _valueStyle);
+                        _styles.Header, _styles.Label, _styles.Value);
                 }
             }
 
             _panelHeight = y + k_LineHeight;
-
             GUI.EndScrollView();
         }
 
@@ -155,30 +143,6 @@ namespace R8EOX.Debug
                 new SteeringTuningSection(),
                 new CrashTuningSection(),
                 new DrivetrainTuningSection(),
-            };
-        }
-
-        private void InitStyles()
-        {
-            if (_isInitialised) return;
-            _isInitialised = true;
-
-            _labelStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = k_FontSize
-            };
-            _labelStyle.normal.textColor = UnityEngine.Color.white;
-
-            _headerStyle = new GUIStyle(_labelStyle)
-            {
-                fontSize = k_HeaderFontSize,
-                fontStyle = FontStyle.Bold
-            };
-            _headerStyle.normal.textColor = UnityEngine.Color.yellow;
-
-            _valueStyle = new GUIStyle(_labelStyle)
-            {
-                alignment = TextAnchor.MiddleRight
             };
         }
     }
