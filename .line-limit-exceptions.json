@@ -158,8 +158,8 @@
       "file": "Assets/Scripts/Input/R8EOXInputActions.cs",
       "lines": 580,
       "owner": "input-generation",
-      "reason": "Auto-generated from Unity Input System asset \u2014 remove allowlist by changing input consumption strategy",
-      "removal_batch": "input-generation",
+      "reason": "Auto-generated Unity Input System class. C# generation disabled (generateWrapperCode: 0 in .meta). File kept as reference; to be deleted after confirming InputBridge covers all consumers. No longer allowlisted in check_line_limit.sh.",
+      "removal_batch": "final-cutover",
       "expiry": "2026-09-01"
     },
     {
