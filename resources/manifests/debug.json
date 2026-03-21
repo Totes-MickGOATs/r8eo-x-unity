@@ -36,13 +36,15 @@
   "replaced_by": "",
   "tests": {
     "editmode": [
-      "ContractDebuggerTests",
+      "ContractDebuggerToggleTests",
+      "ContractDebuggerValidationTests",
       "WheelTerrainDiagnosticsTests",
       "InputContractValidatorTests",
       "VehicleContractValidatorTests",
       "WheelContractValidatorTests",
       "DebugBootstrapTests",
-      "TerrainDiagnosticChecksTests",
+      "TerrainDiagnosticStateTests",
+      "TerrainDiagnosticSpikeTests",
       "SliderRendererTests"
     ],
     "playmode": [
