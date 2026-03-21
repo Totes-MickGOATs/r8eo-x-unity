@@ -11,18 +11,8 @@ TestTrack.unity [Root scene]
 ├── RCBuggy (Rigidbody) [RCCar, RCInput]
 │   ├── Collision shapes (BoxColliders for chassis, bumpers, body shell)
 │   ├── Visual meshes (ChassisPlate, BodyShell, RearWing, ControlArms)
-│   ├── WheelFL (RaycastWheel) [isSteer=true]
-│   │   ├── WheelVisual (CylinderMesh r=0.166)
-│   │   └── HubVisual
-│   ├── WheelFR (RaycastWheel) [isSteer=true]
-│   │   ├── WheelVisual
-│   │   └── HubVisual
-│   ├── WheelRL (RaycastWheel) [isMotor=true]
-│   │   ├── WheelVisual
-│   │   └── HubVisual
-│   ├── WheelRR (RaycastWheel) [isMotor=true]
-│   │   ├── WheelVisual
-│   │   └── HubVisual
+│   ├── WheelFL/FR (RaycastWheel) [isSteer=true] ─ WheelVisual (CylinderMesh r=0.166), HubVisual
+│   ├── WheelRL/RR (RaycastWheel) [isMotor=true] ─ WheelVisual, HubVisual
 │   ├── AirPhysics (RCAirPhysics)
 │   └── Drivetrain (Drivetrain) [driveLayout=RWD]
 ├── Camera (CameraController) [target=RCBuggy.transform, modes=Chase/Orbit/FPV/Trackside]
@@ -154,8 +144,4 @@ R8EOX.Tests.EditMode (depends on: Vehicle, Input)
 
 ## Architecture Decision Records
 
-### ADR-001: Raycast-Based Wheel Physics
-
-**Status:** Accepted
-**Decision:** Use raycast-based wheel physics with Hooke's law suspension and curve-sampled grip model
-**Details:** See `adr-001-physics-model.md`
+- **ADR-001: Raycast-Based Wheel Physics** — Accepted. Raycast wheels with Hooke's law suspension and curve-sampled grip model. Details: `adr-001-physics-model.md`

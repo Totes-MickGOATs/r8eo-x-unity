@@ -136,22 +136,8 @@ git push --force-with-lease
 
 ## Decision Framework: When to Parallelize
 
-### Safe to parallelize
-- Subagents that create entirely new, independent files (new scripts, new tests, new assets)
-- Changes to different subsystems with no shared files
-- Documentation updates to different directories
+**Safe to parallelize:** New independent files; changes to different subsystems; docs in different directories.
 
-### Must sequence
-- Any changes to `.claude/settings.json`
-- Any changes to `justfile` or build configuration
-- Any changes to `pyproject.toml`, `package.json`, or dependency files
-- Any changes to CI workflow files (`.github/workflows/`)
-- Any changes to git hooks (`.githooks/`)
-- Any changes where two subagents edit the same file
+**Must sequence:** Any changes to `.claude/settings.json`, `justfile`, `pyproject.toml`, `package.json`, CI workflow files, git hooks, or any file two subagents would both edit.
 
-### Rule of thumb
-- N parallel PRs = O(N^2) CI runs due to rebase cascade
-- 2 independent PRs: ~10 min total (fine)
-- 4 independent PRs: ~30 min total (acceptable if truly independent)
-- 4 PRs with file overlap: 45+ min and manual intervention needed (avoid)
-- When in doubt, sequence. The time saved by parallelizing is often lost to rebase cascades and manual conflict resolution.
+**Rule of thumb:** N parallel PRs = O(N^2) CI runs. 2 independent PRs: fine. 4 PRs with any overlap: 45+ min and manual intervention needed. When in doubt, sequence.

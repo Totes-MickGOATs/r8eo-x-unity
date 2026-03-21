@@ -51,17 +51,11 @@
 - Audio Random Containers: https://docs.unity3d.com/Manual/AudioRandomContainer.html
 - Audio Profiler: https://docs.unity3d.com/Manual/ProfilerAudio.html
 
-### D. 2D Game Development
-- https://docs.unity3d.com/Manual/Unity2D.html (not relevant for this project)
-
 ### E. Lighting
 - Overview: https://docs.unity3d.com/Manual/LightingInUnity.html
 - Shadows: https://docs.unity3d.com/Manual/Shadows.html
 - Reflections: https://docs.unity3d.com/Manual/reflections-landing.html
 - Lighting in URP: https://docs.unity3d.com/Manual/urp/lighting-landing.html
-
-### F. Multiplayer / Networking
-- https://docs.unity3d.com/Manual/multiplayer.html (future consideration)
 
 ### G. Physics (3D — NVIDIA PhysX)
 - Overview: https://docs.unity3d.com/Manual/PhysicsOverview.html
