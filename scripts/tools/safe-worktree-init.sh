@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # safe-worktree-init.sh — Subagent worktree bootstrap
-# Creates a feature branch + worktree from origin/main, links Unity Library cache,
+# Creates a feature branch + worktree from local main (falls back to origin/main),
 # and verifies the result. Replaces isolation:"worktree" for subagent dispatch.
 #
 # Usage: bash scripts/tools/safe-worktree-init.sh <task-name>
@@ -49,20 +49,29 @@ if git -C "$MAIN_REPO" worktree list --porcelain 2>/dev/null | grep -q "^worktre
     exit 0
 fi
 
-# Fetch latest remote state and update local main ref
-echo "safe-worktree-init: fetching origin/main..."
+# Fetch latest remote state (best-effort; never clobbers local main)
+echo "safe-worktree-init: fetching origin/main (best-effort)..."
 git -C "$MAIN_REPO" fetch origin main --quiet 2>/dev/null || true
-git -C "$MAIN_REPO" update-ref refs/heads/main refs/remotes/origin/main 2>/dev/null || true
-MAIN_SHA=$(git -C "$MAIN_REPO" rev-parse --short refs/remotes/origin/main 2>/dev/null || echo "?")
-echo "safe-worktree-init: origin/main -> $MAIN_SHA"
 
-# Create worktree + feature branch from origin/main
+# Branch base: always prefer local main (reflects queue-promote advances).
+# Fall back to origin/main only if local main ref does not exist yet.
+if git -C "$MAIN_REPO" show-ref --verify --quiet "refs/heads/main" 2>/dev/null; then
+    BASE_REF="refs/heads/main"
+    MAIN_SHA=$(git -C "$MAIN_REPO" rev-parse --short refs/heads/main 2>/dev/null || echo "?")
+    echo "safe-worktree-init: branching from local main -> $MAIN_SHA"
+else
+    BASE_REF="origin/main"
+    MAIN_SHA=$(git -C "$MAIN_REPO" rev-parse --short refs/remotes/origin/main 2>/dev/null || echo "?")
+    echo "safe-worktree-init: branching from origin/main -> $MAIN_SHA (no local main found)"
+fi
+
+# Create worktree + feature branch from BASE_REF
 if git -C "$MAIN_REPO" show-ref --verify --quiet "refs/heads/$BRANCH" 2>/dev/null; then
     echo "safe-worktree-init: branch $BRANCH already exists, checking out in new worktree..."
     git -C "$MAIN_REPO" worktree add "$WORKTREE_DIR" "$BRANCH"
 else
-    echo "safe-worktree-init: creating branch $BRANCH from origin/main..."
-    git -C "$MAIN_REPO" worktree add -b "$BRANCH" "$WORKTREE_DIR" origin/main
+    echo "safe-worktree-init: creating branch $BRANCH from $BASE_REF..."
+    git -C "$MAIN_REPO" worktree add -b "$BRANCH" "$WORKTREE_DIR" "$BASE_REF"
 fi
 
 # Tag worktree as active
