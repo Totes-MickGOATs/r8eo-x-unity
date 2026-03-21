@@ -7,12 +7,14 @@
     "Assets/Scripts/Input/InputMath.cs",
     "Assets/Scripts/Input/RCInput.cs",
     "Assets/Scripts/Input/R8EOX.Input.asmdef",
-    "Assets/Scripts/Input/R8EOXInputActions.inputactions"
+    "Assets/Scripts/Input/R8EOXInputActions.inputactions",
+    "Assets/Scripts/Input/InputBridge.cs"
   ],
   "dependencies": [],
   "replaced_by": "",
   "tests": {
     "editmode": [
+      "InputBridgeTests",
       "InputMathTests",
       "InputProcessingTests",
       "ZeroInputTests"
