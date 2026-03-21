@@ -10,7 +10,7 @@ namespace R8EOX.Debug.Audit
     /// git context. Extracted from <see cref="ConformanceRecorder"/> to isolate
     /// the persistence and process-launch concerns.
     /// </summary>
-    internal static class ConformanceDbWriter
+    public static class ConformanceDbWriter
     {
         // ---- SQL ----
 
@@ -24,7 +24,7 @@ VALUES
 
         // ---- Nested Type ----
 
-        internal struct Row
+        public struct Row
         {
             public string Category;
             public string CheckId;
@@ -40,7 +40,7 @@ VALUES
         // ---- Public API ----
 
         /// <summary>Writes all rows to the database in a single transaction.</summary>
-        internal static void Flush(string runId, string gitSha, string branch, List<Row> rows)
+        public static void Flush(string runId, string gitSha, string branch, List<Row> rows)
         {
             var conn = AuditDb.GetConnection();
             string ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
@@ -73,7 +73,7 @@ VALUES
         }
 
         /// <summary>Runs git with the given arguments and returns trimmed stdout, or "unknown".</summary>
-        internal static string CaptureGitOutput(string arguments)
+        public static string CaptureGitOutput(string arguments)
         {
             try
             {
