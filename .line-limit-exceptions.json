@@ -547,38 +547,6 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Tests/EditMode/ForceDirectionTests.cs",
-      "lines": 199,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/Physics/BlackBoxDrivetrainTests.cs",
-      "lines": 199,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/Physics/BlackBoxInputTests.cs",
-      "lines": 199,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/ReverseESCTests.cs",
-      "lines": 199,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Scripts/Debug/Diagnostics/TerrainDiagnosticChecks.cs",
       "lines": 197,
       "owner": "vehicle-runtime",
@@ -603,40 +571,8 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Tests/EditMode/GyroscopicMathTests.cs",
-      "lines": 195,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/SuspensionStabilityTests.cs",
-      "lines": 195,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/TuningApiTests.cs",
-      "lines": 195,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Tests/PlayMode/ConformanceAtRestTests.cs",
       "lines": 195,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/Physics/BlackBoxAirPhysicsTests.cs",
-      "lines": 193,
       "owner": "physics-tests",
       "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
       "removal_batch": "physics-tests",
@@ -667,43 +603,11 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Tests/EditMode/ContractDebuggerTests.cs",
-      "lines": 192,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/TerrainDiagnosticChecksTests.cs",
-      "lines": 192,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Scripts/Editor/Builders/RCBuggyBuilder.cs",
       "lines": 191,
       "owner": "vehicle-runtime",
       "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
       "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/GripMathTests.cs",
-      "lines": 191,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/TuningChassisTests.cs",
-      "lines": 190,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
       "expiry": "2026-09-01"
     },
     {
@@ -731,14 +635,6 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Tests/EditMode/TumbleMathTests.cs",
-      "lines": 187,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Scripts/Debug/Audit/DebugLogSink.cs",
       "lines": 185,
       "owner": "vehicle-runtime",
@@ -752,30 +648,6 @@
       "owner": "vehicle-runtime",
       "reason": "Runtime C# \u2014 requires behavior-preserving split with paired test update",
       "removal_batch": "vehicle-runtime",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/GameFlowStateMachineTests.cs",
-      "lines": 185,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/SuspensionMathTests.cs",
-      "lines": 182,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/DrivetrainMathTests.cs",
-      "lines": 180,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
       "expiry": "2026-09-01"
     },
     {
@@ -803,24 +675,8 @@
       "expiry": "2026-09-01"
     },
     {
-      "file": "Assets/Tests/EditMode/GroundDriveTests.cs",
-      "lines": 172,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
       "file": "Assets/Tests/PlayMode/TerrainSeamTests.cs",
       "lines": 172,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/Physics/BlackBoxSuspensionTests.cs",
-      "lines": 171,
       "owner": "physics-tests",
       "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
       "removal_batch": "physics-tests",
@@ -856,30 +712,6 @@
       "owner": "docs-skills",
       "reason": "Skill reference doc \u2014 decompose into index page + sibling topic pages",
       "removal_batch": "docs-skills",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/GripTractionCriticalTests.cs",
-      "lines": 163,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/SteeringTests.cs",
-      "lines": 163,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
-      "expiry": "2026-09-01"
-    },
-    {
-      "file": "Assets/Tests/EditMode/GameFlowManagerTests.cs",
-      "lines": 161,
-      "owner": "physics-tests",
-      "reason": "Test suite \u2014 split by behavior family while preserving MethodName_Scenario_ExpectedOutcome naming",
-      "removal_batch": "physics-tests",
       "expiry": "2026-09-01"
     },
     {
