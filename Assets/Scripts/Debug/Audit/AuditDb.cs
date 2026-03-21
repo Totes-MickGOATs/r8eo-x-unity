@@ -1,9 +1,7 @@
 #if UNITY_EDITOR || DEBUG
-using System;
 using System.IO;
 using Mono.Data.Sqlite;
 using UnityEngine;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -11,9 +9,8 @@ using UnityEditor;
 namespace R8EOX.Debug.Audit
 {
     /// <summary>
-    /// Manages the SQLite connection lifecycle and schema for the physics audit database.
-    /// Thread-safe lazy singleton — the database file lives at {project_root}/Logs/physics_audit.db.
-    /// Schema SQL is declared in <see cref="AuditSchema"/>.
+    /// Thread-safe lazy SQLite connection manager. Database file: {project_root}/Logs/physics_audit.db.
+    /// Schema SQL is in <see cref="AuditSchema"/>. Lifecycle hooks are in <see cref="AuditDbLifecycle"/>.
     /// </summary>
     public static class AuditDb
     {
@@ -28,33 +25,13 @@ namespace R8EOX.Debug.Audit
 
 #if UNITY_EDITOR
         [InitializeOnLoadMethod]
-        private static void OnEditorStartup()
-        {
-            EditorApplication.delayCall += () =>
-            {
-                try
-                {
-                    Initialize();
-                    Purge();
-                }
-                catch (Exception ex)
-                {
-                    UnityEngine.Debug.LogWarning(
-                        $"[AuditDb] Editor startup purge failed: {ex.Message}");
-                }
-            };
-
-            AppDomain.CurrentDomain.DomainUnload += OnDomainUnload;
-        }
+        private static void OnEditorStartup() => AuditDbLifecycle.RegisterEditorCallbacks();
 #endif
 
 
         // ---- Public API ----
 
-        /// <summary>
-        /// Returns the open SQLite connection, creating the database and schema on first call.
-        /// Thread-safe.
-        /// </summary>
+        /// <summary>Returns the open SQLite connection, creating database and schema on first call. Thread-safe.</summary>
         public static SqliteConnection GetConnection()
         {
             lock (_lock)
@@ -66,10 +43,7 @@ namespace R8EOX.Debug.Audit
             }
         }
 
-        /// <summary>
-        /// Explicitly initialises the database connection and creates the schema.
-        /// Safe to call multiple times — subsequent calls are no-ops.
-        /// </summary>
+        /// <summary>Initialises the database connection and creates the schema. Safe to call multiple times.</summary>
         public static void Initialize()
         {
             lock (_lock)
@@ -92,10 +66,7 @@ namespace R8EOX.Debug.Audit
             }
         }
 
-        /// <summary>
-        /// Deletes debug_logs older than <see cref="AuditConstants.k_PurgeHours"/> hours,
-        /// then vacuums the database to reclaim space.
-        /// </summary>
+        /// <summary>Deletes debug_logs older than <see cref="AuditConstants.k_PurgeHours"/> hours, then VACUUMs.</summary>
         public static void Purge()
         {
             lock (_lock)
@@ -109,12 +80,7 @@ namespace R8EOX.Debug.Audit
             }
         }
 
-        /// <summary>
-        /// Executes a non-query SQL statement (INSERT, UPDATE, DELETE, CREATE, etc.).
-        /// </summary>
-        /// <param name="sql">The SQL statement to execute.</param>
-        /// <param name="parameters">Optional named parameters as alternating name/value pairs.</param>
-        /// <returns>Number of rows affected.</returns>
+        /// <summary>Executes a non-query SQL statement. Parameters are alternating name/value pairs.</summary>
         public static int ExecuteNonQuery(string sql, params object[] parameters)
         {
             lock (_lock)
@@ -128,13 +94,7 @@ namespace R8EOX.Debug.Audit
             }
         }
 
-        /// <summary>
-        /// Executes a query and returns a reader. Caller is responsible for disposing the reader.
-        /// NOTE: Copy results into a list before releasing — do not iterate while holding the lock.
-        /// </summary>
-        /// <param name="sql">The SQL query to execute.</param>
-        /// <param name="parameters">Optional named parameters as alternating name/value pairs.</param>
-        /// <returns>An open <see cref="SqliteDataReader"/>.</returns>
+        /// <summary>Executes a query and returns a reader. Caller disposes. Copy results before releasing the lock.</summary>
         public static SqliteDataReader ExecuteReader(string sql, params object[] parameters)
         {
             lock (_lock)
@@ -147,23 +107,8 @@ namespace R8EOX.Debug.Audit
         }
 
 
-        // ---- Private Helpers ----
-
-        private static void AddParameters(SqliteCommand cmd, object[] parameters)
-        {
-            if (parameters == null || parameters.Length == 0)
-                return;
-
-            for (int i = 0; i < parameters.Length - 1; i += 2)
-            {
-                var param = cmd.CreateParameter();
-                param.ParameterName = parameters[i].ToString();
-                param.Value = parameters[i + 1] ?? DBNull.Value;
-                cmd.Parameters.Add(param);
-            }
-        }
-
-        private static void OnDomainUnload(object sender, EventArgs e)
+        /// <summary>Closes and disposes the connection. Called by <see cref="AuditDbLifecycle"/> on domain unload.</summary>
+        public static void CloseConnection()
         {
             lock (_lock)
             {
@@ -182,6 +127,22 @@ namespace R8EOX.Debug.Audit
                     _connection = null;
                     _initialized = false;
                 }
+            }
+        }
+
+        // ---- Private Helpers ----
+
+        private static void AddParameters(SqliteCommand cmd, object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return;
+
+            for (int i = 0; i < parameters.Length - 1; i += 2)
+            {
+                var param = cmd.CreateParameter();
+                param.ParameterName = parameters[i].ToString();
+                param.Value = parameters[i + 1] ?? DBNull.Value;
+                cmd.Parameters.Add(param);
             }
         }
     }
