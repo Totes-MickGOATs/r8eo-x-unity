@@ -7,3 +7,4 @@ User test monitoring skill: observing and analyzing user testing sessions.
 | File | Role |
 |------|------|
 | `SKILL.md` | User test monitoring patterns and analysis techniques |
+| `skill-test-session-setup.md` | Test Session Setup |
