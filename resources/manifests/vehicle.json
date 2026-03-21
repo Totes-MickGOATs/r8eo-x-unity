@@ -68,7 +68,10 @@
       "TuningMotorTests",
       "TuningChassisTests",
       "TuningApiTests",
-      "TuningApiMotorTests"
+      "TuningApiMotorTests",
+      "DrivetrainDiffTests",
+      "WheelConfigTests",
+      "RCCarSerializedFieldsTests"
     ],
     "playmode": [
       "VehicleSettlingTests",
