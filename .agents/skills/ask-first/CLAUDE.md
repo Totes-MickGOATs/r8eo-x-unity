@@ -7,6 +7,8 @@ Mandatory pre-implementation workflow for every dev task. Three phases: Interrog
 | File | Role |
 |------|------|
 | `SKILL.md` | Full workflow guide — Phase 1 (planning), Phase 2 (black-box test writing), Phase 3 (TDD implementation) |
+| `skill-phase-1-interrogate-ask-yourself-first.md` | Phase 1: Interrogate (Ask Yourself First) |
+| `skill-phase-2-test-first-black-box-separate-agent.md` | Phase 2: Test-First (Black Box, Separate Agent) |
 
 ## Key Concepts
 
