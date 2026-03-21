@@ -11,8 +11,9 @@ namespace R8EOX.UI
     /// Manages UI screen lifecycle, canvas layers, and overlay stack.
     /// Persists across scene loads. Listens to IGameFlowService for state changes
     /// and IScreenNavigator for navigation events.
+    /// Coroutine helpers are in UIManagerTransitions.cs (partial class).
     /// </summary>
-    public sealed class UIManager : MonoBehaviour
+    public sealed partial class UIManager : MonoBehaviour
     {
         [SerializeField]
         [Tooltip("Registry mapping screen IDs to prefabs")]
@@ -47,27 +48,19 @@ namespace R8EOX.UI
         private void OnEnable()
         {
             if (_gameFlow != null)
-            {
                 _gameFlow.OnStateChanged += HandleStateChanged;
-            }
 
             if (_navigator != null)
-            {
                 _navigator.OnScreenPushed += HandleScreenPushed;
-            }
         }
 
         private void OnDisable()
         {
             if (_gameFlow != null)
-            {
                 _gameFlow.OnStateChanged -= HandleStateChanged;
-            }
 
             if (_navigator != null)
-            {
                 _navigator.OnScreenPushed -= HandleScreenPushed;
-            }
         }
 
         private void HandleScreenPushed(string screenId) => ShowScreen(screenId);
@@ -117,9 +110,7 @@ namespace R8EOX.UI
         public void PopOverlay()
         {
             if (_overlayStack.Count == 0)
-            {
                 return;
-            }
 
             StartCoroutine(PopOverlayRoutine(_overlayStack.Pop()));
         }
@@ -128,46 +119,7 @@ namespace R8EOX.UI
         public void ClearOverlays()
         {
             while (_overlayStack.Count > 0)
-            {
                 ExitAndDestroy(_overlayStack.Pop());
-            }
-        }
-
-        private static void ExitAndDestroy(IScreen screen)
-        {
-            screen.Exit();
-            if (screen is MonoBehaviour mb)
-            {
-                Destroy(mb.gameObject);
-            }
-        }
-
-        private IEnumerator TransitionToScreen(GameObject prefab, string screenId, object data)
-        {
-            if (_activeScreen != null)
-            {
-                yield return _activeScreen.AnimateOut();
-                ExitAndDestroy(_activeScreen);
-            }
-
-            var instance = Instantiate(prefab, _menuLayer);
-            var screen = instance.GetComponent<IScreen>();
-            if (screen == null)
-            {
-                RuntimeLog.LogError($"[UIManager] Prefab '{screenId}' has no IScreen component.");
-                Destroy(instance);
-                yield break;
-            }
-
-            _activeScreen = screen;
-            screen.Enter(data);
-            yield return screen.AnimateIn();
-        }
-
-        private IEnumerator PopOverlayRoutine(IScreen overlay)
-        {
-            yield return overlay.AnimateOut();
-            ExitAndDestroy(overlay);
         }
 
         private void HandleStateChanged(GameState previous, GameState current)

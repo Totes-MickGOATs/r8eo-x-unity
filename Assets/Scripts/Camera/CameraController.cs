@@ -7,6 +7,7 @@ namespace R8EOX.Camera
     /// Multi-mode camera controller for the RC buggy.
     /// Delegates per-mode logic to <see cref="ICameraMode"/> strategy objects.
     /// Supports Chase, Orbit, FPV, and Trackside modes with smooth transitions.
+    /// Static helpers (ApplyPose) live in CameraControllerHelpers.cs.
     /// </summary>
     public class CameraController : MonoBehaviour
     {
@@ -44,13 +45,11 @@ namespace R8EOX.Camera
         /// <summary>The currently active camera mode.</summary>
         public CameraMode CurrentMode => _currentMode;
 
-
         // ---- Private Fields ----
 
         private CameraMode _currentMode = CameraMode.Chase;
         private ICameraMode _activeStrategy;
         private readonly CameraTransition _transition = new CameraTransition();
-
 
         // ---- Unity Lifecycle ----
 
@@ -131,7 +130,6 @@ namespace R8EOX.Camera
             SetMode((CameraMode)next);
         }
 
-
         // ---- Helpers ----
 
         private ICameraMode ModeToStrategy(CameraMode mode)
@@ -146,10 +144,7 @@ namespace R8EOX.Camera
             }
         }
 
-        private void ApplyPose(CameraPose pose)
-        {
-            transform.position = pose.Position;
-            transform.rotation = pose.Rotation;
-        }
+        private void ApplyPose(CameraPose pose) =>
+            CameraControllerHelpers.ApplyPose(transform, pose);
     }
 }

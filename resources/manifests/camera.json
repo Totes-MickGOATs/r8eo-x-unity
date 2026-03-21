@@ -4,6 +4,7 @@
   "status": "ACTIVE",
   "files": [
     "Assets/Scripts/Camera/CameraController.cs",
+    "Assets/Scripts/Camera/CameraControllerHelpers.cs",
     "Assets/Scripts/Camera/CameraMode.cs",
     "Assets/Scripts/Camera/TracksideAnchor.cs",
     "Assets/Scripts/Camera/ICameraMode.cs",
@@ -21,7 +22,8 @@
     "editmode": [
       "ChaseCameraModeTests",
       "OrbitCameraModeTests",
-      "CameraTransitionTests"
+      "CameraTransitionTests",
+      "CameraControllerHelpersTests"
     ],
     "playmode": []
   }
