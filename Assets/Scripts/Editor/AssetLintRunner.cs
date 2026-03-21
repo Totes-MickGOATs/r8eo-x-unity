@@ -3,6 +3,8 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
+// LintReport and LintFinding are defined in LintModels.cs (same namespace).
+
 namespace R8EOX.Editor
 {
     /// <summary>
@@ -141,16 +143,4 @@ namespace R8EOX.Editor
             s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n");
     }
 
-    public class LintReport
-    {
-        public List<LintFinding> Findings { get; } = new List<LintFinding>();
-    }
-
-    public class LintFinding
-    {
-        public string Rule { get; set; }
-        public string Path { get; set; }
-        public string Message { get; set; }
-        public string Severity { get; set; } // "warning" | "info"
-    }
 }
