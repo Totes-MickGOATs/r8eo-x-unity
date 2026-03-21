@@ -20,7 +20,8 @@
   "replaced_by": "",
   "tests": {
     "editmode": [
-      "GameFlowStateMachineTests",
+      "GameFlowStateTransitionTests",
+      "GameFlowNavigationFlowTests",
       "GameFlowManagerTests",
       "NavigationStackTests",
       "SceneRegistryTests",

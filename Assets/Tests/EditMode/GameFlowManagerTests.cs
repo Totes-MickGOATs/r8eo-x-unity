@@ -5,9 +5,7 @@ using UnityEngine;
 
 namespace R8EOX.Tests.EditMode
 {
-    /// <summary>
-    /// Tests for GameFlowManager — singleton, state transitions, session, navigation.
-    /// </summary>
+    /// <summary>Tests for GameFlowManager singleton, state transitions, session, and navigation.</summary>
     [TestFixture]
     public sealed class GameFlowManagerTests
     {
@@ -17,12 +15,8 @@ namespace R8EOX.Tests.EditMode
         [SetUp]
         public void SetUp()
         {
-            // Ensure no leftover instance
             if (GameFlowManager.Instance != null)
-            {
                 UnityEngine.Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
-            }
-
             _managerGo = new GameObject("TestManager");
             _manager = _managerGo.AddComponent<GameFlowManager>();
         }
@@ -31,15 +25,9 @@ namespace R8EOX.Tests.EditMode
         public void TearDown()
         {
             if (_managerGo != null)
-            {
                 UnityEngine.Object.DestroyImmediate(_managerGo);
-            }
-
-            // Clean up any other instances
             if (GameFlowManager.Instance != null)
-            {
                 UnityEngine.Object.DestroyImmediate(GameFlowManager.Instance.gameObject);
-            }
         }
 
         [Test]
@@ -51,19 +39,15 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void Awake_DuplicateDestroyed()
         {
-            var duplicateGo = new GameObject("DuplicateManager");
-            duplicateGo.AddComponent<GameFlowManager>();
-
-            // The duplicate should be marked for destruction
+            var dup = new GameObject("DuplicateManager");
+            dup.AddComponent<GameFlowManager>();
             Assert.That(GameFlowManager.Instance, Is.EqualTo(_manager));
-
-            UnityEngine.Object.DestroyImmediate(duplicateGo);
+            UnityEngine.Object.DestroyImmediate(dup);
         }
 
         [Test]
         public void RequestTransition_ValidTransition_ChangesState()
         {
-            // Boot -> Splash is valid
             _manager.RequestTransition(GameState.Splash);
             Assert.That(_manager.CurrentState, Is.EqualTo(GameState.Splash));
         }
@@ -71,9 +55,7 @@ namespace R8EOX.Tests.EditMode
         [Test]
         public void RequestTransition_InvalidTransition_Throws()
         {
-            // Boot -> Playing is not valid
-            Assert.Throws<InvalidOperationException>(() =>
-                _manager.RequestTransition(GameState.Playing));
+            Assert.Throws<InvalidOperationException>(() => _manager.RequestTransition(GameState.Playing));
         }
 
         [Test]
@@ -81,15 +63,13 @@ namespace R8EOX.Tests.EditMode
         {
             var session = new SessionConfig("race", "track1", "Scenes/Track1", "buggy", 3, 1);
             _manager.SetSession(session);
-
             Assert.That(_manager.CurrentSession, Is.EqualTo(session));
         }
 
         [Test]
         public void SetSession_Null_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                _manager.SetSession(null));
+            Assert.Throws<ArgumentNullException>(() => _manager.SetSession(null));
         }
 
         [Test]
@@ -97,11 +77,8 @@ namespace R8EOX.Tests.EditMode
         {
             var session = new SessionConfig("race", "track1", "Scenes/Track1", "buggy", 3, 1);
             _manager.SetSession(session);
-
-            // Get to Playing state first so ReturnToMenu can transition to MainMenu
             _manager.BootDirectToPlaying();
             _manager.ReturnToMenu();
-
             Assert.That(_manager.CurrentSession, Is.Null);
         }
 
@@ -118,7 +95,6 @@ namespace R8EOX.Tests.EditMode
             _manager.NavigateTo("main_menu");
             _manager.NavigateTo("mode_select");
             _manager.GoBack();
-
             Assert.That(_manager.CurrentScreen, Is.EqualTo("main_menu"));
         }
 
@@ -128,10 +104,8 @@ namespace R8EOX.Tests.EditMode
             _manager.NavigateTo("main_menu");
             _manager.NavigateTo("mode_select");
             _manager.NavigateTo("car_select");
-
-            string[] crumbs = _manager.GetBreadcrumbs();
-
-            Assert.That(crumbs, Is.EqualTo(new[] { "main_menu", "mode_select", "car_select" }));
+            Assert.That(_manager.GetBreadcrumbs(),
+                Is.EqualTo(new[] { "main_menu", "mode_select", "car_select" }));
         }
 
         [Test]
@@ -146,14 +120,8 @@ namespace R8EOX.Tests.EditMode
         {
             GameState capturedPrev = default;
             GameState capturedNext = default;
-            _manager.OnStateChanged += (prev, next) =>
-            {
-                capturedPrev = prev;
-                capturedNext = next;
-            };
-
+            _manager.OnStateChanged += (prev, next) => { capturedPrev = prev; capturedNext = next; };
             _manager.RequestTransition(GameState.Splash);
-
             Assert.That(capturedPrev, Is.EqualTo(GameState.Boot));
             Assert.That(capturedNext, Is.EqualTo(GameState.Splash));
         }
