@@ -7,6 +7,12 @@ Racing game UI systems — HUD layout, three-canvas optimization, hybrid UI Tool
 | File | Contents |
 |------|----------|
 | `SKILL.md` | HUD layout and positioning, three-canvas split, canvas optimizations, hybrid UI approach, minimap render texture, menu flow and scene transitions, async scene loading, split-screen viewports, local and Steam leaderboards, ghost data format, F1-style race start sequence, accessibility features, optimization checklist |
+| `skill-three-canvas-optimization.md` | Three-Canvas Optimization |
+| `skill-menu-flow.md` | Menu Flow |
+| `skill-race-start-sequence.md` | Race Start Sequence |
+| `skill-ghost-data.md` | Ghost Data |
+| `skill-accessibility.md` | Accessibility |
+| `skill-async-scene-loading.md` | Async Scene Loading |
 
 ## Relevant Skills
 

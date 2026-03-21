@@ -3,6 +3,7 @@ name: unity-racing-ui
 description: Unity Racing UI — HUD, Menus, and Race Management
 ---
 
+
 # Unity Racing UI — HUD, Menus, and Race Management
 
 Use this skill when building racing game UI systems including in-race HUD, menu flow, minimap, split-screen viewports, leaderboards, ghost data display, race start sequences, and accessibility features.
@@ -26,45 +27,6 @@ Position critical telemetry where the eye naturally rests:
 | Position indicator | Top-right, below lap | On position change | Dynamic-slow |
 | Minimap | Bottom-left or top-left | Every 2-3 frames | Dynamic-slow |
 | Race notifications | Center, fade-in/out | On event | Dynamic-slow |
-
----
-
-## Three-Canvas Optimization
-
-Split HUD across three canvases to minimize rebuild cost:
-
-### Canvas 1: Static
-
-- Background frames, decorative borders, static labels
-- **Rebuilds:** Never (after initial layout)
-- **Settings:** `Canvas.renderMode = ScreenSpaceOverlay`
-
-### Canvas 2: Dynamic-Fast
-
-- Speedometer needle, RPM bar fill, lap timer text
-- **Rebuilds:** Every frame (unavoidable — values change every frame)
-- **Settings:** Separate Canvas component, own `CanvasRenderer`
-- **Optimization:** Use `TextMeshProUGUI.SetText(float)` with format caching to avoid string allocations
-
-### Canvas 3: Dynamic-Slow
-
-- Lap counter, position, sector deltas, minimap, notifications
-- **Rebuilds:** Only on event (lap crossing, position change, sector crossing)
-- **Settings:** Separate Canvas component
-- **Optimization:** Update via events, not polling
-
-### Critical HUD Optimizations
-
-- **Disable Raycast Target** on ALL HUD elements. HUD is display-only; raycasting wastes CPU traversing the graphic tree every frame.
-- **No Animator on needles.** Drive needle rotation via code: `needleTransform.localRotation = Quaternion.Euler(0, 0, -angle)`. Animator overhead is disproportionate for a single float interpolation.
-- **Sprite atlases** for all HUD icons and frames. One draw call per atlas instead of one per sprite.
-
-```csharp
-// Code-driven speedometer needle — no Animator needed
-float normalizedSpeed = currentSpeed / maxSpeed;
-float angle = Mathf.Lerp(minAngle, maxAngle, normalizedSpeed);
-needleTransform.localRotation = Quaternion.Euler(0f, 0f, -angle);
-```
 
 ---
 
@@ -111,68 +73,6 @@ Menu systems with complex layouts, data binding, and styling are verbose and fra
 
 ---
 
-## Menu Flow
-
-```
-Main Menu
-  ├── Vehicle Select
-  │     └── Tuning / Livery
-  ├── Track Select
-  │     └── Race Config (laps, AI count, weather)
-  ├── Settings
-  │     ├── Graphics
-  │     ├── Audio
-  │     ├── Controls / Rebinding
-  │     └── Accessibility
-  ├── Leaderboards
-  └── Quit
-
-Race Config → Pre-Race (countdown) → Race → Results
-                                              ├── Replay
-                                              ├── Retry
-                                              └── Back to Menu
-```
-
-### Scene Transitions
-
-Each major screen maps to a scene or an additive scene:
-
-| Screen | Scene Strategy |
-|--------|---------------|
-| Main Menu | Persistent scene, loaded at boot |
-| Vehicle / Track Select | UI overlay in menu scene (no scene load) |
-| Race | Full scene load (track + vehicles + HUD) |
-| Results | Additive scene over race scene (keeps race state for replay) |
-
----
-
-## Async Scene Loading
-
-Use the `allowSceneActivation = false` pattern for loading screens with progress bars:
-
-```csharp
-public async Awaitable LoadTrackScene(string sceneName, Slider progressBar)
-{
-    AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
-    op.allowSceneActivation = false;
-
-    while (op.progress < 0.9f)
-    {
-        // progress stops at 0.9 until allowSceneActivation = true
-        progressBar.value = op.progress / 0.9f;
-        await Awaitable.NextFrameAsync();
-    }
-
-    progressBar.value = 1f;
-    // Optional: hold for minimum display time or player input
-    await Awaitable.WaitForSecondsAsync(0.5f);
-
-    op.allowSceneActivation = true;
-}
-```
-
----
-
 ## Split-Screen
 
 ### Camera Viewport Partitioning
@@ -211,101 +111,6 @@ camera2.rect = new Rect(0.5f, 0f, 0.5f, 1f); // Right half
 
 ---
 
-## Ghost Data
-
-### Recording Format
-
-Record vehicle state at 30Hz (every other FixedUpdate at 50Hz):
-
-```csharp
-struct GhostFrame  // 28 bytes at 30Hz recording rate
-{
-    float time;           // 4 bytes
-    Vector3 position;     // 12 bytes
-    Quaternion rotation;  // 16 bytes (or compressed, see replay-ghost skill)
-    // Total: 32 bytes with padding
-}
-```
-
-### Storage Estimate
-
-- 30 frames/sec x 120 sec (2-min lap) = 3,600 frames
-- 32 bytes x 3,600 = ~115 KB uncompressed
-- With DeflateStream: ~60-80 KB per ghost
-
-### Playback Interpolation
-
-- Use **Hermite spline interpolation** for position to avoid jerky movement between samples.
-- Use `Quaternion.Slerp` for rotation between adjacent frames.
-- See `unity-replay-ghost` skill for full implementation details.
-
----
-
-## Race Start Sequence
-
-### F1-Style Traffic Lights
-
-1. **Formation lap complete** — vehicles on grid, motor authority LOCKED (throttle input ignored).
-2. **5 sequential red lights** — each light illuminates 1 second apart (5 seconds total).
-3. **Random hold** — all 5 reds stay lit for a random duration (0.5-3.0 seconds). This prevents anticipation.
-4. **Lights out** — all reds extinguish simultaneously. Motor authority UNLOCKED. GO.
-5. **Jump start detection** — if any vehicle crosses the start line before lights out, apply a time penalty.
-
-```csharp
-// Race start sequence coroutine
-public async Awaitable RunStartSequence()
-{
-    motorAuthority.Lock(); // Prevent throttle input
-
-    for (int i = 0; i < 5; i++)
-    {
-        lights[i].SetRed(true);
-        await Awaitable.WaitForSecondsAsync(1.0f);
-    }
-
-    float holdTime = Random.Range(0.5f, 3.0f);
-    await Awaitable.WaitForSecondsAsync(holdTime);
-
-    foreach (var light in lights)
-        light.SetRed(false);
-
-    motorAuthority.Unlock(); // GO
-    raceTimer.Start();
-}
-```
-
----
-
-## Accessibility
-
-| Feature | Implementation | Priority |
-|---------|---------------|----------|
-| Colorblind modes | Post-processing shader (protanopia, deuteranopia, tritanopia) | High |
-| Input rebinding | Unity Input System `InputActionRebindingExtensions` | High |
-| UI scale multiplier | `CanvasScaler.scaleFactor` adjustable in settings | Medium |
-| Steering assist | Reduce required input precision, auto-correct toward racing line | Medium |
-| Braking assist | Auto-brake before corners based on speed/distance | Medium |
-| Screen reader | UI Toolkit `label` properties for accessibility tree | Low |
-
-### Colorblind Shader
-
-Apply as a full-screen post-processing effect. Use a color transformation matrix that simulates then corrects for the specific type of color vision deficiency. Provide a dropdown in Settings: Normal, Protanopia, Deuteranopia, Tritanopia.
-
-### Input Rebinding Flow
-
-```csharp
-// Interactive rebinding with Unity Input System
-var rebind = action.PerformInteractiveRebinding()
-    .WithControlsExcluding("Mouse")
-    .OnComplete(op => {
-        op.Dispose();
-        SaveBindings();
-    })
-    .Start();
-```
-
----
-
 ## Canvas Optimization Checklist
 
 - [ ] Sprite atlases for all HUD icons (one atlas per canvas)
@@ -325,3 +130,14 @@ var rebind = action.PerformInteractiveRebinding()
 | **`unity-ui-toolkit`** | UI Toolkit fundamentals, USS styling, UXML layout, data binding |
 | **`unity-ui-design`** | General UI/UX design patterns and principles |
 | **`unity-input-system`** | Input System setup, rebinding, action maps |
+
+
+## Topic Pages
+
+- [Three-Canvas Optimization](skill-three-canvas-optimization.md)
+- [Menu Flow](skill-menu-flow.md)
+- [Race Start Sequence](skill-race-start-sequence.md)
+- [Ghost Data](skill-ghost-data.md)
+- [Accessibility](skill-accessibility.md)
+- [Async Scene Loading](skill-async-scene-loading.md)
+
