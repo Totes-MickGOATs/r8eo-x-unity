@@ -628,6 +628,31 @@ lint-assets:
 	echo "lint-assets: done (exit 0 — findings are advisory)"
 	exit 0
 
+# Modularize scenes and prefabs into additive sub-scenes / nested prefabs (requires UNITY_PATH)
+scene-modularize:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	if [ -z "${UNITY_PATH:-}" ]; then
+	    echo "scene-modularize: UNITY_PATH not set — cannot run"
+	    echo "  Set UNITY_PATH to your Unity installation to run scene modularization."
+	    echo "  Example: export UNITY_PATH=/Applications/Unity/Hub/Editor/<version>/Unity.app/Contents/MacOS/Unity"
+	    exit 1
+	fi
+	if [ ! -f "$UNITY_PATH" ]; then
+	    echo "scene-modularize: Unity binary not found at UNITY_PATH=$UNITY_PATH"
+	    exit 1
+	fi
+	mkdir -p Logs
+	echo "scene-modularize: running via Unity batchmode..."
+	"$UNITY_PATH" \
+	    -batchmode \
+	    -nographics \
+	    -quit \
+	    -projectPath "$(pwd)" \
+	    -executeMethod R8EOX.Editor.Builders.SceneModularizationRunner.RunAll \
+	    -logFile Logs/scene-modularize.log
+	echo "scene-modularize: done — check Logs/scene-modularize.log for details"
+
 # Deep lint: full C# lint + registry + assert audit + advisory asset lint
 lint-deep: lint-csharp validate-registry lint-policy lint-assets
 	#!/usr/bin/env bash

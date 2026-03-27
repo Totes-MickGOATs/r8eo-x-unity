@@ -3,6 +3,30 @@
   "note": "Temporary exception ledger. Every entry must have owner, reason, removal_batch, and expiry. Goal: zero permanent exceptions.",
   "exceptions": [
     {
+      "file": "Assets/Scenes/TestTrack.unity",
+      "lines": 5041,
+      "owner": "scene-prefab",
+      "reason": "Unity-managed YAML scene — cannot be hand-edited. Builder scripts written: run `just scene-modularize` (requires UNITY_PATH) to decompose into TestTrack.unity + TestTrack-Terrain.unity + TestTrack-Props.unity + TestTrack-Lighting.unity via TrackSceneModularBuilder.ModularizeTestTrack()",
+      "removal_batch": "final-cutover",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Scenes/OutpostTrack.unity",
+      "lines": 636,
+      "owner": "scene-prefab",
+      "reason": "Unity-managed YAML scene — cannot be hand-edited. Builder scripts written: run `just scene-modularize` (requires UNITY_PATH) to decompose into OutpostTrack.unity + OutpostTrack-Terrain.unity + OutpostTrack-Lighting.unity via TrackSceneModularBuilder.ModularizeOutpostTrack()",
+      "removal_batch": "final-cutover",
+      "expiry": "2026-09-01"
+    },
+    {
+      "file": "Assets/Prefabs/RCBuggy.prefab",
+      "lines": 2640,
+      "owner": "scene-prefab",
+      "reason": "Unity-managed YAML prefab — cannot be hand-edited. Builder scripts written: run `just scene-modularize` (requires UNITY_PATH) to extract nested prefabs (RCBody, WheelFL/FR/RL/RR) via RCBuggyModularBuilder.Run()",
+      "removal_batch": "final-cutover",
+      "expiry": "2026-09-01"
+    },
+    {
       "file": ".line-limit-exceptions.json",
       "lines": 934,
       "owner": "docs-core",
