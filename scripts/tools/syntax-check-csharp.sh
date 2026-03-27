@@ -57,21 +57,11 @@ check_file() {
 
   # 5. File length check (target: 150 lines, blocking at 200 until final-cutover)
   if (( lines > 200 )); then
-    case "$basename" in
-      R8EOXInputActions.cs) ;;
-      *)
-        echo "WARN:  $file — $lines lines (exceeds 200-line limit; target is 150)"
-        warnings=$((warnings + 1))
-        ;;
-    esac
+    echo "WARN:  $file — $lines lines (exceeds 200-line limit; target is 150)"
+    warnings=$((warnings + 1))
   elif (( lines > 150 )); then
-    case "$basename" in
-      R8EOXInputActions.cs) ;;
-      *)
-        echo "WARN:  $file — $lines lines (above 150-line target; see .line-limit-exceptions.json)"
-        warnings=$((warnings + 1))
-        ;;
-    esac
+    echo "WARN:  $file — $lines lines (above 150-line target; see .line-limit-exceptions.json)"
+    warnings=$((warnings + 1))
   fi
 
   # 6. Common typos: doubled semicolons, missing using
