@@ -15,8 +15,9 @@ if [[ "${1:-}" == "--strict" ]]; then STRICT=1; fi
 # Governed extensions (text files with meaningful line counts)
 EXTENSIONS="*.cs *.md *.json *.yml *.yaml *.txt *.asmdef *.ruleset *.uxml *.uss"
 
-# Patterns to exclude (binary/generated/cache)
-EXCLUDES="Library/ Logs/ Temp/ obj/ .meta Packages/packages-lock.json"
+# Patterns to exclude (binary/generated/cache/agent-docs)
+# .agents/ contains agent skill docs — governed separately, not project source
+EXCLUDES="Library/ Logs/ Temp/ obj/ .meta Packages/packages-lock.json .agents/"
 
 is_excluded() {
   local file="$1"
@@ -53,6 +54,7 @@ excepted=""
 violation_count=0
 excepted_count=0
 
+set -f  # disable glob expansion so $EXTENSIONS patterns stay as patterns, not expanded paths
 for ext in $EXTENSIONS; do
   while IFS= read -r file; do
     [[ -f "$file" ]] || continue
@@ -69,6 +71,7 @@ for ext in $EXTENSIONS; do
     fi
   done < <(git ls-files -- "$ext" 2>/dev/null || true)
 done
+set +f
 
 # Sort and report
 echo "=== Repo-wide line audit (limit=${LIMIT}) ==="
